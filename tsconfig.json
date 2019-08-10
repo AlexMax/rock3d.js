@@ -3,6 +3,7 @@
     "declaration": true,
     "moduleResolution": "node",
     "outDir": "./dist",
+    "strict": true,
     "target": "es2015",
   },
   "include": [

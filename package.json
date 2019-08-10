@@ -2,17 +2,23 @@
   "name": "rock3d",
   "version": "0.0.1",
   "description": "A simple 3D engine with a 2.5D heart.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc"
-  },
-  "dependencies": {
-    "typescript": "^3.5.3"
-  },
   "author": {
     "name": "Alex Mayfield",
     "email": "alexmax2742@gmail.com"
   },
-  "license": "Zlib"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build-dev": "tsc --watch"
+  },
+  "license": "Zlib",
+  "dependencies": {
+    "@types/gl-matrix": "^2.4.5",
+    "gl-matrix": "^3.0.0",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "license-checker": "^25.0.1"
+  }
 }
