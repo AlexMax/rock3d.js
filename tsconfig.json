@@ -3,11 +3,9 @@
     "declaration": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "outDir": "./dist",
+    "outDir": "dist",
+    "sourceMap": true,
     "strict": true,
     "target": "es2015",
-  },
-  "include": [
-    "src/**/*"
-  ],
+  }
 }

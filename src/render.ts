@@ -2,64 +2,10 @@ import { glMatrix, mat4 } from "gl-matrix";
 
 import { Camera } from "./camera";
 
+import vertexShader from './shader/vert.glsl';
+import fragmentShader from './shader/frag.glsl';
+
 const ATLAS_SIZE = 512;
-
-const vert_glsl = `uniform mat4 uView;
-uniform mat4 uProjection;
-
-attribute vec3 lPos;
-attribute vec4 lAtlasInfo;
-attribute vec2 lTexCoord;
-
-varying vec4 fAtlasInfo;
-varying vec2 fTexCoord;
-
-void main()
-{
-    fAtlasInfo = lAtlasInfo;
-
-    gl_Position = uProjection * uView * vec4(lPos, 1.0);
-
-    float uAtOrigin = lAtlasInfo.x;
-    float vAtOrigin = lAtlasInfo.y;
-    float uAtLen = lAtlasInfo.z;
-    float vAtLen = lAtlasInfo.w;
-
-    fTexCoord.x = (lTexCoord.x * uAtLen) + uAtOrigin;
-    fTexCoord.y = (lTexCoord.y * vAtLen) + vAtOrigin;
-}`;
-
-const frag_glsl = `precision mediump float;
-
-uniform sampler2D uTexture;
-
-varying vec4 fAtlasInfo;
-varying vec2 fTexCoord;
-
-float zNear = 1.0;
-float zFar = 10000.0;
-
-float linearDepth(float coord) {
-    float ndcCoord = coord * 2.0 - 1.0;
-    return (2.0 * zNear * zFar) / (zFar + zNear - ndcCoord * (zFar - zNear));
-}
-
-float wrap(float coord, float origin, float len) {
-    return mod(coord - origin, len) + origin;
-}
-
-void main() {
-    float uAtOrigin = fAtlasInfo.x;
-    float vAtOrigin = fAtlasInfo.y;
-    float uAtLen = fAtlasInfo.z;
-    float vAtLen = fAtlasInfo.w;
-
-    vec2 texCord;
-    texCord.x = wrap(fTexCoord.x, uAtOrigin, uAtLen);
-    texCord.y = wrap(fTexCoord.y, vAtOrigin, vAtLen);
-
-    gl_FragColor = texture2D(uTexture, texCord);
-}`;
 
 /**
  * Turn a WebGL GLenum into a string, for debugging purposes.
@@ -170,8 +116,8 @@ export class RenderContext {
         const gl = this.gl;
 
         // 3D shader program, used for rendering walls, floors and ceilings.
-        const vs = compileShader(gl, gl.VERTEX_SHADER, vert_glsl);
-        const fs = compileShader(gl, gl.FRAGMENT_SHADER, frag_glsl);
+        const vs = compileShader(gl, gl.VERTEX_SHADER, vertexShader);
+        const fs = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
 
         this.worldProg = linkShaderProgram(gl, [vs, fs]);
 
