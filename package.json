@@ -9,6 +9,7 @@
     "run": "caddy"
   },
   "dependencies": {
+    "file-loader": "^4.2.0",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "webpack": "^4.39.1",

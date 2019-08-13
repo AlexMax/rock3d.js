@@ -8,11 +8,16 @@ module.exports = {
             exclude: /node_modules/,
             test: /\.ts$/,
             use: 'ts-loader'
+        }, {
+            exclude: /node_modules/,
+            test: /\.png$/,
+            use: 'file-loader'
         }]
     },
     output: {
         filename: 'index.js',
-        path: path.resolve(__dirname, 'public/dist')
+        path: path.resolve(__dirname, 'public/dist'),
+        publicPath: '/dist/'
     },
     resolve: {
         extensions: ['.js', '.ts']

@@ -18,9 +18,33 @@
 
 import * as rock3d from 'rock3d';
 
-window.addEventListener("load", () => {
+import { textureLoader } from './util';
+
+import CEIL5_1 from './asset/CEIL5_1.png';
+import FLOOR4_8 from './asset/FLOOR4_8.png';
+import STARTAN3 from './asset/STARTAN3.png';
+
+window.addEventListener("load", async () => {
+    // Wait to load all of our textures.
+    const textures = await Promise.all([
+        textureLoader('CEIL5_1', CEIL5_1),
+        textureLoader('FLOOR4_8', FLOOR4_8),
+        textureLoader('STARTAN3', STARTAN3)
+    ]);
+
+    // Load our textures into the atlas.
+    const atlas = new rock3d.Atlas.Atlas(512);
+    for (let i = 0;i < textures.length;i++) {
+        const { name, img } = textures[i];
+        atlas.add(name, img);
+    }
+
     // Create canvas
     const root = document.getElementById('rocked');
+    if (root === null) {
+        throw new Error('Could not find root element');
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 500;
