@@ -24,6 +24,8 @@ import CEIL5_1 from './asset/CEIL5_1.png';
 import FLOOR4_8 from './asset/FLOOR4_8.png';
 import STARTAN3 from './asset/STARTAN3.png';
 
+const ATLAS_SIZE = 512;
+
 window.addEventListener("load", async () => {
     // Wait to load all of our textures.
     const textures = await Promise.all([
@@ -31,13 +33,6 @@ window.addEventListener("load", async () => {
         textureLoader('FLOOR4_8', FLOOR4_8),
         textureLoader('STARTAN3', STARTAN3)
     ]);
-
-    // Load our textures into the atlas.
-    const atlas = new Atlas.Atlas(512);
-    for (let i = 0;i < textures.length;i++) {
-        const { name, img } = textures[i];
-        atlas.add(name, img);
-    }
 
     // Create canvas
     const root = document.getElementById('rocked');
@@ -53,4 +48,14 @@ window.addEventListener("load", async () => {
     // Initialize a view on the given canvas
     const renderer = new Render.RenderContext(canvas);
     renderer.render(new Camera.Camera());
+
+    // Load our textures into the atlas.
+    const atlas = new Atlas.Atlas(ATLAS_SIZE);
+    for (let i = 0;i < textures.length;i++) {
+        const { name, img } = textures[i];
+        atlas.add(name, img);
+    }
+
+    // Persist the atlas to the GPU.
+    renderer.bakeAtlas(atlas);
 });
