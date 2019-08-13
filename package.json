@@ -2,10 +2,15 @@
   "name": "rocked",
   "version": "0.0.1",
   "description": "An editor for the rock3d.js engine",
+  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Alex Mayfield",
+    "email": "alexmax2742@gmail.com"
+  },
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "build-dev": "webpack --mode=development",
+    "build-watch": "webpack --mode=development --watch",
     "run": "caddy"
   },
   "dependencies": {
@@ -14,10 +19,5 @@
     "typescript": "^3.5.3",
     "webpack": "^4.39.1",
     "webpack-cli": "^3.3.6"
-  },
-  "author": {
-    "name": "Alex Mayfield",
-    "email": "alexmax2742@gmail.com"
-  },
-  "license": "AGPL-3.0-or-later"
+  }
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as rock3d from 'rock3d';
+import { Atlas, Render, Camera } from 'rock3d';
 
 import { textureLoader } from './util';
 
@@ -33,7 +33,7 @@ window.addEventListener("load", async () => {
     ]);
 
     // Load our textures into the atlas.
-    const atlas = new rock3d.Atlas.Atlas(512);
+    const atlas = new Atlas.Atlas(512);
     for (let i = 0;i < textures.length;i++) {
         const { name, img } = textures[i];
         atlas.add(name, img);
@@ -51,6 +51,6 @@ window.addEventListener("load", async () => {
     root.appendChild(canvas);
 
     // Initialize a view on the given canvas
-    const renderer = new rock3d.Render.RenderContext(canvas);
-    renderer.render(new rock3d.Camera.Camera());
+    const renderer = new Render.RenderContext(canvas);
+    renderer.render(new Camera.Camera());
 });
