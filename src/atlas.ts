@@ -13,6 +13,8 @@ interface AtlasHash {
     [name: string]: AtlasEntry;
 }
 
+export type PersistProc = (data: HTMLImageElement, x: number, y: number) => void;
+
 export class Atlas {
     atlas: AtlasHash;
     length: number; // Length of one side of the texture atlas - it's square
@@ -70,5 +72,17 @@ export class Atlas {
         }
 
         throw new Error('No space left in texture atlas');
+    }
+
+    /**
+     * Persist the atlas onto the GPU.
+     * 
+     * @param p Function that actually does the persisting to the GPU
+     */
+    persist(p: PersistProc) {
+        for (let texName in this.atlas) {
+            const tex = this.atlas[texName];
+            p(tex.texture, tex.xPos, tex.yPos);
+        }
     }
 }

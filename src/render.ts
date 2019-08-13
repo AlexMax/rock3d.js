@@ -1,5 +1,6 @@
 import { glMatrix, mat4 } from "gl-matrix";
 
+import { Atlas } from "./atlas";
 import { Camera } from "./camera";
 
 import vertexShader from './shader/vert.glsl';
@@ -80,6 +81,7 @@ export class RenderContext {
     canvas: HTMLCanvasElement;
     gl: WebGLRenderingContext;
     worldProg!: WebGLProgram; // Initialized in initWorldRenderer()
+    worldAtlas?: Atlas;
     worldTexAtlas!: WebGLTexture; // Initialized in initWorldRenderer()
     worldVerts!: ArrayBuffer; // Initialized in initWorldRenderer()
     worldInds!: Uint16Array; // Initialized in initWorldRenderer()
@@ -191,6 +193,17 @@ export class RenderContext {
         // Make sure our projection matrix goes into the shader program
         const projectionLoc = this.gl.getUniformLocation(this.worldProg, "uProjection");
         this.gl.uniformMatrix4fv(projectionLoc, false, this.worldProject);
+    }
+
+    bakeAtlas(textures: Atlas) {
+        // Copy the texture atlas into the render context
+        this.worldAtlas = textures;
+
+        // Get the texture atlas onto the GPU
+        textures.persist((data, x, y) => {
+            const gl = this.gl;
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        });
     }
 
     render(cam: Camera): void {
