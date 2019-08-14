@@ -85,4 +85,13 @@ export class Atlas {
             p(tex.texture, tex.xPos, tex.yPos);
         }
     }
+
+    /**
+     * Find and return the atlas entry given the name.
+     * 
+     * @param name The name of the texture to find.
+     */
+    find(name: string): AtlasEntry {
+        return this.atlas[name];
+    }
 }
