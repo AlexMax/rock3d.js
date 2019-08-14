@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { glMatrix, vec2 } from 'gl-matrix';
 import { Atlas, Render, Camera } from 'rock3d';
 
 import { textureLoader } from './util';
@@ -58,4 +59,30 @@ window.addEventListener("load", async () => {
 
     // Persist the atlas to the GPU.
     renderer.bakeAtlas(atlas);
+
+    const polygon = [
+        vec2.fromValues(-256, 512), // Upper-left corner, going clockwise
+        vec2.fromValues(-64, 512),
+        vec2.fromValues(64, 512),
+        vec2.fromValues(256, 512), // Upper-right corner
+        vec2.fromValues(256, 64),
+        vec2.fromValues(256, -64), // Lower-right corner
+        vec2.fromValues(-256, -64),
+        vec2.fromValues(-256, 64),
+    ];
+    for (let i = 0;i < (polygon.length - 1);i++) {
+        renderer.addWall(polygon[i], polygon[i + 1], -64, 64, "STARTAN3");
+    }
+
+    const camera = new Camera.Camera();
+    camera.pos[0] = 0;
+    camera.pos[1] = 448;
+    camera.pos[2] = 48;
+    camera.yaw = glMatrix.toRadian(0);
+
+    function draw(time: number) {
+        renderer.render(camera);
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
 });
