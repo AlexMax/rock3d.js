@@ -162,8 +162,8 @@ export class RenderContext {
         }
 
         // GL Settings.
-        //gl.enable(gl.CULL_FACE);
-        //gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
 
         this.gl = gl;
         this.initWorldRenderer();
