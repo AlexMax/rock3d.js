@@ -28,6 +28,9 @@ import STARTAN3 from './asset/STARTAN3.png';
 const ATLAS_SIZE = 512;
 
 window.addEventListener("load", async () => {
+    // Debugging stuff
+    (window as any).getVertex = Render.getVertex;
+
     // Wait to load all of our textures.
     const textures = await Promise.all([
         textureLoader('CEIL5_1', CEIL5_1),
@@ -76,8 +79,8 @@ window.addEventListener("load", async () => {
 
     const camera = new Camera.Camera();
     camera.pos[0] = 0;
-    camera.pos[1] = 448;
-    camera.pos[2] = 48;
+    camera.pos[1] = 0;
+    camera.pos[2] = 0;
     camera.yaw = glMatrix.toRadian(0);
 
     function draw(time: number) {
