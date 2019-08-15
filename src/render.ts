@@ -34,7 +34,7 @@ function glErrorString(gl: WebGLRenderingContext, num: GLenum): string {
  */
 function compileShader(gl: WebGLRenderingContext, shaderType: number, source: string): WebGLShader {
     const shader = gl.createShader(shaderType);
-    if (shader == null) {
+    if (shader === null) {
         throw new Error('Could not create shader object');
     }
 
@@ -42,7 +42,7 @@ function compileShader(gl: WebGLRenderingContext, shaderType: number, source: st
     gl.compileShader(shader);
 
     const status: GLboolean = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (status == false) {
+    if (status === false) {
         const log = gl.getShaderInfoLog(shader);
         throw new Error(`${glErrorString(gl, shaderType)} compile error:\n${log}`);
     }
@@ -59,7 +59,7 @@ function compileShader(gl: WebGLRenderingContext, shaderType: number, source: st
  */
 function linkShaderProgram(gl: WebGLRenderingContext, shaders: WebGLShader[]): WebGLProgram {
     const program = gl.createProgram();
-    if (program == null) {
+    if (program === null) {
         throw new Error('Could not create program object');
     }
 
@@ -69,7 +69,7 @@ function linkShaderProgram(gl: WebGLRenderingContext, shaders: WebGLShader[]): W
     gl.linkProgram(program);
 
     const status: GLboolean = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (status == false) {
+    if (status === false) {
         const log = gl.getProgramInfoLog(program);
         throw new Error("Shader link error:\n" + log);
     }
@@ -77,20 +77,67 @@ function linkShaderProgram(gl: WebGLRenderingContext, shaders: WebGLShader[]): W
     return program;
 }
 
-function Vertex(buffer: ArrayBuffer, index: number, x: number, y: number,
+/**
+ * Return the number of bytes needed to hold the given number of vertexes.
+ * 
+ * @param count Number of vertexes to measure.
+ */
+function vertexBytes(count: number) {
+    return count * 36;
+}
+
+/**
+ * Write Vertex data to a buffer.
+ * 
+ * FIXME: Detect and deal with big-endian platforms...if they exist anymore.
+ * 
+ * @param buffer Destination buffer for vertex data.
+ * @param index In a buffer that can hold multiple vertexes, the number of
+ *              vertexes that come before (in the data) the vertex you want
+ *              to write.
+ */
+function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
     z: number, uAtOrigin: number, vAtOrigin: number, uAtLen: number,
-    vAtLen: number, uTex: number, vTex: number): void
+    vAtLen: number, uTex: number, vTex: number): ArrayBuffer
 {
-    const view = new DataView(buffer, index * 36, 36);
-    view.setFloat32(0, x);
-    view.setFloat32(4, y);
-    view.setFloat32(8, z);
-    view.setFloat32(12, uAtOrigin);
-    view.setFloat32(16, vAtOrigin);
-    view.setFloat32(20, uAtLen);
-    view.setFloat32(24, vAtLen);
-    view.setFloat32(28, uTex);
-    view.setFloat32(32, vTex);
+    const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
+    view.setFloat32(0, x, true);
+    view.setFloat32(4, y, true);
+    view.setFloat32(8, z, true);
+    view.setFloat32(12, uAtOrigin, true);
+    view.setFloat32(16, vAtOrigin, true);
+    view.setFloat32(20, uAtLen, true);
+    view.setFloat32(24, vAtLen, true);
+    view.setFloat32(28, uTex, true);
+    view.setFloat32(32, vTex, true);
+
+    return buffer;
+}
+
+/**
+ * Return an object containing vertex data.
+ * 
+ * This is primarily used for debugging, which is why the "set" function
+ * takes parameters and not objects that this function is capable of returning.
+ * 
+ * @param buffer Source buffer for vertex data.
+ * @param index In a buffer that can hold multiple vertexes, the number of
+ *              vertexes that come before (in the data) the vertex you want
+ *              to read.
+ */
+export function getVertex(buffer: ArrayBuffer, index: number): object {
+    const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
+    return {
+        x: view.getFloat32(0, true),
+        y: view.getFloat32(4, true),
+        z: view.getFloat32(8, true),
+        uAtOrigin: view.getFloat32(12, true),
+        vAtOrigin: view.getFloat32(16, true),
+        uAtLen: view.getFloat32(20, true),
+        vAtLen: view.getFloat32(24, true),
+        uTex: view.getFloat32(28, true),
+        vTex: view.getFloat32(32, true),
+    }
 }
 
 export class RenderContext {
@@ -115,8 +162,8 @@ export class RenderContext {
         }
 
         // GL Settings.
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
+        //gl.enable(gl.CULL_FACE);
+        //gl.enable(gl.DEPTH_TEST);
 
         this.gl = gl;
         this.initWorldRenderer();
@@ -160,7 +207,7 @@ export class RenderContext {
         this.worldIndCount = 0;
 
         // Length of a single vertex
-        const vertexLen = 12 + 16 + 8;
+        const vertexLen = vertexBytes(1);
 
         // Layout of our vertexes, as passed to the vertex shader.
         // x, y, and z positions.
@@ -173,12 +220,12 @@ export class RenderContext {
         gl.enableVertexAttribArray(lAtlasInfo);
         // u and v texture coordinates for the texture itself.
         const lTexCoord = gl.getAttribLocation(this.worldProg, 'lTexCoord');
-        gl.vertexAttribPointer(lTexCoord, 2, gl.FLOAT, false, vertexLen, 12 + 16);
+        gl.vertexAttribPointer(lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
         gl.enableVertexAttribArray(lTexCoord);
 
         // Set up the texture atlas texture
         const worldTextAtlas = gl.createTexture();
-        if (worldTextAtlas == null) {
+        if (worldTextAtlas === null) {
             throw new Error('Could not create texture atlas object');
         }
         this.worldTexAtlas = worldTextAtlas;
@@ -192,6 +239,9 @@ export class RenderContext {
         // Assign the texture atlas to the world program
         gl.useProgram(this.worldProg);
         const textureLoc = gl.getUniformLocation(this.worldProg, "uTexture");
+        if (textureLoc === null) {
+            throw new Error('uTexture uniform location could not be found');
+        }
         gl.uniform1i(textureLoc, 0);
 
         // Upload a blank texture to the atlas
@@ -253,10 +303,10 @@ export class RenderContext {
         // Assuming you want to face the square head-on, xyz1 is the lower-left
         // coordinate and xyz2 is the upper-right coordinate.
         const vCount = this.worldVertCount;
-        Vertex(this.worldVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
-        Vertex(this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
-        Vertex(this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
-        Vertex(this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+        setVertex(this.worldVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
+        setVertex(this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
+        setVertex(this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
+        setVertex(this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
 
         const iCount = this.worldIndCount;
         this.worldInds[iCount] = vCount;
@@ -299,6 +349,9 @@ export class RenderContext {
         // Bind our camera data.
         const view = cam.getViewMatrix();
         const viewLoc = gl.getUniformLocation(this.worldProg, "uView");
+        if (viewLoc === null) {
+            throw new Error('uView uniform location could not be found');
+        }
         gl.uniformMatrix4fv(viewLoc, false, view);
 
         // Bind the proper texture unit for our atlas.
