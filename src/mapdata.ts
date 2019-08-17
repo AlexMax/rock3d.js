@@ -3,6 +3,7 @@ export interface SideData {
     upperTex?: string;
     middleTex?: string;
     lowerTex?: string;
+    backPoly?: number;
 }
 
 function isSideData(data: SideData): data is SideData {
@@ -23,6 +24,9 @@ function isSideData(data: SideData): data is SideData {
     }
     if ('lowerTex' in data && typeof data.lowerTex !== 'string') {
         throw new Error('side lowerTex is not a string');
+    }
+    if ('backPoly' in data && typeof data.backPoly !== 'number') {
+        throw new Error('side backPoly is not a number');
     }
     return true;
 }

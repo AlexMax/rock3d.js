@@ -2,6 +2,7 @@ import { glMatrix, mat4, vec2 } from "gl-matrix";
 
 import { Atlas } from "./atlas";
 import { Camera } from "./camera";
+import { Polygon } from "./map";
 
 import vertexShader from './shader/vert.glsl';
 import fragmentShader from './shader/frag.glsl';
@@ -266,7 +267,7 @@ export class RenderContext {
     }
 
     /**
-     * Add a wall to the set of things to render
+     * Add a wall to the set of things to render.
      *
      * Note that we need a working texture atlas at this point, otherwise
      * we have no clue what the texture coordinates need to be.
@@ -318,6 +319,37 @@ export class RenderContext {
 
         this.worldVertCount += 4;
         this.worldIndCount += 6;
+    }
+
+    /**
+     * Add a complete polygon to the set of things to render.
+     * 
+     * @param polygon Set of polygon data to use while rendering.
+     * @param index Polygon index to actually render.
+     */
+    addPolygon(polygons: Polygon[], index: number): void {
+        const polygon = polygons[index];
+
+        // Draw walls of the polygon
+        for (let i = 0;i < polygon.sides.length;i++) {
+            const side = polygon.sides[i];
+            const nextVert = polygon.sides[(i + 1) % polygon.sides.length].vertex;
+
+            // Is this a one-sided wall or a portal?
+            if (typeof side.backPoly === 'number') {
+                const backPoly = polygons[side.backPoly];
+                if (polygon.ceilHeight > backPoly.ceilHeight && side.upperTex !== null ) {
+                    this.addWall(side.vertex, nextVert, backPoly.ceilHeight, polygon.ceilHeight, side.upperTex);
+                }
+                if (polygon.floorHeight < backPoly.floorHeight && side.lowerTex !== null ) {
+                    this.addWall(side.vertex, nextVert, polygon.floorHeight, backPoly.floorHeight, side.lowerTex);
+                }
+            } else {
+                if (side.middleTex !== null) {
+                    this.addWall(side.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, side.middleTex);
+                }
+            }
+        }
     }
 
     /**

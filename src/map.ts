@@ -7,6 +7,7 @@ interface Side {
     upperTex: string | null;
     middleTex: string | null;
     lowerTex: string | null;
+    backPoly: number | null;
 }
 
 function toSide(data: SideData): Side {
@@ -15,10 +16,11 @@ function toSide(data: SideData): Side {
         upperTex: (typeof data.upperTex === 'string') ? data.upperTex : null,
         middleTex: (typeof data.middleTex === 'string') ? data.middleTex : null,
         lowerTex: (typeof data.lowerTex === 'string') ? data.lowerTex : null,
+        backPoly: (typeof data.backPoly === 'number') ? data.backPoly : null,
     };
 }
 
-interface Polygon {
+export interface Polygon {
     sides: Side[];
     ceilHeight: number;
     floorHeight: number;
