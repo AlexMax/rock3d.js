@@ -24,6 +24,7 @@ import { textureLoader } from './util';
 import CEIL5_1 from './asset/CEIL5_1.png';
 import FLOOR4_8 from './asset/FLOOR4_8.png';
 import STARTAN3 from './asset/STARTAN3.png';
+import STEP3 from './asset/STEP3.png';
 import TESTMAP from './asset/TESTMAP.json';
 
 const ATLAS_SIZE = 512;
@@ -36,7 +37,8 @@ window.addEventListener("load", async () => {
     const textures = await Promise.all([
         textureLoader('CEIL5_1', CEIL5_1),
         textureLoader('FLOOR4_8', FLOOR4_8),
-        textureLoader('STARTAN3', STARTAN3)
+        textureLoader('STARTAN3', STARTAN3),
+        textureLoader('STEP3', STEP3),
     ]);
 
     // Create canvas
@@ -71,14 +73,8 @@ window.addEventListener("load", async () => {
     const map = new Map.Map(TESTMAP);
 
     // Draw our map
-    const polygon = map.polygons[0];
-    for (let i = 0;i < polygon.sides.length;i++) {
-        const side = polygon.sides[i];
-        if (typeof side.middleTex !== 'string') {
-            continue;
-        }
-        const nextVert = polygon.sides[(i + 1) % polygon.sides.length].vertex;
-        renderer.addWall(side.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, side.middleTex);
+    for (let i = 0;i < map.polygons.length;i++) {
+        renderer.addPolygon(map.polygons, i);
     }
 
     const camera = new Camera.Camera();
