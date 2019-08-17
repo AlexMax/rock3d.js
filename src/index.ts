@@ -17,13 +17,14 @@
  */
 
 import { glMatrix, vec2 } from 'gl-matrix';
-import { Atlas, Render, Camera } from 'rock3d';
+import { Atlas, Map, MapData, Render, Camera } from 'rock3d';
 
 import { textureLoader } from './util';
 
 import CEIL5_1 from './asset/CEIL5_1.png';
 import FLOOR4_8 from './asset/FLOOR4_8.png';
 import STARTAN3 from './asset/STARTAN3.png';
+import TESTMAP from './asset/TESTMAP.json';
 
 const ATLAS_SIZE = 512;
 
@@ -63,24 +64,27 @@ window.addEventListener("load", async () => {
     // Persist the atlas to the GPU.
     renderer.bakeAtlas(atlas);
 
-    const polygon = [
-        vec2.fromValues(-256, 512), // Upper-left corner, going clockwise
-        vec2.fromValues(-64, 512),
-        vec2.fromValues(64, 512),
-        vec2.fromValues(256, 512), // Upper-right corner
-        vec2.fromValues(256, 64),
-        vec2.fromValues(256, -64), // Lower-right corner
-        vec2.fromValues(-256, -64),
-        vec2.fromValues(-256, 64),
-    ];
-    for (let i = 0;i < (polygon.length - 1);i++) {
-        renderer.addWall(polygon[i], polygon[i + 1], -64, 64, "STARTAN3");
+    // Parse our test map data into a map.
+    if (!MapData.isMapData(TESTMAP)) {
+        throw new Error('Map data is not valid');
+    }
+    const map = new Map.Map(TESTMAP);
+
+    // Draw our map
+    const polygon = map.polygons[0];
+    for (let i = 0;i < polygon.sides.length;i++) {
+        const side = polygon.sides[i];
+        if (typeof side.middleTex !== 'string') {
+            continue;
+        }
+        const nextVert = polygon.sides[(i + 1) % polygon.sides.length].vertex;
+        renderer.addWall(side.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, side.middleTex);
     }
 
     const camera = new Camera.Camera();
     camera.pos[0] = 0;
     camera.pos[1] = 0;
-    camera.pos[2] = 0;
+    camera.pos[2] = 48;
     camera.yaw = glMatrix.toRadian(0);
 
     function draw(time: number) {

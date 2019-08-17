@@ -1,0 +1,41 @@
+{
+    "polygons": [{
+        "floorHeight": 0,
+        "ceilHeight": 128,
+        "ceilTex": "RROCK18",
+        "floorTex": "FLOOR4_8",
+        "sides": [{
+                "vertex": [-256, 512],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [-64, 512],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [64, 512],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [256, 512],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [256, 64],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [256, -64],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [-256, -64],
+                "middleTex": "STARTAN3"
+            },
+            {
+                "vertex": [-256, 64],
+                "middleTex": "STARTAN3"
+            }
+        ]
+    }]
+}
