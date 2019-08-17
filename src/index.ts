@@ -16,14 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { glMatrix, vec2 } from 'gl-matrix';
+import { glMatrix } from 'gl-matrix';
 import { Atlas, Map, MapData, Render, Camera } from 'rock3d';
 
 import { textureLoader } from './util';
 
 import CEIL5_1 from './asset/CEIL5_1.png';
 import FLAT14 from './asset/FLAT14.png';
+import FLAT2 from './asset/FLAT2.png';
 import FLOOR4_8 from './asset/FLOOR4_8.png';
+import RROCK18 from './asset/RROCK18.png';
 import STARTAN3 from './asset/STARTAN3.png';
 import STEP3 from './asset/STEP3.png';
 import TESTMAP from './asset/TESTMAP.json';
@@ -38,7 +40,9 @@ window.addEventListener("load", async () => {
     const textures = await Promise.all([
         textureLoader('CEIL5_1', CEIL5_1),
         textureLoader('FLAT14', FLAT14),
+        textureLoader('FLAT2', FLAT2),
         textureLoader('FLOOR4_8', FLOOR4_8),
+        textureLoader('RROCK18', RROCK18),
         textureLoader('STARTAN3', STARTAN3),
         textureLoader('STEP3', STEP3),
     ]);
