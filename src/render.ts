@@ -392,12 +392,13 @@ export class RenderContext {
         }
 
         // Draw the floor and ceiling of the polygon
-        if (polygon.floorCacheVerts.length === 0) {
-            Map.cacheFloor(polygon);
+        if (polygon.cacheVerts.length === 0) {
+            Map.cacheFlats(polygon);
         }
-
-        this.addFlatTessellation(polygon.floorCacheVerts, polygon.floorCacheInds,
+        this.addFlatTessellation(polygon.cacheVerts, polygon.floorCacheInds,
             polygon.floorHeight, polygon.floorTex);
+        this.addFlatTessellation(polygon.cacheVerts, polygon.ceilCacheInds,
+            polygon.ceilHeight, polygon.ceilTex);
     }
 
     /**

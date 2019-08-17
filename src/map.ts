@@ -27,9 +27,9 @@ export interface Polygon {
     floorHeight: number;
     ceilTex: string;
     floorTex: string;
-    ceilCache: number[];
-    floorCacheVerts: number[];
+    cacheVerts: number[];
     floorCacheInds: number[];
+    ceilCacheInds: number[];
 }
 
 function toPolygon(data: PolygonData): Polygon {
@@ -41,9 +41,9 @@ function toPolygon(data: PolygonData): Polygon {
         sides: data.sides.map((data) => {
             return toSide(data);
         }),
-        ceilCache: [],
-        floorCacheVerts: [],
+        cacheVerts: [],
         floorCacheInds: [],
+        ceilCacheInds: [],
     };
 }
 
@@ -52,15 +52,16 @@ function toPolygon(data: PolygonData): Polygon {
  * 
  * @param poly Polygon to tessellate
  */
-export function cacheFloor(poly: Polygon): void {
+export function cacheFlats(poly: Polygon): void {
     const verts: number[] = [];
     for (let i = 0;i < poly.sides.length;i++) {
         const vert = poly.sides[i].vertex;
         verts.push(vert[0]);
         verts.push(vert[1]);
     }
-    poly.floorCacheVerts = verts;
+    poly.cacheVerts = verts;
     poly.floorCacheInds = earcut(verts);
+    poly.ceilCacheInds = poly.floorCacheInds.slice().reverse();
 }
 
 export class Map {
