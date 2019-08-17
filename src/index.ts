@@ -17,7 +17,7 @@
  */
 
 import { glMatrix } from 'gl-matrix';
-import { Atlas, Map, MapData, Render, Camera } from 'rock3d';
+import { Atlas, Level, LevelData, Render, Camera } from 'rock3d';
 
 import { textureLoader } from './util';
 
@@ -73,10 +73,10 @@ window.addEventListener("load", async () => {
     renderer.bakeAtlas(atlas);
 
     // Parse our test map data into a map.
-    if (!MapData.isMapData(TESTMAP)) {
+    if (!LevelData.isLevelData(TESTMAP)) {
         throw new Error('Map data is not valid');
     }
-    const map = new Map.Map(TESTMAP);
+    const map = new Level.Level(TESTMAP);
 
     // Draw our map
     for (let i = 0;i < map.polygons.length;i++) {
