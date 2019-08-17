@@ -22,6 +22,7 @@ import { Atlas, Map, MapData, Render, Camera } from 'rock3d';
 import { textureLoader } from './util';
 
 import CEIL5_1 from './asset/CEIL5_1.png';
+import FLAT14 from './asset/FLAT14.png';
 import FLOOR4_8 from './asset/FLOOR4_8.png';
 import STARTAN3 from './asset/STARTAN3.png';
 import STEP3 from './asset/STEP3.png';
@@ -36,6 +37,7 @@ window.addEventListener("load", async () => {
     // Wait to load all of our textures.
     const textures = await Promise.all([
         textureLoader('CEIL5_1', CEIL5_1),
+        textureLoader('FLAT14', FLAT14),
         textureLoader('FLOOR4_8', FLOOR4_8),
         textureLoader('STARTAN3', STARTAN3),
         textureLoader('STEP3', STEP3),
