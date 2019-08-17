@@ -1,7 +1,7 @@
 import earcut from "earcut";
 import { vec2 } from "gl-matrix";
 
-import { MapData, PolygonData, SideData } from "./mapdata";
+import { LevelData, PolygonData, SideData } from "./leveldata";
 
 interface Side {
     vertex: vec2;
@@ -64,11 +64,11 @@ export function cacheFlats(poly: Polygon): void {
     poly.ceilCacheInds = poly.floorCacheInds.slice().reverse();
 }
 
-export class Map {
+export class Level {
     polygons: Polygon[];
 
-    constructor(mapData: MapData) {
-        this.polygons = mapData.polygons.map((data) => {
+    constructor(levelData: LevelData) {
+        this.polygons = levelData.polygons.map((data) => {
             return toPolygon(data);
         });
     }

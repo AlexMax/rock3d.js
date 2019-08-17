@@ -66,11 +66,11 @@ function isPolygonData(data: PolygonData): data is PolygonData {
     return true;
 }
 
-export interface MapData {
+export interface LevelData {
     polygons: PolygonData[];
 };
 
-export function isMapData(data: MapData): data is MapData {
+export function isLevelData(data: LevelData): data is LevelData {
     if (!Array.isArray(data.polygons)) {
         throw new Error('mapData polygons is not an Array');
     }
