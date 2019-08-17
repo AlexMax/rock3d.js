@@ -1,8 +1,9 @@
 import { glMatrix, mat4, vec2 } from "gl-matrix";
 
-import { Atlas } from "./atlas";
-import { Camera } from "./camera";
-import { Polygon } from "./map";
+import { Atlas } from './atlas';
+import { Camera } from './camera';
+import * as Map from "./map";
+import { Polygon } from './map';
 
 import vertexShader from './shader/vert.glsl';
 import fragmentShader from './shader/frag.glsl';
@@ -322,6 +323,45 @@ export class RenderContext {
     }
 
     /**
+     * Add a flat (floor or ceiling) tessellation to the set of things to render
+     * 
+     * @param verts Vertexes of the floor or ceiling.
+     * @param inds Vertex indexes to tessellate with.
+     * @param z Z-level to add the tessellation to.
+     * @param tex Texture name.
+     */
+    addFlatTessellation(verts: number[], inds: number[], z: number, tex: string): void {
+        if (this.worldAtlas === undefined) {
+            throw new Error('Texture Atlas is empty');
+        }
+
+        // Find the texture of the flat in the atlas
+        let texEntry = this.worldAtlas.find(tex);
+        let ua1 = texEntry.xPos / this.worldAtlas.length;
+        let va1 = texEntry.yPos / this.worldAtlas.length;
+        let ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
+        let va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+
+        // Draw the triangle into the buffers.
+        const vCountStart = this.worldVertCount;
+        for (let i = 0;i < verts.length - 1;i += 2) {
+            let vCount = this.worldVertCount;
+            let ut = verts[i] / texEntry.texture.width;
+            let vt = -(verts[i+1] / texEntry.texture.height);
+
+            setVertex(this.worldVerts, vCount, verts[i], verts[i+1], z,
+                ua1, va1, ua2 - ua1, va2 - va1, ut, vt);
+            this.worldVertCount += 1;
+        }
+
+        for (let i = 0;i < inds.length;i++) {
+            let iCount = this.worldIndCount;
+            this.worldInds[iCount] = vCountStart + inds[i];
+            this.worldIndCount += 1;
+        }
+    }
+
+    /**
      * Add a complete polygon to the set of things to render.
      * 
      * @param polygon Set of polygon data to use while rendering.
@@ -350,6 +390,14 @@ export class RenderContext {
                 }
             }
         }
+
+        // Draw the floor and ceiling of the polygon
+        if (polygon.floorCacheVerts.length === 0) {
+            Map.cacheFloor(polygon);
+        }
+
+        this.addFlatTessellation(polygon.floorCacheVerts, polygon.floorCacheInds,
+            polygon.floorHeight, polygon.floorTex);
     }
 
     /**

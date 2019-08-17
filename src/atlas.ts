@@ -92,6 +92,9 @@ export class Atlas {
      * @param name The name of the texture to find.
      */
     find(name: string): AtlasEntry {
+        if (!(name in this.atlas)) {
+            throw new Error(`Could not find texture ${name} in atlas`);
+        }
         return this.atlas[name];
     }
 }

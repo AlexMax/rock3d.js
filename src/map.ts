@@ -1,3 +1,4 @@
+import earcut from "earcut";
 import { vec2 } from "gl-matrix";
 
 import { MapData, PolygonData, SideData } from "./mapdata";
@@ -26,6 +27,9 @@ export interface Polygon {
     floorHeight: number;
     ceilTex: string;
     floorTex: string;
+    ceilCache: number[];
+    floorCacheVerts: number[];
+    floorCacheInds: number[];
 }
 
 function toPolygon(data: PolygonData): Polygon {
@@ -37,7 +41,26 @@ function toPolygon(data: PolygonData): Polygon {
         sides: data.sides.map((data) => {
             return toSide(data);
         }),
+        ceilCache: [],
+        floorCacheVerts: [],
+        floorCacheInds: [],
     };
+}
+
+/**
+ * Cache a tessellation of the floor
+ * 
+ * @param poly Polygon to tessellate
+ */
+export function cacheFloor(poly: Polygon): void {
+    const verts: number[] = [];
+    for (let i = 0;i < poly.sides.length;i++) {
+        const vert = poly.sides[i].vertex;
+        verts.push(vert[0]);
+        verts.push(vert[1]);
+    }
+    poly.floorCacheVerts = verts;
+    poly.floorCacheInds = earcut(verts);
 }
 
 export class Map {
