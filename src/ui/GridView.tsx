@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { LevelData } from 'rock3d';
-import { glMatrix, vec2, mat2 } from 'gl-matrix';
+import { vec2, mat3 } from 'gl-matrix';
 
 export interface Props {
     levelData: LevelData.LevelData;
@@ -59,8 +59,12 @@ export class GridView extends React.Component<Props, State> {
     }
 
     drawMapData(ctx: CanvasRenderingContext2D ) {
-        const trans = mat2.fromValues(0.5, 0, 0, -0.5);
-        const off = vec2.fromValues(512, 512);
+        const center = vec2.fromValues(256, 0);
+        const scale = vec2.fromValues(0.5, 0.5);
+        const cameraMat = mat3.create();
+        mat3.translate(cameraMat, cameraMat, center);
+        mat3.rotate(cameraMat, cameraMat, 0);
+        mat3.scale(cameraMat, cameraMat, scale);
 
         ctx.beginPath();
         ctx.strokeStyle = 'white';
@@ -71,15 +75,13 @@ export class GridView extends React.Component<Props, State> {
 
                 if (i === 0) {
                     let x = vec2.create();
-                    vec2.transformMat2(x, side.vertex, trans);
-                    vec2.add(x, x, off);
+                    vec2.transformMat3(x, side.vertex, cameraMat);
                     ctx.moveTo(x[0], x[1]);
                     console.log('first', x);
                 }
 
                 let x = vec2.create();
-                vec2.transformMat2(x, nextVert, trans);
-                vec2.add(x, x, off);
+                vec2.transformMat3(x, nextVert, cameraMat);
                 ctx.lineTo(x[0], x[1]);
                 console.log(x);
             }
