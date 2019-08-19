@@ -16,22 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
 import { LevelData } from 'rock3d';
 
-import { Root } from './ui/Root';
-import TESTMAP from './asset/TESTMAP.json';
+import { FPView } from './FPView';
+import { GridView } from './GridView';
 
-window.addEventListener("load", async () => {
-    const root = document.getElementById('rocked');
-    if (root === null) {
-        throw new Error('Could not find root element');
+export interface Props {
+    levelData: LevelData.LevelData;
+};
+
+export class Root extends React.Component<Props> {
+
+    constructor(props: Readonly<Props>) {
+        super(props);
     }
 
-    if (!LevelData.isLevelData(TESTMAP)) {
-        throw new Error('Map data is not valid');
+    render() {
+        return <div>
+            <GridView levelData={this.props.levelData}/>
+            <FPView levelData={this.props.levelData}/>
+        </div>;
     }
-
-    ReactDOM.render(React.createElement(Root, { levelData: TESTMAP }), root);
-});
+}

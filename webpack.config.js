@@ -6,7 +6,7 @@ module.exports = {
     module: {
         rules: [{
             exclude: /node_modules/,
-            test: /\.ts$/,
+            test: /\.tsx?$/,
             use: 'ts-loader'
         }, {
             exclude: /node_modules/,
@@ -20,6 +20,6 @@ module.exports = {
         publicPath: '/dist/'
     },
     resolve: {
-        extensions: ['.js', '.ts']
+        extensions: ['.js', '.ts', '.jsx', '.tsx']
     }
 };
