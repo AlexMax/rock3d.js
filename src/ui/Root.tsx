@@ -34,8 +34,8 @@ export class Root extends React.Component<Props> {
 
     render() {
         return <div>
-            <GridView levelData={this.props.levelData}/>
             <FPView levelData={this.props.levelData}/>
+            <GridView levelData={this.props.levelData}/>
         </div>;
     }
 }

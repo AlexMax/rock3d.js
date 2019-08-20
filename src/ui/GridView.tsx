@@ -16,30 +16,47 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { vec2, mat3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 import React from 'react';
 import * as rock3d from 'rock3d';
-import { Camera } from 'rock3d/dist/r3d';
 
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
 };
 
 interface State {
+    camera: rock3d.r2d.Camera.Camera;
     levelData: rock3d.LevelData.LevelData;
+    mousePos: vec2 | null;
 }
 
 export class GridView extends React.Component<Props, State> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
+    renderer?: rock3d.r2d.Render.RenderContext;
 
     constructor(props: Props) {
         super(props);
 
         this.canvas = React.createRef();
         this.state = {
-            levelData: props.levelData // FIXME: Needs a deep copy.
+            camera: new rock3d.r2d.Camera.Camera(),
+            levelData: props.levelData, // FIXME: Needs a deep copy.
+            mousePos: null,
         };
+
+        this.onMouseMove = this.onMouseMove.bind(this);
+    }
+
+    onMouseMove(event: React.MouseEvent) {
+        const canvas = this.canvas.current;
+        if (canvas === null) {
+            throw new Error('GridView canvas is inaccessible');
+        }
+        const rect = canvas.getBoundingClientRect();
+        this.setState({
+            mousePos: vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top)
+        });
     }
 
     componentDidMount() {
@@ -48,14 +65,32 @@ export class GridView extends React.Component<Props, State> {
             throw new Error('GridView canvas is inaccessible');
         }
 
-        // Initialize a view on the given canvas
-        const camera = new rock3d.r2d.Camera.Camera();
+        this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
+        this.renderer.clear();
+        this.renderer.renderLevel(this.state.levelData, this.state.camera);
+    }
 
-        const renderer = new rock3d.r2d.Render.RenderContext(canvas);
-        renderer.renderLevel(this.state.levelData, camera);
+    shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
+        if (this.renderer === undefined) {
+            throw new Error('GridView renderer is missing');
+        }
+
+        this.renderer.clear();
+        this.renderer.renderLevel(nextState.levelData, nextState.camera);
+
+        if (nextState.mousePos === null) {
+            return false; // We don't have mouse data
+        }
+
+        // DEBUG: World coordinates
+        const coord = this.renderer.screenToWorld(nextState.mousePos, nextState.camera);
+        this.renderer.ctx.strokeText(`x: ${coord[0]} y: ${coord[1]}`, 0, this.renderer.canvas.height);
+
+        return false; // never re-render the DOM node with React
     }
 
     render() {
-        return <canvas ref={this.canvas} width={640} height={480}/>;
+        return <canvas ref={this.canvas} width={640} height={480}
+            onMouseMove={this.onMouseMove}/>;
     }
 }
