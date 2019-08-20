@@ -20,7 +20,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as rock3d from 'rock3d';
 
-import { Root } from './ui/Root';
+import { Mode, Root } from './ui/Root';
 import TESTMAP from './asset/TESTMAP.json';
 
 window.addEventListener("load", async () => {
@@ -33,5 +33,8 @@ window.addEventListener("load", async () => {
         throw new Error('Map data is not valid');
     }
 
-    ReactDOM.render(React.createElement(Root, { levelData: TESTMAP }), root);
+    ReactDOM.render(React.createElement(Root, { 
+        levelData: TESTMAP,
+        mode: Mode.GridView,
+    }), root);
 });

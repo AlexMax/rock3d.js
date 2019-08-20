@@ -22,8 +22,18 @@ import * as rock3d from 'rock3d';
 import { FPView } from './FPView';
 import { GridView } from './GridView';
 
+export enum Mode {
+    GridView,
+    FPView,
+};
+
+type ModeElements = {
+    [key in Mode]: any
+}
+
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
+    mode: Mode;
 };
 
 export class Root extends React.Component<Props> {
@@ -33,9 +43,12 @@ export class Root extends React.Component<Props> {
     }
 
     render() {
-        return <div>
-            <FPView levelData={this.props.levelData}/>
-            <GridView levelData={this.props.levelData}/>
-        </div>;
+        // Depending on the mode, we render a different component
+        const view: ModeElements = {
+            [Mode.GridView]: (<GridView levelData={this.props.levelData}/>),
+            [Mode.FPView]: (<FPView levelData={this.props.levelData}/>)
+        };
+
+        return <div>{view[this.props.mode]}</div>;
     }
 }
