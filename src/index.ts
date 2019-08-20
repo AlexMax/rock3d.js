@@ -18,7 +18,7 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { LevelData } from 'rock3d';
+import * as rock3d from 'rock3d';
 
 import { Root } from './ui/Root';
 import TESTMAP from './asset/TESTMAP.json';
@@ -29,7 +29,7 @@ window.addEventListener("load", async () => {
         throw new Error('Could not find root element');
     }
 
-    if (!LevelData.isLevelData(TESTMAP)) {
+    if (!rock3d.LevelData.isLevelData(TESTMAP)) {
         throw new Error('Map data is not valid');
     }
 

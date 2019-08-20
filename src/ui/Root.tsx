@@ -17,13 +17,13 @@
  */
 
 import React from 'react';
-import { LevelData } from 'rock3d';
+import * as rock3d from 'rock3d';
 
 import { FPView } from './FPView';
 import { GridView } from './GridView';
 
 export interface Props {
-    levelData: LevelData.LevelData;
+    levelData: rock3d.LevelData.LevelData;
 };
 
 export class Root extends React.Component<Props> {

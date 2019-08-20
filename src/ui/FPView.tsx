@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { glMatrix  }from 'gl-matrix';
+import { glMatrix } from 'gl-matrix';
 import React from 'react';
-import { Atlas, Camera, Level, LevelData, Render } from 'rock3d';
+import * as rock3d from 'rock3d';
 
 import { textureLoader } from '../util';
 
@@ -33,13 +33,13 @@ import STEP3 from '../asset/STEP3.png';
 const ATLAS_SIZE = 512;
 
 export interface Props {
-    levelData: LevelData.LevelData;
+    levelData: rock3d.LevelData.LevelData;
 };
 
 export class FPView extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    levelData: LevelData.LevelData;
+    levelData: rock3d.LevelData.LevelData;
 
     constructor(props: Props) {
         super(props);
@@ -54,8 +54,8 @@ export class FPView extends React.Component<Props> {
         }
 
         // Initialize a view on the given canvas
-        const renderer = new Render.RenderContext(canvas);
-        renderer.render(new Camera.Camera());
+        const renderer = new rock3d.r3d.Render.RenderContext(canvas);
+        renderer.render(new rock3d.r3d.Camera.Camera());
 
         // Wait to load all of our textures.
         const textures = await Promise.all([
@@ -69,7 +69,7 @@ export class FPView extends React.Component<Props> {
         ]);
 
         // Load our textures into the atlas.
-        const atlas = new Atlas.Atlas(ATLAS_SIZE);
+        const atlas = new rock3d.Atlas.Atlas(ATLAS_SIZE);
         for (let i = 0;i < textures.length;i++) {
             const { name, img } = textures[i];
             atlas.add(name, img);
@@ -79,14 +79,14 @@ export class FPView extends React.Component<Props> {
         renderer.bakeAtlas(atlas);
 
         // Parse our test map data into a map.
-        const map = new Level.Level(this.levelData);
+        const map = new rock3d.Level.Level(this.levelData);
 
         // Draw our map
         for (let i = 0;i < map.polygons.length;i++) {
             renderer.addPolygon(map.polygons, i);
         }
 
-        const camera = new Camera.Camera();
+        const camera = new rock3d.r3d.Camera.Camera();
         camera.pos[0] = 0;
         camera.pos[1] = 0;
         camera.pos[2] = 48;

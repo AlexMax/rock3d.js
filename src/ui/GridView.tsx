@@ -16,16 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import { LevelData } from 'rock3d';
 import { vec2, mat3 } from 'gl-matrix';
+import React from 'react';
+import * as rock3d from 'rock3d';
 
 export interface Props {
-    levelData: LevelData.LevelData;
+    levelData: rock3d.LevelData.LevelData;
 };
 
 interface State {
-    levelData: LevelData.LevelData;
+    levelData: rock3d.LevelData.LevelData;
 }
 
 export class GridView extends React.Component<Props, State> {
