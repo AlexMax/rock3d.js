@@ -1,9 +1,9 @@
 import { glMatrix, mat4, vec2 } from "gl-matrix";
 
-import { Atlas } from './atlas';
+import { Atlas } from '../atlas';
 import { Camera } from './camera';
-import * as Map from "./level";
-import { Polygon } from './level';
+import * as Map from "../level";
+import { Polygon } from '../level';
 
 import vertexShader from './shader/vert.glsl';
 import fragmentShader from './shader/frag.glsl';

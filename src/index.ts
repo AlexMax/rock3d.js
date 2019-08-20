@@ -1,7 +1,7 @@
+import * as r3d from "./r3d/index";
+
 import * as Atlas from "./atlas";
-import * as Camera from "./camera";
 import * as LevelData from "./leveldata";
 import * as Level from "./level";
-import * as Render from "./render";
 
-export { Atlas, Camera, Level, LevelData, Render };
+export { r3d, Atlas, LevelData, Level };
