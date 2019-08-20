@@ -9,8 +9,10 @@ export class Camera {
         this.yaw = 0;
     }
 
+    /**
+     * Get a view matrix for looking through the Camera
+     */
     getViewMatrix(): mat4 {
-        // Get a view matrix for looking through the Actor's eyes
         const cameraMat = mat4.create();
         const position = vec3.fromValues(0, 0, 0);
         const target = vec3.fromValues(0, 1, 0);
