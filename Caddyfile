@@ -1,3 +1,4 @@
-localhost:8080 {
+*:8080 {
     root public
+    log stdout
 }
