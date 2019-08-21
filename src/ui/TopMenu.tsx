@@ -17,42 +17,28 @@
  */
 
 import React from 'react';
-import * as rock3d from 'rock3d';
 
-import { FPView } from './FPView';
-import { GridView } from './GridView';
-import { TopMenu } from './TopMenu';
-
-export enum Mode {
-    GridView,
-    FPView,
-};
-
-type ModeElements = {
-    [key in Mode]: any
-}
-
-export interface Props {
-    levelData: rock3d.LevelData.LevelData;
-    mode: Mode;
-};
-
-export class Root extends React.Component<Props> {
-
-    constructor(props: Readonly<Props>) {
-        super(props);
-    }
-
+export class TopMenu extends React.Component {
     render() {
-        // Depending on the mode, we render a different component
-        const view: ModeElements = {
-            [Mode.GridView]: (<GridView levelData={this.props.levelData}/>),
-            [Mode.FPView]: (<FPView levelData={this.props.levelData}/>)
-        };
-
-        return <div>
-            <TopMenu/>
-            {view[this.props.mode]}
-        </div>;
+        return <nav>
+            <ul>
+                <li>File
+                    <ul>
+                        <li>About</li>
+                    </ul>
+                </li>
+                <li>Edit
+                    <ul>
+                        <li>Undo</li>
+                    </ul>
+                </li>
+                <li>View
+                    <ul>
+                        <li>Draw</li>
+                        <li>Visual</li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>;
     }
-}
+};
