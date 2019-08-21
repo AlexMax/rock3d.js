@@ -35,6 +35,6 @@ window.addEventListener("load", async () => {
 
     ReactDOM.render(React.createElement(Root, { 
         levelData: TESTMAP,
-        mode: Mode.GridView,
+        mode: Mode.DrawView,
     }), root);
 });

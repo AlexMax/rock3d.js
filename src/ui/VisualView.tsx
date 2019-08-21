@@ -21,9 +21,8 @@ import { css, jsx } from '@emotion/core';
 import React from 'react';
 import * as rock3d from 'rock3d';
 
-import { DrawView } from './DrawView';
-import { VisualView } from './VisualView';
-import { TopMenu } from './TopMenu';
+import { FPCanvas } from './FPCanvas';
+import { StatusBar } from './StatusBar';
 
 const RootCSS = css({
     display: 'flex',
@@ -31,40 +30,22 @@ const RootCSS = css({
     height: '100%',
 });
 
-const ModeCSS = css({
-    flexGrow: 1,
-});
-
-export enum Mode {
-    DrawView,
-    VisualView,
-};
-
-type ModeElements = {
-    [key in Mode]: any
-}
-
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
-    mode: Mode;
 };
 
-export class Root extends React.Component<Props> {
+export class VisualView extends React.Component<Props> {
 
     constructor(props: Readonly<Props>) {
         super(props);
     }
 
-    render() {
-        // Depending on the mode, we render a different component
-        const view: ModeElements = {
-            [Mode.DrawView]: (<DrawView css={ModeCSS} levelData={this.props.levelData}/>),
-            [Mode.VisualView]: (<VisualView css={ModeCSS} levelData={this.props.levelData}/>)
-        };
-
-        return <div css={RootCSS}>
-            <TopMenu/>
-            {view[this.props.mode]}
-        </div>;
+    render(): JSX.Element {
+        return (<div css={RootCSS}>
+            <div css={css({ flexGrow: 1, })}>
+                <FPCanvas levelData={this.props.levelData}/>
+            </div>
+            <StatusBar/>
+        </div>);
     }
-}
+};

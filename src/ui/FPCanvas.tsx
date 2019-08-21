@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @jsx jsx */
+import { jsx } from '@emotion/core';
 import { glMatrix } from 'gl-matrix';
 import React from 'react';
 import * as rock3d from 'rock3d';
@@ -36,7 +38,7 @@ export interface Props {
     levelData: rock3d.LevelData.LevelData;
 };
 
-export class FPView extends React.Component<Props> {
+export class FPCanvas extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
     levelData: rock3d.LevelData.LevelData;

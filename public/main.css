@@ -3,20 +3,33 @@
     font: 16px sans-serif;
     --window-bg-color: #aeb2c3;
     --window-border-color: #dcdee5 #5d6069 #5d6069 #dcdee5;
+    --window-title-bg-color: #b24d7a;
+    --window-title-border-color: #dcadc2 #57253b #57253b #dcadc2;
+    --window-title-color: #ffffff;
     --menu-select-color: #9397a5;
     -moz-user-select: none;
     user-select: none;
+}
+
+html, body, #rocked {
+    height: 100%;
 }
 
 body {
     margin: 0; /* get rid of border */
 }
 
+div {
+    border: 1px dotted red;
+}
+
+/* #region *** TOP MENU ***/
+
 /* Main navigation */
 nav {
+    background-color: var(--window-bg-color);
     border: 1px solid;
     border-color: var(--window-border-color);
-    background-color: var(--window-bg-color);
     cursor: default;
 }
 
@@ -61,3 +74,5 @@ nav > ul > li > ul {
     position: absolute;
     visibility: hidden;
 }
+
+/* #endregion */

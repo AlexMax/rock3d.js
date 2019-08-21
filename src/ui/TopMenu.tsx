@@ -16,6 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/** @jsx jsx */
+import { jsx } from '@emotion/core';
+
 import React from 'react';
 
 export class TopMenu extends React.Component {
