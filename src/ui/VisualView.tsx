@@ -16,19 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
 import React from 'react';
 import * as rock3d from 'rock3d';
 
 import { FPCanvas } from './FPCanvas';
-import { StatusBar } from './StatusBar';
-
-const RootCSS = css({
-    display: 'flex',
-    flexFlow: 'column',
-    height: '100%',
-});
 
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
@@ -41,11 +32,6 @@ export class VisualView extends React.Component<Props> {
     }
 
     render(): JSX.Element {
-        return (<div css={RootCSS}>
-            <div css={css({ flexGrow: 1, })}>
-                <FPCanvas levelData={this.props.levelData}/>
-            </div>
-            <StatusBar/>
-        </div>);
+        return <FPCanvas levelData={this.props.levelData}/>;
     }
 };

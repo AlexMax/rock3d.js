@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { jsx } from '@emotion/core';
 import { vec2 } from 'gl-matrix';
 import React from 'react';
 import * as rock3d from 'rock3d';

@@ -16,24 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
 import React from 'react';
 import * as rock3d from 'rock3d';
 
 import { DrawView } from './DrawView';
-import { VisualView } from './VisualView';
+import { StatusBar } from './StatusBar';
 import { TopMenu } from './TopMenu';
-
-const RootCSS = css({
-    display: 'flex',
-    flexFlow: 'column',
-    height: '100%',
-});
-
-const ModeCSS = css({
-    flexGrow: 1,
-});
+import { VisualView } from './VisualView';
 
 export enum Mode {
     DrawView,
@@ -58,13 +47,16 @@ export class Root extends React.Component<Props> {
     render() {
         // Depending on the mode, we render a different component
         const view: ModeElements = {
-            [Mode.DrawView]: (<DrawView css={ModeCSS} levelData={this.props.levelData}/>),
-            [Mode.VisualView]: (<VisualView css={ModeCSS} levelData={this.props.levelData}/>)
+            [Mode.DrawView]: (<DrawView levelData={this.props.levelData}/>),
+            [Mode.VisualView]: (<VisualView levelData={this.props.levelData}/>)
         };
 
-        return <div css={RootCSS}>
+        return <div className="root-flex">
             <TopMenu/>
-            {view[this.props.mode]}
+            <div className="content">
+                {view[this.props.mode]}
+            </div>
+            <StatusBar/>
         </div>;
     }
 }

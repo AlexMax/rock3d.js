@@ -11,17 +11,41 @@
     user-select: none;
 }
 
-html, body, #rocked {
-    height: 100%;
+* {
+     /* Don't count padding or borders for any elements */
+    box-sizing: border-box;
 }
 
 body {
-    margin: 0; /* get rid of border */
+    /* Get rid of border */
+   margin: 0;
+    /* Get rid of scrollbar */
+   overflow: hidden;
 }
 
 div {
-    border: 1px dotted red;
+    /* Debugging stuff */
+    /* border: 1px dotted red; */
 }
+
+/* #region *** MAIN LAYOUT ***/
+
+html, body, #rocked, .root-flex, .content {
+    height: 100%;
+    width: 100%;
+}
+
+.root-flex {
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+     /* Ensure that resizing the window covers up the content */
+    overflow: hidden;
+}
+
+/* #endregion */
 
 /* #region *** TOP MENU ***/
 
@@ -73,6 +97,40 @@ nav > ul > li > ul {
     padding: 0;
     position: absolute;
     visibility: hidden;
+}
+
+/* #endregion */
+
+/* #region *** STATUS BAR ***/
+
+.status-bar {
+    background-color: var(--window-bg-color);
+    border: 1px solid;
+    border-color: var(--window-border-color);
+    display: flex;
+}
+
+/* #endregion */
+
+/* #region *** TOOLBAR ***/
+
+.toolbar {
+    position: absolute;
+    top: 32;
+    right: 32;
+}
+
+.toolbar-title {
+    background-color: var(--window-title-bg-color);
+    border: 1px solid;
+    border-color: var(--window-title-border-color);
+    color: var(--window-title-color);
+}
+
+.toolbar .toolbar-button {
+    background-color: var(--window-bg-color);
+    border: 1px solid;
+    border-color: var(--window-border-color);
 }
 
 /* #endregion */

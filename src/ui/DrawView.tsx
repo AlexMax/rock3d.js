@@ -16,20 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
 import React from 'react';
 import * as rock3d from 'rock3d';
 
 import { TopdownCanvas } from './TopdownCanvas';
-import { StatusBar } from './StatusBar';
 import { Toolbar } from './Toolbar';
-
-const RootCSS = css({
-    display: 'flex',
-    flexFlow: 'column',
-    height: '100%',
-});
 
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
@@ -42,12 +33,9 @@ export class DrawView extends React.Component<Props> {
     }
 
     render(): JSX.Element {
-        return (<div css={RootCSS}>
-            <div css={css({ flexGrow: 1, })}>
-                <TopdownCanvas levelData={this.props.levelData}/>
-            </div>
-            <StatusBar/>
+        return <div>
+            <TopdownCanvas levelData={this.props.levelData}/>
             <Toolbar/>
-        </div>);
+        </div>;
     }
 };

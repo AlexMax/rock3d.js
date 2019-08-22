@@ -16,20 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
 import React from 'react';
-
-const RootCSS = css({
-    backgroundColor: 'var(--window-bg-color)',
-    border: '1px solid',
-    borderColor: 'var(--window-border-color)',
-    display: 'flex',
-});
 
 export class StatusBar extends React.Component {
     render() {
-        return <div css={RootCSS}>
+        return <div className="status-bar">
             <div>320, 240</div>
         </div>;
     }

@@ -16,36 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** @jsx jsx */
-import { css, jsx } from '@emotion/core';
 import React from 'react';
-
-const RootCSS = css({
-    position: 'absolute',
-    right: '32px',
-    top: '32px',
-});
-
-const TitleCSS = css({
-    backgroundColor: 'var(--window-title-bg-color)',
-    border: '1px solid',
-    borderColor: 'var(--window-title-border-color)',
-    color: 'var(--window-title-color)',
-});
-
-const ButtonCSS = css({
-    backgroundColor: 'var(--window-bg-color)',
-    border: '1px solid',
-    borderColor: 'var(--window-border-color)',
-});
 
 export class Toolbar extends React.Component {
     render() {
-        return <div css={RootCSS}>
-            <div css={TitleCSS}>Tools</div>
-            <div css={ButtonCSS}>Select</div>
-            <div css={ButtonCSS}>Line</div>
-            <div css={ButtonCSS}>Polygon</div>
+        return <div className="toolbar">
+            <div className="toolbar-title">Tools</div>
+            <div className="toolbar-button">Select</div>
+            <div className="toolbar-button">Line</div>
+            <div className="toolbar-button">Polygon</div>
         </div>;
     }
 };
