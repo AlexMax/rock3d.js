@@ -18,27 +18,37 @@
 
 import React from 'react';
 
+import { MenuBar, MenuDropdown, MenuItem } from './Menu';
+
 export class TopMenu extends React.Component {
     render() {
         return <nav>
-            <ul>
-                <li>File
-                    <ul>
-                        <li>About</li>
-                    </ul>
-                </li>
-                <li>Edit
-                    <ul>
-                        <li>Undo</li>
-                    </ul>
-                </li>
-                <li>View
-                    <ul>
-                        <li>Draw</li>
-                        <li>Visual</li>
-                    </ul>
-                </li>
-            </ul>
+            <MenuBar>
+                <MenuItem label="File">
+                    <MenuDropdown>
+                        <MenuItem label="About"/>
+                    </MenuDropdown>
+                </MenuItem>
+                <MenuItem label="Edit">
+                    <MenuDropdown>
+                        <MenuItem label="Undo"/>
+                        <MenuItem label="Cut"/>
+                        <MenuItem label="Copy"/>
+                        <MenuItem label="Paste"/>
+                    </MenuDropdown>
+                </MenuItem>
+                <MenuItem label="View">
+                    <MenuDropdown>
+                        <MenuItem label="Draw"/>
+                        <MenuItem label="Visual"/>
+                    </MenuDropdown>
+                </MenuItem>
+                <MenuItem label="Help">
+                    <MenuDropdown>
+                        <MenuItem label="About"/>
+                    </MenuDropdown>
+                </MenuItem>
+            </MenuBar>
         </nav>;
     }
 };

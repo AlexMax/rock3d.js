@@ -47,47 +47,34 @@ html, body, #rocked, .root-flex, .content {
 
 /* #endregion */
 
-/* #region *** TOP MENU ***/
+/* #region *** MENU ***/
 
 /* Main navigation */
-nav {
+.menu-bar {
     background-color: var(--window-bg-color);
     border: 1px solid;
     border-color: var(--window-border-color);
     cursor: default;
-}
-
-/* All list items in nav */
-nav li {
-    line-height: 1.5em;
-    list-style-type: none;
-    padding: 0 0.5em 0 0.5em;
-}
-
-/* List items in nav that are currently highlighted */
-nav li:hover {
-    background-color: var(--menu-select-color);
-}
-
-/* Only the topmost list container */
-nav > ul {
     display: flex;
     margin: 0;
     padding: 0;
 }
 
-/* Only the topmost list items */
-nav > ul > li {
-    position: relative; /* anchor the submenus */
+.menu-item {
+    line-height: 1.5em;
+    list-style-type: none;
+    padding: 0 0.5em 0 0.5em;
+
+    /* Anchor submenus */
+    position: relative;
 }
 
-/* Make submenus appear */
-nav > ul > li:hover > ul {
-    visibility: visible;
+.menu-item:hover {
+    background-color: var(--menu-select-color);
 }
 
-/* Only the submenu list container */
-nav > ul > li > ul {
+/* Only dropdown menus */
+.menu-dropdown {
     border: 1px solid;
     border-color: var(--window-border-color);
     background-color: var(--window-bg-color);
@@ -96,7 +83,6 @@ nav > ul > li > ul {
     margin: 0;
     padding: 0;
     position: absolute;
-    visibility: hidden;
 }
 
 /* #endregion */
