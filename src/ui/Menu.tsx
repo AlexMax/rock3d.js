@@ -31,14 +31,47 @@ export class MenuDropdown extends React.Component {
 }
 
 export interface MenuItemProps {
+    /**
+     * Label of the menu item.
+     */
     label: string,
+
+    /**
+     * Action to call if the item is clicked.
+     */
+    action?: Function,
 };
 
-export class MenuItem extends React.Component<MenuItemProps> {
+interface MenuItemState {
+    /**
+     * True if child items should be shown.
+     */
+    showChildren: boolean;
+}
+
+export class MenuItem extends React.Component<MenuItemProps, MenuItemState> {
+
+    constructor(props: any) {
+        super(props);
+        this.state = {
+            showChildren: false,
+        }
+
+        this.onClick = this.onClick.bind(this);
+    }
+
+    onClick() {
+        if (this.state.showChildren === false) {
+            this.setState({ showChildren: true });
+        } else {
+            this.setState({ showChildren: false });
+        }
+    }
+
     render() {
-        return <li className="menu-item">
+        return <li className="menu-item" onClick={this.onClick}>
             {this.props.label}
-            {this.props.children}
+            {this.state.showChildren ? this.props.children : null}
         </li>;
     }
 }
