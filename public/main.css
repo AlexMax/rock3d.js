@@ -52,8 +52,9 @@ html, body, #rocked, .root-flex, .content {
 /* Main navigation */
 .menu-bar {
     background-color: var(--window-bg-color);
-    border: 1px solid;
     border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
     cursor: default;
     display: flex;
     margin: 0;
@@ -91,9 +92,23 @@ html, body, #rocked, .root-flex, .content {
 
 .status-bar {
     background-color: var(--window-bg-color);
-    border: 1px solid;
     border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
     display: flex;
+}
+
+/* #endregion */
+
+/* #region *** TITLE BAR ***/
+
+.title-bar {
+    background-color: var(--window-title-bg-color);
+    border-color: var(--window-title-border-color);
+    border-style: solid;
+    border-width: 1px;
+    color: var(--window-title-color);
+    text-align: center;
 }
 
 /* #endregion */
@@ -106,17 +121,28 @@ html, body, #rocked, .root-flex, .content {
     right: 32;
 }
 
-.toolbar-title {
-    background-color: var(--window-title-bg-color);
-    border: 1px solid;
-    border-color: var(--window-title-border-color);
-    color: var(--window-title-color);
-}
-
 .toolbar .toolbar-button {
     background-color: var(--window-bg-color);
-    border: 1px solid;
+    border-style: solid;
+    border-width: 1px;
     border-color: var(--window-border-color);
+}
+
+/* #endregion */
+
+/* #region *** WINDOW ***/
+
+.window {
+    left: 32;
+    position: absolute;
+    top: 32;
+}
+
+.window .window-content {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
 }
 
 /* #endregion */

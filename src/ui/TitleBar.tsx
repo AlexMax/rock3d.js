@@ -18,15 +18,8 @@
 
 import React from 'react';
 
-import { TitleBar } from './TitleBar';
-
-export class Toolbar extends React.Component {
+export class TitleBar extends React.Component {
     render() {
-        return <div className="toolbar">
-            <TitleBar>Toolbar</TitleBar>
-            <div className="toolbar-button">Select</div>
-            <div className="toolbar-button">Line</div>
-            <div className="toolbar-button">Polygon</div>
-        </div>;
+        return <div className="title-bar">{this.props.children}</div>;
     }
-};
+}

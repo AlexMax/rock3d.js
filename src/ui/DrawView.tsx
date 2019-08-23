@@ -21,6 +21,7 @@ import * as rock3d from 'rock3d';
 
 import { TopdownCanvas } from './TopdownCanvas';
 import { Toolbar } from './Toolbar';
+import { Window } from './Window';
 
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
@@ -36,6 +37,7 @@ export class DrawView extends React.Component<Props> {
         return <div>
             <TopdownCanvas levelData={this.props.levelData}/>
             <Toolbar/>
+            <Window title="A Test Window"/>
         </div>;
     }
 };

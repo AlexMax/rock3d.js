@@ -20,13 +20,21 @@ import React from 'react';
 
 import { TitleBar } from './TitleBar';
 
-export class Toolbar extends React.Component {
+interface Props {
+    /**
+     * Window title, shown in the title bar
+     */
+    title: string,
+}
+
+export class Window extends React.Component<Props> {
     render() {
-        return <div className="toolbar">
-            <TitleBar>Toolbar</TitleBar>
-            <div className="toolbar-button">Select</div>
-            <div className="toolbar-button">Line</div>
-            <div className="toolbar-button">Polygon</div>
-        </div>;
+        return <div className="window">
+            <TitleBar>{this.props.title}</TitleBar>
+            <div className="window-content">
+                <h1>Hello, world!</h1>
+                {this.props.children}
+            </div>
+        </div>
     }
-};
+}
