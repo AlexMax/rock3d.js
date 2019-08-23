@@ -118,7 +118,7 @@ html, body, #rocked, .root-flex, .content {
 .toolbar {
     position: absolute;
     top: 32;
-    right: 32;
+    left: 32;
 }
 
 .toolbar .toolbar-button {

@@ -18,15 +18,20 @@
 
 import React from 'react';
 
-import { TitleBar } from './TitleBar';
+import { withTitleBar, WrappedProps as TitleBarProps } from './TitleBar';
 
-export class Toolbar extends React.Component {
+interface Props extends TitleBarProps { }
+
+class BaseToolbar extends React.Component<Props> {
     render() {
-        return <div className="toolbar">
-            <TitleBar>Toolbar</TitleBar>
+        return <div className="toolbar" style={this.props.pos}>
+            {this.props.titleBar}
             <div className="toolbar-button">Select</div>
             <div className="toolbar-button">Line</div>
             <div className="toolbar-button">Polygon</div>
         </div>;
     }
 };
+
+const Toolbar = withTitleBar(BaseToolbar);
+export { Toolbar };

@@ -36,7 +36,7 @@ export class DrawView extends React.Component<Props> {
     render(): JSX.Element {
         return <div>
             <TopdownCanvas levelData={this.props.levelData}/>
-            <Toolbar/>
+            <Toolbar title="A Test Toolbar"/>
             <Window title="A Test Window"/>
         </div>;
     }
