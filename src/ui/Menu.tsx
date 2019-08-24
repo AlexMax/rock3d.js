@@ -58,11 +58,22 @@ export class MenuBar extends React.Component<MenuBarProps, MenuBarState> {
 
     constructor(props: any) {
         super(props);
+        this.closeSubmenus = this.closeSubmenus.bind(this);
         this.onChildSelect = this.onChildSelect.bind(this);
 
         this.state = {
             current: null,
         };
+    }
+
+    /**
+     * Close any submenus.
+     * 
+     * Pass this method to any submenus so they can close the menu upon 
+     * selection of an item or clicking outside the menu.
+     */
+    closeSubmenus() {
+        this.setState({ current: null });
     }
 
     /**
@@ -83,8 +94,8 @@ export class MenuBar extends React.Component<MenuBarProps, MenuBarState> {
             }
 
             menuItems.push(<MenuItem key={index} value={sindex}
-                onSelect={this.onChildSelect} config={item}
-                drawSubmenu={drawSubmenu}/>);
+                closeMenu={this.closeSubmenus} onSelect={this.onChildSelect}
+                config={item} drawSubmenu={drawSubmenu}/>);
         });
 
         return <ul className="menu-bar">{menuItems}</ul>;
@@ -92,6 +103,11 @@ export class MenuBar extends React.Component<MenuBarProps, MenuBarState> {
 }
 
 interface MenuDropdownProps {
+    /**
+     * A passed function that closes the menu tree.
+     */
+    closeMenu: () => void;
+
     /**
      * Configuration of menubar and submenus.
      */
@@ -110,10 +126,14 @@ interface MenuDropdownState {
  */
 export class MenuDropdown extends React.Component<MenuDropdownProps, MenuDropdownState> {
 
-    constructor(props: any) {
+    ref: React.RefObject<HTMLUListElement>;
+
+    constructor(props: Readonly<MenuDropdownProps>) {
         super(props);
         this.onChildSelect = this.onChildSelect.bind(this);
+        this.onGlobalClick = this.onGlobalClick.bind(this);
 
+        this.ref = React.createRef();
         this.state = {
             current: null,
         };
@@ -124,6 +144,30 @@ export class MenuDropdown extends React.Component<MenuDropdownProps, MenuDropdow
      */
     onChildSelect(value: string) {
         this.setState({ current: value });
+    }
+
+    onGlobalClick(evt: MouseEvent) {
+        if (this.ref.current === null) {
+            throw new Error('MenuDropdown is missing ref');
+        }
+        if (evt.target === null) {
+            throw new Error('MenuDropdown onGlobalClick event is missing target');
+        }
+
+        // Did we click outside of our current element and its parents?
+        if (!this.ref.current.contains(evt.target as Node)) {
+            // We did!  Close the entire menu.
+            document.removeEventListener('click', this.onGlobalClick);
+            this.props.closeMenu();
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.onGlobalClick);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.onGlobalClick);
     }
 
     render() {
@@ -137,15 +181,20 @@ export class MenuDropdown extends React.Component<MenuDropdownProps, MenuDropdow
             }
 
             menuItems.push(<MenuItem key={index} value={sindex}
-                onSelect={this.onChildSelect} config={item}
-                drawSubmenu={drawSubmenu}/>);
+                closeMenu={this.props.closeMenu} onSelect={this.onChildSelect}
+                config={item} drawSubmenu={drawSubmenu}/>);
         });
 
-        return <ul className="menu-dropdown">{menuItems}</ul>;
+        return <ul ref={this.ref} className="menu-dropdown">{menuItems}</ul>;
     }
 }
 
 export interface MenuItemProps {
+    /**
+     * A passed function that closes the menu tree.
+     */
+    closeMenu: () => void;
+
     /**
      * Configuration of single menu item.
      */
@@ -183,6 +232,7 @@ export class MenuItem extends React.Component<MenuItemProps, MenuItemState> {
         if (this.props.config.action !== undefined) {
             // The menu item itself does something.
             this.props.config.action();
+            this.props.closeMenu();
         } else if (this.props.onSelect !== undefined) {
             // The menu has a submenu.
             this.props.onSelect(this.props.value);
@@ -192,7 +242,8 @@ export class MenuItem extends React.Component<MenuItemProps, MenuItemState> {
     render() {
         let subMenu = null;
         if (this.props.config.subMenu !== undefined && this.props.drawSubmenu === true) {
-            subMenu = <MenuDropdown config={this.props.config.subMenu}/>;
+            subMenu = <MenuDropdown closeMenu={this.props.closeMenu}
+                config={this.props.config.subMenu}/>;
         }
 
         return <li className="menu-item" onClick={this.onClick}>
