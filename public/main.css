@@ -126,6 +126,9 @@ html, body, #rocked, .root-flex, .content {
 
 .toolbar {
     position: absolute;
+
+    /* Don't wrap text on edge of screen. */
+    white-space: nowrap;
 }
 
 .toolbar .toolbar-button {
@@ -141,6 +144,9 @@ html, body, #rocked, .root-flex, .content {
 
 .window {
     position: absolute;
+
+    /* Don't wrap text on edge of screen. */
+    white-space: nowrap;
 }
 
 .window .window-content {
