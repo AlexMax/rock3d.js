@@ -21,13 +21,32 @@ import React from 'react';
 import * as rock3d from 'rock3d';
 
 export interface Props {
+    /**
+     * Level data coming from outside.
+     */
     levelData: rock3d.LevelData.LevelData;
 };
 
 interface State {
+    /**
+     * Position that the canvas is "looking at".
+     */
     camera: rock3d.r2d.Camera.Camera;
+
+    /**
+     * Current mutated level data we're looking at.
+     */
     levelData: rock3d.LevelData.LevelData;
+
+    /**
+     * Current mouse position inside the canvas.
+     */
     mousePos: vec2 | null;
+
+    /**
+     * Cache of vertexes and their associated polygons.
+     */
+    vertexCache: rock3d.LevelData.VertexCache;
 }
 
 export class TopdownCanvas extends React.Component<Props, State> {
@@ -37,15 +56,15 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
-
         this.canvas = React.createRef();
+        this.onMouseMove = this.onMouseMove.bind(this);
+
         this.state = {
             camera: new rock3d.r2d.Camera.Camera(),
             levelData: props.levelData, // FIXME: Needs a deep copy.
             mousePos: null,
+            vertexCache: rock3d.LevelData.toSharedVertexCache(props.levelData.polygons),
         };
-
-        this.onMouseMove = this.onMouseMove.bind(this);
     }
 
     onMouseMove(event: React.MouseEvent) {
@@ -68,15 +87,17 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
         this.renderer.clear();
         this.renderer.renderLevel(this.state.levelData, this.state.camera);
+        this.renderer.renderVertexCache(this.state.vertexCache, this.state.camera);
     }
 
-    shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
+    shouldComponentUpdate(_: Props, nextState: State): boolean {
         if (this.renderer === undefined) {
             throw new Error('GridView renderer is missing');
         }
 
         this.renderer.clear();
         this.renderer.renderLevel(nextState.levelData, nextState.camera);
+        this.renderer.renderVertexCache(nextState.vertexCache, nextState.camera);
 
         if (nextState.mousePos === null) {
             return false; // We don't have mouse data
