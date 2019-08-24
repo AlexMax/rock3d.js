@@ -122,6 +122,15 @@ html, body, #rocked, .root-flex, .content {
 
 /* #endregion */
 
+/* #region *** TOPDOWN CANVAS ***/
+
+.topdown-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+/* #endregion */
+
 /* #region *** TOOLBAR ***/
 
 .toolbar {

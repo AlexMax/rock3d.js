@@ -85,6 +85,13 @@ export class TopdownCanvas extends React.Component<Props, State> {
         }
 
         this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
+
+        // Set the canvas internal width and height to the actual width
+        // and height of the canvas itself.
+        const ctx = this.renderer.ctx;
+        ctx.canvas.width = ctx.canvas.clientWidth;
+        ctx.canvas.height = ctx.canvas.clientHeight;
+
         this.renderer.clear();
         this.renderer.renderGrid(this.state.camera);
         this.renderer.renderLevel(this.state.levelData, this.state.camera);
@@ -94,6 +101,15 @@ export class TopdownCanvas extends React.Component<Props, State> {
     shouldComponentUpdate(_: Props, nextState: State): boolean {
         if (this.renderer === undefined) {
             throw new Error('GridView renderer is missing');
+        }
+
+        // Update the canvas width and height if necessary.
+        const ctx = this.renderer.ctx;
+        if (ctx.canvas.width !== ctx.canvas.clientWidth ||
+            ctx.canvas.height !== ctx.canvas.clientHeight) {
+            ctx.canvas.width = ctx.canvas.clientWidth;
+            ctx.canvas.height = ctx.canvas.clientHeight;
+            this.renderer.setProject();
         }
 
         this.renderer.clear();
@@ -114,7 +130,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
     }
 
     render() {
-        return <canvas ref={this.canvas} width={800} height={600}
+        return <canvas className="topdown-canvas" ref={this.canvas}
             onMouseMove={this.onMouseMove}/>;
     }
 }
