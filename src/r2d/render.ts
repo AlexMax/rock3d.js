@@ -4,14 +4,11 @@ import { Camera } from './camera';
 import { LevelData, VertexCache } from '../leveldata';
 
 export class RenderContext {
-    canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     canvasProject: mat3;
     canvasProjectInv: mat3;
 
     constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-
         // Attach context to canvas element.
         const ctx = canvas.getContext('2d', { alpha: false });
         if (ctx === null) {
@@ -32,7 +29,7 @@ export class RenderContext {
      * know where the center of the view is.
      */
     setProject() {
-        const offset = vec2.fromValues(this.canvas.width / 2, this.canvas.height / 2);
+        const offset = vec2.fromValues(this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
         mat3.fromTranslation(this.canvasProject, offset);
         this.canvasProject[4] *= -1; // invert y-axis
         mat3.invert(this.canvasProjectInv, this.canvasProject);
@@ -44,7 +41,7 @@ export class RenderContext {
     clear(): void {
         const ctx = this.ctx;
         ctx.fillStyle = 'rgb(0, 0, 0)';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
     /**
@@ -56,8 +53,39 @@ export class RenderContext {
         const ctx = this.ctx;
         const cameraMat = cam.getViewMatrix();
 
-        // TODO: Implement, we shouldn't render grid lines for things we
-        //       can't see.
+        const leftTop = vec2.fromValues(0, 0);
+        const rightBottom = vec2.fromValues(ctx.canvas.width, ctx.canvas.height);
+        this.screenToWorld(leftTop, leftTop, cam);
+        this.screenToWorld(rightBottom, rightBottom, cam);
+
+        // Stroke vertical lines.
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(57, 89, 111, 0.5)';
+
+        for (let x = Math.round(leftTop[0] / 64) * 64;x < rightBottom[0];x += 64) {
+            let v = vec2.fromValues(x, leftTop[1]);
+            vec2.transformMat3(v, v, cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.moveTo(v[0] + 0.5, v[1] + 0.5);
+            vec2.set(v, x, rightBottom[1]);
+            vec2.transformMat3(v, v, cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.lineTo(v[0] + 0.5, v[1] + 0.5);
+        }
+
+        // Stroke horizontal lines.
+        for (let y = Math.round(rightBottom[1] / 64) * 64;y < leftTop[1];y += 64) {
+            let v = vec2.fromValues(leftTop[0], y);
+            vec2.transformMat3(v, v, cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.moveTo(v[0] + 0.5, v[1] + 0.5);
+            vec2.set(v, rightBottom[0], y);
+            vec2.transformMat3(v, v, cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.lineTo(v[0] + 0.5, v[1] + 0.5);
+        }
+
+        ctx.stroke();
     }
 
     /**
@@ -125,19 +153,17 @@ export class RenderContext {
      * @param screenCoord Screen coordinates.
      * @param cam Camera to use for reverse projection.
      */
-    screenToWorld(screenCoord: vec2, cam: Camera): vec2 {
-        const coord = vec2.create();
-
+    screenToWorld(outCoord: vec2, screenCoord: vec2, cam: Camera): vec2 {
         // Invert our camera matrix
         const cameraMatInv = cam.getViewMatrix();
         mat3.invert(cameraMatInv, cameraMatInv);
 
         // Un-project back to view coordinates.
-        vec2.transformMat3(coord, screenCoord, this.canvasProjectInv);
+        vec2.transformMat3(outCoord, screenCoord, this.canvasProjectInv);
 
         // Un-project back to world coordinates.
-        vec2.transformMat3(coord, coord, cameraMatInv);
+        vec2.transformMat3(outCoord, outCoord, cameraMatInv);
 
-        return coord;
+        return outCoord;
     }
 }
