@@ -3,6 +3,15 @@ import { mat3, vec2 } from "gl-matrix";
 import { Camera } from './camera';
 import { LevelData, VertexCache } from '../leveldata';
 
+/**
+ * Round a coordinate to the nearest x.5, so the coordinate comes out "crisp".
+ * 
+ * @param coord Coordinate to round.
+ */
+function crisp(coord: number) {
+    return Math.round(coord) + 0.5;
+}
+
 export class RenderContext {
     ctx: CanvasRenderingContext2D;
     canvasProject: mat3;
@@ -29,7 +38,9 @@ export class RenderContext {
      * know where the center of the view is.
      */
     setProject() {
-        const offset = vec2.fromValues(this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+        const offset = vec2.fromValues(
+            this.ctx.canvas.clientWidth / 2,
+            this.ctx.canvas.clientHeight / 2);
         mat3.fromTranslation(this.canvasProject, offset);
         this.canvasProject[4] *= -1; // invert y-axis
         mat3.invert(this.canvasProjectInv, this.canvasProject);
@@ -41,7 +52,7 @@ export class RenderContext {
     clear(): void {
         const ctx = this.ctx;
         ctx.fillStyle = 'rgb(0, 0, 0)';
-        ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        ctx.fillRect(0, 0, this.ctx.canvas.clientWidth, this.ctx.canvas.clientHeight);
     }
 
     /**
@@ -54,7 +65,7 @@ export class RenderContext {
         const cameraMat = cam.getViewMatrix();
 
         const leftTop = vec2.fromValues(0, 0);
-        const rightBottom = vec2.fromValues(ctx.canvas.width, ctx.canvas.height);
+        const rightBottom = vec2.fromValues(ctx.canvas.clientWidth, ctx.canvas.clientHeight);
         this.screenToWorld(leftTop, leftTop, cam);
         this.screenToWorld(rightBottom, rightBottom, cam);
 
@@ -66,11 +77,11 @@ export class RenderContext {
             let v = vec2.fromValues(x, leftTop[1]);
             vec2.transformMat3(v, v, cameraMat);
             vec2.transformMat3(v, v, this.canvasProject);
-            ctx.moveTo(v[0] + 0.5, v[1] + 0.5);
+            ctx.moveTo(crisp(v[0]), crisp(v[1]));
             vec2.set(v, x, rightBottom[1]);
             vec2.transformMat3(v, v, cameraMat);
             vec2.transformMat3(v, v, this.canvasProject);
-            ctx.lineTo(v[0] + 0.5, v[1] + 0.5);
+            ctx.lineTo(crisp(v[0]), crisp(v[1]));
         }
 
         // Stroke horizontal lines.
@@ -78,11 +89,11 @@ export class RenderContext {
             let v = vec2.fromValues(leftTop[0], y);
             vec2.transformMat3(v, v, cameraMat);
             vec2.transformMat3(v, v, this.canvasProject);
-            ctx.moveTo(v[0] + 0.5, v[1] + 0.5);
+            ctx.moveTo(crisp(v[0]), crisp(v[1]));
             vec2.set(v, rightBottom[0], y);
             vec2.transformMat3(v, v, cameraMat);
             vec2.transformMat3(v, v, this.canvasProject);
-            ctx.lineTo(v[0] + 0.5, v[1] + 0.5);
+            ctx.lineTo(crisp(v[0]), crisp(v[1]));
         }
 
         ctx.stroke();
@@ -107,16 +118,16 @@ export class RenderContext {
                 const nextVert = polygon.sides[(i + 1) % polygon.sides.length].vertex;
 
                 if (i === 0) {
-                    let x = vec2.create();
-                    vec2.transformMat3(x, side.vertex, cameraMat);
-                    vec2.transformMat3(x, x, this.canvasProject);
-                    ctx.moveTo(x[0] + 0.5, x[1] + 0.5);
+                    let v = vec2.create();
+                    vec2.transformMat3(v, side.vertex, cameraMat);
+                    vec2.transformMat3(v, v, this.canvasProject);
+                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
                 }
 
-                let x = vec2.create();
-                vec2.transformMat3(x, nextVert, cameraMat);
-                vec2.transformMat3(x, x, this.canvasProject);
-                ctx.lineTo(x[0] + 0.5, x[1] + 0.5);
+                let v = vec2.create();
+                vec2.transformMat3(v, nextVert, cameraMat);
+                vec2.transformMat3(v, v, this.canvasProject);
+                ctx.lineTo(crisp(v[0]), crisp(v[1]));
             }
         });
         ctx.stroke();
@@ -135,13 +146,13 @@ export class RenderContext {
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(81, 168, 255)';
         vertexCache.forEach((cacheEntry) => {
-            let x = vec2.create();
-            vec2.transformMat3(x, cacheEntry.vertex, cameraMat);
-            vec2.transformMat3(x, x, this.canvasProject);
-            ctx.moveTo(x[0] - 1.5, x[1] - 1.5);
-            ctx.lineTo(x[0] + 2.5, x[1] + 2.5);
-            ctx.moveTo(x[0] - 1.5, x[1] + 2.5);
-            ctx.lineTo(x[0] + 2.5, x[1] - 1.5);
+            let v = vec2.create();
+            vec2.transformMat3(v, cacheEntry.vertex, cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.moveTo(crisp(v[0] - 2), crisp(v[1] - 2));
+            ctx.lineTo(crisp(v[0] + 2), crisp(v[1] + 2));
+            ctx.moveTo(crisp(v[0] - 2), crisp(v[1] + 2));
+            ctx.lineTo(crisp(v[0] + 2), crisp(v[1] - 2));
         });
         ctx.stroke();
     }
