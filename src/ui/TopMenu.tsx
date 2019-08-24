@@ -18,37 +18,52 @@
 
 import React from 'react';
 
-import { MenuBar, MenuDropdown, MenuItem } from './Menu';
+import { MenuConfig, MenuBar, MenuDropdown, MenuItem } from './Menu';
 
 export class TopMenu extends React.Component {
     render() {
-        return <nav>
-            <MenuBar>
-                <MenuItem label="File">
-                    <MenuDropdown>
-                        <MenuItem label="About"/>
-                    </MenuDropdown>
-                </MenuItem>
-                <MenuItem label="Edit">
-                    <MenuDropdown>
-                        <MenuItem label="Undo"/>
-                        <MenuItem label="Cut"/>
-                        <MenuItem label="Copy"/>
-                        <MenuItem label="Paste"/>
-                    </MenuDropdown>
-                </MenuItem>
-                <MenuItem label="View">
-                    <MenuDropdown>
-                        <MenuItem label="Draw"/>
-                        <MenuItem label="Visual"/>
-                    </MenuDropdown>
-                </MenuItem>
-                <MenuItem label="Help">
-                    <MenuDropdown>
-                        <MenuItem label="About"/>
-                    </MenuDropdown>
-                </MenuItem>
-            </MenuBar>
-        </nav>;
+        const menuConfig: MenuConfig = [{
+            label: 'File',
+            subMenu: [{
+                label: 'Menu Item 1',
+                subMenu: [{
+                    label: 'Submenu Item 1',
+                }, {
+                    label: 'Submenu Item 2',
+                }],
+            }, {
+                label: 'Menu Item 2',
+                subMenu: [{
+                    label: 'Submenu Item 1',
+                }, {
+                    label: 'Submenu Item 2',
+                }],
+            }],
+        }, {
+            label: 'Edit',
+            subMenu: [{
+                label: 'Undo',
+            }, {
+                label: 'Cut',
+            }, {
+                label: 'Copy',
+            }, {
+                label: 'Paste',
+            }],
+        }, {
+            label: 'View',
+            subMenu: [{
+                label: 'Draw',
+            }, {
+                label: 'Visual',
+            }],
+        }, {
+            label: 'Help',
+            subMenu: [{
+                label: 'About',
+            }],
+        }];
+
+        return <nav><MenuBar config={menuConfig}/></nav>;
     }
 };

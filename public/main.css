@@ -61,6 +61,18 @@ html, body, #rocked, .root-flex, .content {
     padding: 0;
 }
 
+/* Only dropdown menus */
+.menu-dropdown {
+    border: 1px solid;
+    border-color: var(--window-border-color);
+    background-color: var(--window-bg-color);
+    cursor: default;
+    left: 0; /* anchored to the list item */
+    margin: 0;
+    padding: 0;
+    position: absolute;
+}
+
 .menu-item {
     line-height: 1.5em;
     list-style-type: none;
@@ -72,18 +84,6 @@ html, body, #rocked, .root-flex, .content {
 
 .menu-item:hover {
     background-color: var(--menu-select-color);
-}
-
-/* Only dropdown menus */
-.menu-dropdown {
-    border: 1px solid;
-    border-color: var(--window-border-color);
-    background-color: var(--window-bg-color);
-    cursor: default;
-    left: 0; /* anchored to the list item */
-    margin: 0;
-    padding: 0;
-    position: absolute;
 }
 
 /* #endregion */
@@ -117,8 +117,6 @@ html, body, #rocked, .root-flex, .content {
 
 .toolbar {
     position: absolute;
-    top: 32;
-    left: 32;
 }
 
 .toolbar .toolbar-button {
@@ -133,9 +131,7 @@ html, body, #rocked, .root-flex, .content {
 /* #region *** WINDOW ***/
 
 .window {
-    left: 32;
     position: absolute;
-    top: 32;
 }
 
 .window .window-content {

@@ -60,7 +60,7 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
                 mouseDownPos: null,
                 mouseDownMousePos: null,
                 pos: {
-                    left: 32,
+                    left: 512,
                     top: 32,
                 }
             };
