@@ -1,7 +1,7 @@
 import { mat3, vec2 } from "gl-matrix";
 
 import { Camera } from './camera';
-import { LevelData } from '../leveldata';
+import { LevelData, VertexCache } from '../leveldata';
 
 export class RenderContext {
     canvas: HTMLCanvasElement;
@@ -71,6 +71,7 @@ export class RenderContext {
         const cameraMat = cam.getViewMatrix();
 
         ctx.beginPath();
+        ctx.lineWidth = 1;
         ctx.strokeStyle = 'white';
         data.polygons.forEach((polygon) => {
             for (let i = 0;i < polygon.sides.length;i++) {
@@ -81,14 +82,38 @@ export class RenderContext {
                     let x = vec2.create();
                     vec2.transformMat3(x, side.vertex, cameraMat);
                     vec2.transformMat3(x, x, this.canvasProject);
-                    ctx.moveTo(x[0], x[1]);
+                    ctx.moveTo(x[0] + 0.5, x[1] + 0.5);
                 }
 
                 let x = vec2.create();
                 vec2.transformMat3(x, nextVert, cameraMat);
                 vec2.transformMat3(x, x, this.canvasProject);
-                ctx.lineTo(x[0], x[1]);
+                ctx.lineTo(x[0] + 0.5, x[1] + 0.5);
             }
+        });
+        ctx.stroke();
+    }
+
+    /**
+     * Given a cache of vertexes, render any visible ones.
+     * 
+     * @param vertexCache Cache of vertexes to render.
+     */
+    renderVertexCache(vertexCache: VertexCache, cam: Camera) {
+        const ctx = this.ctx;
+        const cameraMat = cam.getViewMatrix();
+
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgb(81, 168, 255)';
+        vertexCache.forEach((cacheEntry) => {
+            let x = vec2.create();
+            vec2.transformMat3(x, cacheEntry.vertex, cameraMat);
+            vec2.transformMat3(x, x, this.canvasProject);
+            ctx.moveTo(x[0] - 1.5, x[1] - 1.5);
+            ctx.lineTo(x[0] + 2.5, x[1] + 2.5);
+            ctx.moveTo(x[0] - 1.5, x[1] + 2.5);
+            ctx.lineTo(x[0] + 2.5, x[1] - 1.5);
         });
         ctx.stroke();
     }
