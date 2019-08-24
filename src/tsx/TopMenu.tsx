@@ -18,7 +18,7 @@
 
 import React from 'react';
 
-import { MenuConfig, MenuBar, MenuDropdown, MenuItem } from './Menu';
+import { MenuConfig, MenuBar } from './ui/Menu';
 
 export class TopMenu extends React.Component {
     render() {

@@ -20,7 +20,7 @@ import React from 'react';
 import * as rock3d from 'rock3d';
 
 import { DrawView } from './DrawView';
-import { StatusBar } from './StatusBar';
+import { StatusBar } from './ui/StatusBar';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 

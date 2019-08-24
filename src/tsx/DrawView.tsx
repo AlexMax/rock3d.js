@@ -20,8 +20,8 @@ import React from 'react';
 import * as rock3d from 'rock3d';
 
 import { TopdownCanvas } from './TopdownCanvas';
-import { Toolbar } from './Toolbar';
-import { Window } from './Window';
+import { Toolbar } from './ui/Toolbar';
+import { Window } from './ui/Window';
 
 export interface Props {
     levelData: rock3d.LevelData.LevelData;
