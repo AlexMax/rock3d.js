@@ -86,6 +86,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
         this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
         this.renderer.clear();
+        this.renderer.renderGrid(this.state.camera);
         this.renderer.renderLevel(this.state.levelData, this.state.camera);
         this.renderer.renderVertexCache(this.state.vertexCache, this.state.camera);
     }
@@ -96,6 +97,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
         }
 
         this.renderer.clear();
+        this.renderer.renderGrid(nextState.camera);
         this.renderer.renderLevel(nextState.levelData, nextState.camera);
         this.renderer.renderVertexCache(nextState.vertexCache, nextState.camera);
 
@@ -104,14 +106,15 @@ export class TopdownCanvas extends React.Component<Props, State> {
         }
 
         // DEBUG: World coordinates
-        const coord = this.renderer.screenToWorld(nextState.mousePos, nextState.camera);
-        this.renderer.ctx.strokeText(`x: ${coord[0]} y: ${coord[1]}`, 0, this.renderer.canvas.height);
+        const coord = vec2.create();
+        this.renderer.screenToWorld(coord, nextState.mousePos, nextState.camera);
+        this.renderer.ctx.strokeText(`x: ${coord[0]} y: ${coord[1]}`, 0, this.renderer.ctx.canvas.clientHeight);
 
         return false; // never re-render the DOM node with React
     }
 
     render() {
-        return <canvas ref={this.canvas} width={640} height={480}
+        return <canvas ref={this.canvas} width={800} height={600}
             onMouseMove={this.onMouseMove}/>;
     }
 }
