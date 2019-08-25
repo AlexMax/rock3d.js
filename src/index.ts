@@ -16,11 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from "react";
-import ReactDOM from "react-dom";
-import * as rock3d from 'rock3d';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { LevelData } from 'rock3d';
 
 import { Mode, Root } from './tsx/Root';
+import { MutLevel } from './mutlevel';
+
 import TESTMAP from './asset/TESTMAP.json';
 
 window.addEventListener("load", async () => {
@@ -29,12 +31,14 @@ window.addEventListener("load", async () => {
         throw new Error('Could not find root element');
     }
 
-    if (!rock3d.LevelData.isLevelData(TESTMAP)) {
+    if (!LevelData.isLevelData(TESTMAP)) {
         throw new Error('Map data is not valid');
     }
 
+    const level = new MutLevel(TESTMAP);
+
     ReactDOM.render(React.createElement(Root, { 
-        levelData: TESTMAP,
+        level: level,
         mode: Mode.DrawView,
     }), root);
 });

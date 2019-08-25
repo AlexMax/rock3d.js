@@ -17,12 +17,12 @@
  */
 
 import React from 'react';
-import * as rock3d from 'rock3d';
 
 import { FPCanvas } from './FPCanvas';
+import { MutLevel } from '../mutlevel';
 
 export interface Props {
-    levelData: rock3d.LevelData.LevelData;
+    level: MutLevel;
 };
 
 export class VisualView extends React.Component<Props> {
@@ -32,6 +32,6 @@ export class VisualView extends React.Component<Props> {
     }
 
     render(): JSX.Element {
-        return <FPCanvas levelData={this.props.levelData}/>;
+        return <FPCanvas level={this.props.level}/>;
     }
 };

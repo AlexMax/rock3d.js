@@ -17,14 +17,14 @@
  */
 
 import React from 'react';
-import * as rock3d from 'rock3d';
 
-import { TopdownCanvas } from './TopdownCanvas';
+import { MutLevel } from '../mutlevel';
 import { Toolbar } from './ui/Toolbar';
+import { TopdownCanvas } from './TopdownCanvas';
 import { Window } from './ui/Window';
 
 export interface Props {
-    levelData: rock3d.LevelData.LevelData;
+    level: MutLevel;
 };
 
 export class DrawView extends React.Component<Props> {
@@ -35,7 +35,7 @@ export class DrawView extends React.Component<Props> {
 
     render(): JSX.Element {
         return <div>
-            <TopdownCanvas levelData={this.props.levelData}/>
+            <TopdownCanvas level={this.props.level}/>
             <Toolbar title="A Test Toolbar"/>
             <Window title="A Test Window"/>
         </div>;

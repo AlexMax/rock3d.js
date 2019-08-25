@@ -20,6 +20,7 @@ import { glMatrix } from 'gl-matrix';
 import React from 'react';
 import * as rock3d from 'rock3d';
 
+import { MutLevel } from '../mutlevel';
 import { textureLoader } from '../util';
 
 import CEIL5_1 from '../asset/CEIL5_1.png';
@@ -33,18 +34,23 @@ import STEP3 from '../asset/STEP3.png';
 const ATLAS_SIZE = 512;
 
 export interface Props {
-    levelData: rock3d.LevelData.LevelData;
+    level: MutLevel;
 };
 
-export class FPCanvas extends React.Component<Props> {
+interface State {
+    level: MutLevel;
+}
+
+export class FPCanvas extends React.Component<Props, State> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    levelData: rock3d.LevelData.LevelData;
 
     constructor(props: Props) {
         super(props);
         this.canvas = React.createRef();
-        this.levelData = props.levelData;
+        this.state = {
+            level: props.level, // FIXME: Needs a deep copy.
+        }
     }
 
     async componentDidMount() {
@@ -79,11 +85,11 @@ export class FPCanvas extends React.Component<Props> {
         renderer.bakeAtlas(atlas);
 
         // Parse our test map data into a map.
-        const map = new rock3d.Level.Level(this.levelData);
+        const level = this.state.level;
 
         // Draw our map
-        for (let i = 0;i < map.polygons.length;i++) {
-            renderer.addPolygon(map.polygons, i);
+        for (let i = 0;i < level.polygons.length;i++) {
+            renderer.addPolygon(level.polygons, i);
         }
 
         const camera = new rock3d.r3d.Camera.Camera();

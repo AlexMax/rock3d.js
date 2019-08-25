@@ -17,9 +17,9 @@
  */
 
 import React from 'react';
-import * as rock3d from 'rock3d';
 
 import { DrawView } from './DrawView';
+import { MutLevel } from '../mutlevel';
 import { StatusBar } from './ui/StatusBar';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
@@ -34,7 +34,7 @@ type ModeElements = {
 }
 
 export interface Props {
-    levelData: rock3d.LevelData.LevelData;
+    level: MutLevel;
     mode: Mode;
 };
 
@@ -47,8 +47,8 @@ export class Root extends React.Component<Props> {
     render() {
         // Depending on the mode, we render a different component
         const view: ModeElements = {
-            [Mode.DrawView]: (<DrawView levelData={this.props.levelData}/>),
-            [Mode.VisualView]: (<VisualView levelData={this.props.levelData}/>)
+            [Mode.DrawView]: (<DrawView level={this.props.level}/>),
+            [Mode.VisualView]: (<VisualView level={this.props.level}/>)
         };
 
         return <div className="root-flex">
