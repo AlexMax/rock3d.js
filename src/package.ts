@@ -16,28 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
+import package_json from '../package.json';
 
-import { AboutWindow } from './AboutWindow';
-import { MutLevel } from '../mutlevel';
-import { Toolbar } from './ui/Toolbar';
-import { TopdownCanvas } from './TopdownCanvas';
+const name = package_json.name;
+const repository_url = package_json.repository.url;
+const version = package_json.version;
 
-export interface Props {
-    level: MutLevel;
-};
-
-export class DrawView extends React.Component<Props> {
-
-    constructor(props: Readonly<Props>) {
-        super(props);
-    }
-
-    render(): JSX.Element {
-        return <div>
-            <TopdownCanvas level={this.props.level}/>
-            <Toolbar title="A Test Toolbar"/>
-            <AboutWindow/>
-        </div>;
-    }
-};
+export { name, repository_url, version };

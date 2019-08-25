@@ -60,7 +60,7 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
                 mouseDownPos: null,
                 mouseDownMousePos: null,
                 pos: {
-                    left: 512,
+                    left: 32,
                     top: 32,
                 }
             };
@@ -124,7 +124,9 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
             const titleBar = <div className="title-bar" onMouseDown={this.onMouseDown}>
                 {this.props.title}
             </div>;
-            return <WrappedComponent pos={this.state.pos} titleBar={titleBar}/>;
+            return <WrappedComponent pos={this.state.pos} titleBar={titleBar}>
+                {this.props.children}
+            </WrappedComponent>;
         }
     };
 }

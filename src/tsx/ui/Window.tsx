@@ -22,17 +22,17 @@ import { withTitleBar, WrappedProps as TitleBarProps } from './TitleBar';
 
 interface Props extends TitleBarProps {
     /**
-     * Window title, shown in the title bar
+     * Window title, shown in the title bar.
      */
     title: string,
 }
 
 class BaseWindow extends React.Component<Props> {
+
     render() {
         return <div className="window" style={this.props.pos}>
             {this.props.titleBar}
             <div className="window-content">
-                <h1>Hello, world!</h1>
                 {this.props.children}
             </div>
         </div>
