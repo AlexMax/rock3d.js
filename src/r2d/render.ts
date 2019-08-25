@@ -9,7 +9,7 @@
 import { mat3, vec2 } from "gl-matrix";
 
 import { Camera } from './camera';
-import { LevelData, VertexCache } from '../leveldata';
+import { Level } from '../level';
 
 /**
  * Round a coordinate to the nearest x.5, so the coordinate comes out "crisp".
@@ -113,7 +113,7 @@ export class RenderContext {
      * @param data Level data to render.
      * @param cam Camera of the view.
      */
-    renderLevel(data: LevelData, cam: Camera): void {
+    renderLevel(data: Level, cam: Camera): void {
         const ctx = this.ctx;
         const cameraMat = cam.getViewMatrix();
 
@@ -142,20 +142,20 @@ export class RenderContext {
     }
 
     /**
-     * Given a cache of vertexes, render any visible ones.
+     * Given an array of vertexes, render all of them.
      * 
-     * @param vertexCache Cache of vertexes to render.
+     * @param vertexes Array of vertexes to render.
      */
-    renderVertexCache(vertexCache: VertexCache, cam: Camera) {
+    renderVertexes(vertexes: vec2[], cam: Camera) {
         const ctx = this.ctx;
         const cameraMat = cam.getViewMatrix();
 
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(81, 168, 255)';
-        vertexCache.forEach((cacheEntry) => {
+        vertexes.forEach((vertex) => {
             let v = vec2.create();
-            vec2.transformMat3(v, cacheEntry.vertex, cameraMat);
+            vec2.transformMat3(v, vertex, cameraMat);
             vec2.transformMat3(v, v, this.canvasProject);
             ctx.moveTo(crisp(v[0] - 2), crisp(v[1] - 2));
             ctx.lineTo(crisp(v[0] + 2), crisp(v[1] + 2));
