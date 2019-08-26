@@ -34,11 +34,15 @@ export interface State {
     mouseDown: boolean;
     mouseDownPos: Position | null;
     mouseDownMousePos: Position | null;
-    pos: Position;
+
+    /**
+     * The style used to position the wrapped element.
+     */
+    positionStyle: React.CSSProperties;
 };
 
 export interface WrappedProps {
-    pos: Position;
+    positionStyle: React.CSSProperties;
     titleBar: JSX.Element;
 };
 
@@ -48,9 +52,12 @@ type WrappedComponent = new (...any: any[]) => React.Component<WrappedProps>;
 export function withTitleBar(WrappedComponent: WrappedComponent): WrapperComponent {
     return class extends React.Component<Props, State> {
 
+        ref: any;
+
         constructor(props: Readonly<Props>) {
             super(props);
 
+            this.ref = React.createRef();
             this.onMouseDown = this.onMouseDown.bind(this);
             this.onGlobalMouseUp = this.onGlobalMouseUp.bind(this);
             this.onGlobalMouseMove = this.onGlobalMouseMove.bind(this);
@@ -59,19 +66,27 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
                 mouseDown: false,
                 mouseDownPos: null,
                 mouseDownMousePos: null,
-                pos: {
-                    left: 32,
-                    top: 32,
+                positionStyle: {
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)'
                 }
             };
         }
 
         onMouseDown(evt: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+            const ele = this.ref.current;
+            if (ele === null) {
+                throw new Error('Missing element');
+            }
+
+            const rect = ele.getBoundingClientRect();
+
             this.setState({
                 mouseDown: true,
                 mouseDownPos: {
-                    left: this.state.pos.left,
-                    top: this.state.pos.top,
+                    left: rect.left,
+                    top: rect.top,
                 },
                 mouseDownMousePos: {
                     left: evt.pageX,
@@ -97,13 +112,13 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
                 throw new Error('mouseDownMousePos is null');
             }
 
-            const pos: Position = {
+            const style: Position = {
                 left: this.state.mouseDownPos.left + evt.pageX - this.state.mouseDownMousePos.left,
                 top: this.state.mouseDownPos.top + evt.pageY - this.state.mouseDownMousePos.top,
             }
 
             this.setState({
-                pos: pos
+                positionStyle: style
             });
             evt.stopPropagation();
         }
@@ -121,11 +136,11 @@ export function withTitleBar(WrappedComponent: WrappedComponent): WrapperCompone
         }
 
         render() {
-            const titleBar = <div className="title-bar" onMouseDown={this.onMouseDown}>
+            const titleBar = <div ref={this.ref} className="title-bar" onMouseDown={this.onMouseDown}>
                 {this.props.title}
             </div>;
-            return <WrappedComponent pos={this.state.pos} titleBar={titleBar}>
-                {this.props.children}
+            return <WrappedComponent positionStyle={this.state.positionStyle}
+                titleBar={titleBar}>{this.props.children}
             </WrappedComponent>;
         }
     };

@@ -24,7 +24,7 @@ interface Props extends TitleBarProps { }
 
 class BaseToolbar extends React.Component<Props> {
     render() {
-        return <div className="toolbar" style={this.props.pos}>
+        return <div className="toolbar" style={this.props.positionStyle}>
             {this.props.titleBar}
             <div className="toolbar-button">Select</div>
             <div className="toolbar-button">Line</div>

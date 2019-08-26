@@ -30,7 +30,7 @@ interface Props extends TitleBarProps {
 class BaseWindow extends React.Component<Props> {
 
     render() {
-        return <div className="window" style={this.props.pos}>
+        return <div className="window" style={this.props.positionStyle}>
             {this.props.titleBar}
             <div className="window-content">
                 {this.props.children}
