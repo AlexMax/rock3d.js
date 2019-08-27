@@ -80,14 +80,11 @@ export class TopdownCanvas extends React.Component<Props, State> {
             throw new Error('GridView canvas is inaccessible');
         }
 
+        // Initialize a new renderer.
         this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
+        this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
-        // Set the canvas internal width and height to the actual width
-        // and height of the canvas itself.
-        const ctx = this.renderer.ctx;
-        ctx.canvas.width = ctx.canvas.clientWidth;
-        ctx.canvas.height = ctx.canvas.clientHeight;
-
+        // Render our initial view.
         this.renderer.clear();
         this.renderer.renderGrid(this.state.camera);
         this.renderer.renderLevel(this.state.level, this.state.camera);
@@ -99,15 +96,11 @@ export class TopdownCanvas extends React.Component<Props, State> {
             throw new Error('GridView renderer is missing');
         }
 
-        // Update the canvas width and height if necessary.
+        // Our view might have resized, Handle it.
         const ctx = this.renderer.ctx;
-        if (ctx.canvas.width !== ctx.canvas.clientWidth ||
-            ctx.canvas.height !== ctx.canvas.clientHeight) {
-            ctx.canvas.width = ctx.canvas.clientWidth;
-            ctx.canvas.height = ctx.canvas.clientHeight;
-            this.renderer.setProject();
-        }
+        this.renderer.resize(ctx.canvas.clientWidth, ctx.canvas.clientHeight);
 
+        // Render.
         this.renderer.clear();
         this.renderer.renderGrid(nextState.camera);
         this.renderer.renderLevel(nextState.level, nextState.camera);

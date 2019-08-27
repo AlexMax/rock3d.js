@@ -25,6 +25,15 @@ body {
    overflow: hidden;
 }
 
+/* #region *** FP CANVAS ***/
+
+.fp-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+/* #endregion */
+
 /* #region *** HTML ELEMENTS ***/
 
 button {
