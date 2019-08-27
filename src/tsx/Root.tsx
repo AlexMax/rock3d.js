@@ -17,12 +17,16 @@
  */
 
 import React from 'react';
+import { LevelData } from 'rock3d';
 
+import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
 import { MutLevel } from '../mutlevel';
 import { StatusBar } from './ui/StatusBar';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
+
+import TESTMAP from '../asset/TESTMAP.json';
 
 export enum Mode {
     DrawView,
@@ -33,30 +37,87 @@ type ModeElements = {
     [key in Mode]: any
 }
 
-export interface Props {
-    level: MutLevel;
-    mode: Mode;
+interface State {
+    level: MutLevel | null;
+    mode: Mode | null;
+    modal: JSX.Element | null;
 };
 
-export class Root extends React.Component<Props> {
+export class Root extends React.Component<{}, State> {
 
-    constructor(props: Readonly<Props>) {
+    constructor(props: Readonly<{}>) {
         super(props);
+        this.closeModal = this.closeModal.bind(this);
+        this.openFile = this.openFile.bind(this);
+        this.closeFile = this.closeFile.bind(this);
+        this.drawView = this.drawView.bind(this);
+        this.visualView = this.visualView.bind(this);
+        this.about = this.about.bind(this);
+
+        this.state = {
+            level: null,
+            mode: null,
+            modal: null,
+        };
+    }
+
+    closeModal() {
+        this.setState({ modal: null });
+    }
+
+    openFile() {
+        if (!LevelData.isLevelData(TESTMAP)) {
+            throw new Error('Map data is not valid');
+        }
+
+        const level = new MutLevel(TESTMAP);
+        this.setState({ level: level, mode: Mode.DrawView });
+    }
+
+    closeFile() {
+        this.setState({ level: null, mode: null });
+    }
+
+    drawView() {
+        if (this.state.level === null) {
+            return;
+        }
+        this.setState({ mode: Mode.DrawView });
+    }
+
+    visualView() {
+        if (this.state.level === null) {
+            return;
+        }
+        this.setState({ mode: Mode.VisualView });
+    }
+
+    about() {
+        this.setState({ modal: <AboutWindow onClose={this.closeModal}/> });
     }
 
     render() {
-        // Depending on the mode, we render a different component
-        const view: ModeElements = {
-            [Mode.DrawView]: (<DrawView level={this.props.level}/>),
-            [Mode.VisualView]: (<VisualView level={this.props.level}/>)
-        };
+        let modeElement: JSX.Element | null = null;
+        if (this.state.level !== null) {
+            switch (this.state.mode) {
+            case Mode.DrawView:
+                modeElement = <DrawView level={this.state.level}/>;
+                break;
+            case Mode.VisualView:
+                modeElement = <VisualView level={this.state.level}/>;
+                break;
+            }
+        }
 
         return <div className="root-flex">
-            <TopMenu/>
+            <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile} 
+                onDrawView={this.drawView} onVisualView={this.visualView}
+                onAbout={this.about}/>
             <div className="content">
-                {view[this.props.mode]}
+                {modeElement}
             </div>
             <StatusBar/>
+            {this.state.modal}
         </div>;
     }
 }

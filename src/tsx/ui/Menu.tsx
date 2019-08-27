@@ -228,11 +228,14 @@ export class MenuItem extends React.Component<MenuItemProps, MenuItemState> {
         this.onClick = this.onClick.bind(this);
     }
 
-    onClick() {
+    onClick(evt: React.MouseEvent) {
         if (this.props.config.action !== undefined) {
             // The menu item itself does something.
             this.props.config.action();
             this.props.closeMenu();
+
+            // Prevent reopening the menu we just closed.
+            evt.stopPropagation();
         } else if (this.props.onSelect !== undefined) {
             // The menu has a submenu.
             this.props.onSelect(this.props.value);

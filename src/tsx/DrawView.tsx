@@ -18,7 +18,6 @@
 
 import React from 'react';
 
-import { AboutWindow } from './AboutWindow';
 import { MutLevel } from '../mutlevel';
 import { Toolbar } from './ui/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
@@ -37,7 +36,6 @@ export class DrawView extends React.Component<Props> {
         return <div>
             <TopdownCanvas level={this.props.level}/>
             <Toolbar title="A Test Toolbar"/>
-            <AboutWindow/>
         </div>;
     }
 };

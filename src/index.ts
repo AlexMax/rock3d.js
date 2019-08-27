@@ -18,12 +18,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { LevelData } from 'rock3d';
 
-import { Mode, Root } from './tsx/Root';
-import { MutLevel } from './mutlevel';
-
-import TESTMAP from './asset/TESTMAP.json';
+import { Root } from './tsx/Root';
 
 window.addEventListener("load", async () => {
     const root = document.getElementById('rocked');
@@ -31,14 +27,5 @@ window.addEventListener("load", async () => {
         throw new Error('Could not find root element');
     }
 
-    if (!LevelData.isLevelData(TESTMAP)) {
-        throw new Error('Map data is not valid');
-    }
-
-    const level = new MutLevel(TESTMAP);
-
-    ReactDOM.render(React.createElement(Root, { 
-        level: level,
-        mode: Mode.DrawView,
-    }), root);
+    ReactDOM.render(React.createElement(Root), root);
 });

@@ -21,7 +21,11 @@ import React from 'react';
 import { name, repository_url, version } from '../package';
 import { Window } from './ui/Window';
 
-export class AboutWindow extends React.Component {
+interface Props {
+    onClose: () => void;
+}
+
+export class AboutWindow extends React.Component<Props> {
 
     render() {
         return <Window title={`About ${name}`}>
@@ -56,6 +60,7 @@ export class AboutWindow extends React.Component {
                     The source code of this program may be obtained from&nbsp;
                     <a target="_blank" href={repository_url}>{repository_url}</a>.
                 </p>
+                <button onClick={this.props.onClose}>Close</button>
             </div>
         </Window>;
     }

@@ -1,12 +1,14 @@
 :root {
     color: #000000;
     font: 16px sans-serif;
+    --background-color: #574c8f;
+    --menu-select-color: #9397a5;
     --window-bg-color: #aeb2c3;
     --window-border-color: #dcdee5 #5d6069 #5d6069 #dcdee5;
+    --window-inverted-border-color: #5d6069 #dcdee5 #dcdee5 #5d6069;
     --window-title-bg-color: #b24d7a;
     --window-title-border-color: #dcadc2 #57253b #57253b #dcadc2;
     --window-title-color: #ffffff;
-    --menu-select-color: #9397a5;
     -moz-user-select: none;
     user-select: none;
 }
@@ -23,10 +25,20 @@ body {
    overflow: hidden;
 }
 
-div {
-    /* Debugging stuff */
-    /* border: 1px dotted red; */
+/* #region *** HTML ELEMENTS ***/
+
+button {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
 }
+
+button:active {
+    border-color: var(--window-inverted-border-color);
+}
+
+/* #endregion */
 
 /* #region *** MAIN LAYOUT ***/
 
@@ -38,6 +50,10 @@ html, body, #rocked, .root-flex, .content {
 .root-flex {
     display: flex;
     flex-direction: column;
+}
+
+.content {
+    background-color: var(--background-color);
 }
 
 .content {

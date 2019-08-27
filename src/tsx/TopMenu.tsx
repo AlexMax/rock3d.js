@@ -20,24 +20,26 @@ import React from 'react';
 
 import { MenuConfig, MenuBar } from './ui/Menu';
 
-export class TopMenu extends React.Component {
+export interface Props {
+    onOpenFile: () => void;
+    onCloseFile: () => void;
+    onDrawView: () => void;
+    onVisualView: () => void;
+    onAbout: () => void;
+};
+
+export class TopMenu extends React.Component<Props> {
     render() {
         const menuConfig: MenuConfig = [{
             label: 'File',
             subMenu: [{
-                label: 'Menu Item 1',
-                subMenu: [{
-                    label: 'Submenu Item 1',
-                }, {
-                    label: 'Submenu Item 2',
-                }],
+                label: 'New',
             }, {
-                label: 'Menu Item 2',
-                subMenu: [{
-                    label: 'Submenu Item 1',
-                }, {
-                    label: 'Submenu Item 2',
-                }],
+                label: 'Open',
+                action: this.props.onOpenFile,
+            }, {
+                label: 'Close',
+                action: this.props.onCloseFile,
             }],
         }, {
             label: 'Edit',
@@ -54,13 +56,16 @@ export class TopMenu extends React.Component {
             label: 'View',
             subMenu: [{
                 label: 'Draw',
+                action: this.props.onDrawView,
             }, {
                 label: 'Visual',
+                action: this.props.onVisualView,
             }],
         }, {
             label: 'Help',
             subMenu: [{
                 label: 'About',
+                action: this.props.onAbout,
             }],
         }];
 
