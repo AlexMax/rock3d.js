@@ -266,11 +266,38 @@ export class RenderContext {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, blankAtlasTex);
     }
 
-    setProject(fov: number): void {
-        // Setup the projection matrix
-        mat4.perspective(this.worldProject, glMatrix.toRadian(fov), 800 / 500, 1, 10_000);
+    /**
+     * Resize the canvas to the specified width and height.
+     * 
+     * @param width Desired width.
+     * @param height Desired height.
+     */
+    resize(width: number, height: number): void {
+        if (this.gl.canvas.width !== width ||
+            this.gl.canvas.height !== height) {
+            // Set the canvas internal width and height to the passed values.
+            this.gl.canvas.width = width;
+            this.gl.canvas.height = height;
 
-        // Make sure our projection matrix goes into the shader program
+            // Ensure that the viewport is the size of the buffer.
+            this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
+
+            // Fix up the projection matrix to match the new aspect ratio.
+            this.setProject(90);
+        }
+    }
+
+    /**
+     * Set up the projection matrix for the given FOV.
+     * 
+     * @param fov FOV in degrees.
+     */
+    setProject(fov: number): void {
+        // Setup the projection matrix.
+        mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
+            this.gl.canvas.clientWidth / this.gl.canvas.clientHeight, 1, 10_000);
+
+        // Make sure our projection matrix goes into the shader program.
         const projectionLoc = this.gl.getUniformLocation(this.worldProg, "uProjection");
         this.gl.uniformMatrix4fv(projectionLoc, false, this.worldProject);
     }

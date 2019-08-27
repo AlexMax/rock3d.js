@@ -40,10 +40,25 @@ export class RenderContext {
     }
 
     /**
-     * Given the current canvas width and height, set up projection matrix.
+     * Resize the canvas to the specified width and height.
      * 
-     * Run this method anytime the canvas width and height change, so we
-     * know where the center of the view is.
+     * Note that these are canvas units, which may not mirror the actual
+     * width and height of the canvas on the page.
+     * 
+     * @param width Desired width.
+     * @param height Desired height.
+     */
+    resize(width: number, height: number) {
+        if (this.ctx.canvas.width !== width ||
+            this.ctx.canvas.height !== height) {
+            this.ctx.canvas.width = width;
+            this.ctx.canvas.height = height;
+            this.setProject();
+        }
+    }
+
+    /**
+     * Given the current canvas width and height, set up projection matrix.
      */
     setProject() {
         const offset = vec2.fromValues(
