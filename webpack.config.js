@@ -10,7 +10,7 @@ module.exports = {
             use: 'ts-loader'
         }, {
             exclude: /node_modules/,
-            test: /\.glsl$/,
+            test: /\.(frag|vert)$/,
             use: 'raw-loader'
         }]
     },

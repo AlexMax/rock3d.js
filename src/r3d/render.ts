@@ -13,10 +13,14 @@ import { Camera } from './camera';
 import * as Map from "../level";
 import { Polygon } from '../level';
 
-import vertexShader from './shader/vert.glsl';
-import fragmentShader from './shader/frag.glsl';
+import world_vert from './shader/world.vert';
+import world_frag from './shader/world.frag';
+import debug_texture_vert from './shader/debug_texture.vert';
+import debug_texture_frag from './shader/debug_texture.frag';
 
 const ATLAS_SIZE = 512;
+
+const DEBUG: boolean = true;
 
 /**
  * Turn a WebGL GLenum into a string, for debugging purposes.
@@ -153,14 +157,25 @@ export function getVertex(buffer: ArrayBuffer, index: number): object {
 export class RenderContext {
     canvas: HTMLCanvasElement;
     gl: WebGLRenderingContext;
+
     worldProg!: WebGLProgram; // Initialized in initWorldRenderer()
     worldAtlas?: Atlas;
     worldTexAtlas!: WebGLTexture; // Initialized in initWorldRenderer()
+    worldVBO!: WebGLBuffer; // Initialized in initWorldRenderer()
     worldVerts!: ArrayBuffer; // Initialized in initWorldRenderer()
     worldVertCount!: number;
+    worldEBO!: WebGLBuffer; // Initialized in initWorldRenderer()
     worldInds!: Uint16Array; // Initialized in initWorldRenderer()
     worldIndCount!: number;
     worldProject: mat4;
+    world_lPos!: GLuint;
+    world_lAtlasInfo!: GLuint;
+    world_lTexCoord!: GLuint;
+
+    debugProg!: WebGLProgram; // Initialized in an initDebug...() call
+    debugVBO!: WebGLBuffer; // Initialized in an initDebug...() call
+    debug_lPos!: GLuint;
+    debug_lTex!: GLuint;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -178,6 +193,11 @@ export class RenderContext {
         this.gl = gl;
         this.initWorldRenderer();
 
+        // Debug stuff
+        if (DEBUG === true) {
+            this.initDebugTexture();
+        }
+
         this.worldProject = mat4.create();
         this.setProject(90);
     }
@@ -193,45 +213,49 @@ export class RenderContext {
         const gl = this.gl;
 
         // 3D shader program, used for rendering walls, floors and ceilings.
-        const vs = compileShader(gl, gl.VERTEX_SHADER, vertexShader);
-        const fs = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
+        const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
+        const fs = compileShader(gl, gl.FRAGMENT_SHADER, world_frag);
 
         this.worldProg = linkShaderProgram(gl, [vs, fs]);
 
         // We need a vertex buffer...
         const vbo = gl.createBuffer();
         if (vbo === null) {
-            throw new Error('Could not allocate VBO buffer');
+            throw new Error('Could not allocate worldVBO');
         }
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        this.worldVBO = vbo;
         this.worldVerts = new ArrayBuffer(32768);
         this.worldVertCount = 0;
 
         // ...and an index buffer.
         const ebo = gl.createBuffer();
         if (ebo === null) {
-            throw new Error('Could not allocate EBO buffer');
+            throw new Error('Could not allocate worldEBO');
         }
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
+        this.worldEBO = ebo;
         this.worldInds = new Uint16Array(1024);
         this.worldIndCount = 0;
 
-        // Length of a single vertex
-        const vertexLen = vertexBytes(1);
+        // Keep track of our attributes.
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 
-        // Layout of our vertexes, as passed to the vertex shader.
         // x, y, and z positions.
-        const lPos = gl.getAttribLocation(this.worldProg, 'lPos');
-        gl.vertexAttribPointer(lPos, 3, gl.FLOAT, false, vertexLen, 0);
-        gl.enableVertexAttribArray(lPos);
+        this.world_lPos = gl.getAttribLocation(this.worldProg, 'lPos');
+        if (this.world_lPos === -1) {
+            throw new Error('Could not find lPos in world program');
+        }
         // u and v texture coordinates for the texture atlas.
-        const lAtlasInfo = gl.getAttribLocation(this.worldProg, 'lAtlasInfo');
-        gl.vertexAttribPointer(lAtlasInfo, 4, gl.FLOAT, false, vertexLen, 12);
-        gl.enableVertexAttribArray(lAtlasInfo);
+        this.world_lAtlasInfo = gl.getAttribLocation(this.worldProg, 'lAtlasInfo');
+        if (this.world_lAtlasInfo === -1) {
+            throw new Error('Could not find lAtlasInfo in world program');
+        }
         // u and v texture coordinates for the texture itself.
-        const lTexCoord = gl.getAttribLocation(this.worldProg, 'lTexCoord');
-        gl.vertexAttribPointer(lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
-        gl.enableVertexAttribArray(lTexCoord);
+        this.world_lTexCoord = gl.getAttribLocation(this.worldProg, 'lTexCoord');
+        if (this.world_lTexCoord === -1) {
+            throw new Error('Could not find lTexCoord in world program');
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
 
         // Set up the texture atlas texture
         const worldTextAtlas = gl.createTexture();
@@ -254,9 +278,9 @@ export class RenderContext {
         }
         gl.uniform1i(textureLoc, 0);
 
-        // Upload a blank texture to the atlas
-        const blankAtlasTex = new Uint8ClampedArray(ATLAS_SIZE * ATLAS_SIZE * 4);
-        for (let i = 0;i < blankAtlasTex.byteLength;i++) {
+        // Upload a blank hot pink texture to the atlas.
+        const blankAtlasTex = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
+        for (let i = 0;i < blankAtlasTex.byteLength;i+=4) {
             blankAtlasTex[i] = 255;
             blankAtlasTex[i + 1] = 0;
             blankAtlasTex[i + 2] = 255;
@@ -264,6 +288,49 @@ export class RenderContext {
         }
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, blankAtlasTex);
+    }
+
+    /**
+     * Initialize a debug renderer that draws a texture unit.
+     */
+    private initDebugTexture(): void {
+        const gl = this.gl;
+
+        // Debug shader program, which simply renders a texture to screen.
+        const vs = compileShader(gl, gl.VERTEX_SHADER, debug_texture_vert);
+        const fs = compileShader(gl, gl.FRAGMENT_SHADER, debug_texture_frag);
+        this.debugProg = linkShaderProgram(gl, [vs, fs]);
+
+        // We need a vertex buffer...
+        const vbo = gl.createBuffer();
+        if (vbo === null) {
+            throw new Error('Could not allocate debugVBO');
+        }
+        this.debugVBO = vbo;
+
+        // Layout of our vertexes, as passed to the vertex shader.
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+        // x, y and z positions.
+        this.debug_lPos = gl.getAttribLocation(this.debugProg, 'lPos');
+        if (this.debug_lPos === -1) {
+            throw new Error('Could not find lPos in debug program');
+        }
+        // u and v texture coords.
+        this.debug_lTex = gl.getAttribLocation(this.debugProg, 'lTex');
+        if (this.debug_lTex === -1) {
+            throw new Error('Could not find lTex in debug program');
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
+
+        // Assign the texture to the debug program.
+        gl.useProgram(this.debugProg);
+        const textureLoc = gl.getUniformLocation(this.debugProg, "uTexture");
+        if (textureLoc === null) {
+            throw new Error('uTexture uniform location could not be found');
+        }
+        gl.uniform1i(textureLoc, 0);
     }
 
     /**
@@ -293,6 +360,9 @@ export class RenderContext {
      * @param fov FOV in degrees.
      */
     setProject(fov: number): void {
+        // Use the world program.
+        this.gl.useProgram(this.worldProg);
+
         // Setup the projection matrix.
         mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
             this.gl.canvas.clientWidth / this.gl.canvas.clientHeight, 1, 10_000);
@@ -475,10 +545,61 @@ export class RenderContext {
         gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
 
         // Load our data.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
         gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.worldInds, gl.STATIC_DRAW);
 
+        // Length of a single vertex.
+        const vertexLen = vertexBytes(1);
+
+        // Set up our attributes.
+        gl.enableVertexAttribArray(this.world_lPos);
+        gl.vertexAttribPointer(this.world_lPos, 3, gl.FLOAT, false, vertexLen, 0);
+        gl.enableVertexAttribArray(this.world_lAtlasInfo);
+        gl.vertexAttribPointer(this.world_lAtlasInfo, 4, gl.FLOAT, false, vertexLen, 12);
+        gl.enableVertexAttribArray(this.world_lTexCoord);
+        gl.vertexAttribPointer(this.world_lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
+
         // Draw everything.
         gl.drawElements(gl.TRIANGLES, this.worldIndCount, gl.UNSIGNED_SHORT, 0);
+
+        // Cleanup.
+        gl.disableVertexAttribArray(this.world_lPos);
+        gl.disableVertexAttribArray(this.world_lAtlasInfo);
+        gl.disableVertexAttribArray(this.world_lTexCoord);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        // Debug stuff
+        if (DEBUG) {
+            // Render our texture atlas to screen.
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+
+            gl.useProgram(this.debugProg);
+
+            const dVertexLen = 20;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.debugVBO);
+            const vertexes = Float32Array.from([
+                 0.1, -0.1, 0.0, 1.0, 1.0,
+                 0.1,  0.1, 0.0, 1.0, 0.0,
+                -0.1, -0.1, 0.0, 0.0, 1.0,
+                -0.1,  0.1, 0.0, 0.0, 0.0
+            ]);
+            gl.bufferData(gl.ARRAY_BUFFER, vertexes, gl.STATIC_DRAW);
+
+            gl.enableVertexAttribArray(this.debug_lPos);
+            gl.vertexAttribPointer(this.debug_lPos, 3, gl.FLOAT, false, dVertexLen, 0);
+            gl.enableVertexAttribArray(this.debug_lTex);
+            gl.vertexAttribPointer(this.debug_lTex, 2, gl.FLOAT, false, dVertexLen, 12);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+            gl.disableVertexAttribArray(this.debug_lPos);
+            gl.disableVertexAttribArray(this.debug_lTex);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
     }
 }

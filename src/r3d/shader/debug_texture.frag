@@ -6,12 +6,13 @@
  * source distribution.
  */
 
-declare module "*.frag" {
-    const url: string;
-    export default url;
-}
+precision mediump float;
 
-declare module "*.vert" {
-    const url: string;
-    export default url;
+uniform sampler2D uTexture;
+
+varying vec2 fTex;
+
+void main() {
+    vec4 x = texture2D(uTexture, fTex);
+    gl_FragColor = vec4(fTex.x, 0.0, fTex.y, 1.0);
 }

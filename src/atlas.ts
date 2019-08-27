@@ -35,7 +35,11 @@ export class Atlas {
     }
 
     add(texName: string, tex: HTMLImageElement) {
-        if (tex.width > this.length || tex.height > this.length) {
+        // Add padding on each side of the texture.
+        const actualWidth = tex.width + 2;
+        const actualHeight = tex.height + 2;
+
+        if (actualWidth > this.length || actualHeight > this.length) {
             throw new Error("Texture is too big for the atlas");
         }
 
@@ -43,16 +47,16 @@ export class Atlas {
         for (let i = 0;i < this.shelves.length;i++) {
             const shelf = this.shelves[i];
             // Can the shelf hold it?
-            if (tex.height <= shelf.height) {
+            if (actualHeight <= shelf.height) {
                 // Is there space on the shelf?
-                if (tex.width <= this.length - shelf.width) {
+                if (actualWidth <= this.length - shelf.width) {
                     // There is!  Put the altas entry there, then adjust the shelf.
                     this.atlas[texName] = {
                         texture: tex,
-                        xPos: shelf.width,
-                        yPos: y
+                        xPos: shelf.width + 1,
+                        yPos: y + 1
                     };
-                    shelf.width += tex.width;
+                    shelf.width += actualWidth;
 
                     return;
                 }
@@ -64,16 +68,16 @@ export class Atlas {
 
         // We have no space in any of our existing shelves.  Do we have space
         // for a new shelf?
-        if (tex.height <= this.length - y) {
+        if (actualHeight <= this.length - y) {
             // We do!  Create the new shelf and put the atlas entry there.
             this.shelves.push({
-                width: tex.width,
-                height: tex.height,
+                width: actualWidth,
+                height: actualHeight,
             });
             this.atlas[texName] = {
                 texture: tex,
-                xPos: 0,
-                yPos: y
+                xPos: 1,
+                yPos: y + 1
             };
 
             return;
@@ -85,7 +89,7 @@ export class Atlas {
     /**
      * Persist the atlas onto the GPU.
      * 
-     * @param p Function that actually does the persisting to the GPU
+     * @param p Function that actually does the persisting to the GPU.
      */
     persist(p: PersistProc) {
         for (let texName in this.atlas) {

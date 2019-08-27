@@ -6,12 +6,14 @@
  * source distribution.
  */
 
-declare module "*.frag" {
-    const url: string;
-    export default url;
-}
+uniform sampler2D uTexture;
 
-declare module "*.vert" {
-    const url: string;
-    export default url;
+attribute vec3 lPos;
+attribute vec2 lTex;
+
+varying vec2 fTex;
+
+void main() {
+    fTex = lTex;
+    gl_Position = vec4(lPos, 0.0);
 }
