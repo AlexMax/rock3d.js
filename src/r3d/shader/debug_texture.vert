@@ -15,5 +15,5 @@ varying vec2 fTex;
 
 void main() {
     fTex = lTex;
-    gl_Position = vec4(lPos, 0.0);
+    gl_Position = vec4(lPos, 1.0);
 }

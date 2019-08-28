@@ -162,8 +162,8 @@ export class RenderContext {
     worldAtlas?: Atlas;
     worldTexAtlas!: WebGLTexture; // Initialized in initWorldRenderer()
     worldVBO!: WebGLBuffer; // Initialized in initWorldRenderer()
-    worldVerts!: ArrayBuffer; // Initialized in initWorldRenderer()
-    worldVertCount!: number;
+    worldVerts: ArrayBuffer;
+    worldVertCount: number;
     worldEBO!: WebGLBuffer; // Initialized in initWorldRenderer()
     worldInds!: Uint16Array; // Initialized in initWorldRenderer()
     worldIndCount!: number;
@@ -186,9 +186,17 @@ export class RenderContext {
             throw new Error("WebGL could not be initialized");
         }
 
+        // Set up non-GL buffers.
+        this.worldVerts = new ArrayBuffer(32768);
+        this.worldVertCount = 0;
+        this.worldInds = new Uint16Array(1024);
+        this.worldIndCount = 0;
+
         // GL Settings.
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         this.gl = gl;
         this.initWorldRenderer();
@@ -224,8 +232,6 @@ export class RenderContext {
             throw new Error('Could not allocate worldVBO');
         }
         this.worldVBO = vbo;
-        this.worldVerts = new ArrayBuffer(32768);
-        this.worldVertCount = 0;
 
         // ...and an index buffer.
         const ebo = gl.createBuffer();
@@ -233,8 +239,6 @@ export class RenderContext {
             throw new Error('Could not allocate worldEBO');
         }
         this.worldEBO = ebo;
-        this.worldInds = new Uint16Array(1024);
-        this.worldIndCount = 0;
 
         // Keep track of our attributes.
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
@@ -523,6 +527,15 @@ export class RenderContext {
     }
 
     render(cam: Camera): void {
+        this.renderWorld(cam);
+
+        // Debug stuff
+        if (DEBUG) {
+            this.renderDebugTexture();
+        }
+    }
+
+    private renderWorld(cam: Camera): void {
         const gl = this.gl;
 
         // Clear the buffer.
@@ -570,36 +583,37 @@ export class RenderContext {
         gl.disableVertexAttribArray(this.world_lTexCoord);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    }
 
-        // Debug stuff
-        if (DEBUG) {
-            // Render our texture atlas to screen.
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+    private renderDebugTexture(): void {
+        const gl = this.gl;
 
-            gl.useProgram(this.debugProg);
+        // Render our texture atlas to screen.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
 
-            const dVertexLen = 20;
+        gl.useProgram(this.debugProg);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.debugVBO);
-            const vertexes = Float32Array.from([
-                 0.1, -0.1, 0.0, 1.0, 1.0,
-                 0.1,  0.1, 0.0, 1.0, 0.0,
-                -0.1, -0.1, 0.0, 0.0, 1.0,
-                -0.1,  0.1, 0.0, 0.0, 0.0
-            ]);
-            gl.bufferData(gl.ARRAY_BUFFER, vertexes, gl.STATIC_DRAW);
+        const dVertexLen = 20;
 
-            gl.enableVertexAttribArray(this.debug_lPos);
-            gl.vertexAttribPointer(this.debug_lPos, 3, gl.FLOAT, false, dVertexLen, 0);
-            gl.enableVertexAttribArray(this.debug_lTex);
-            gl.vertexAttribPointer(this.debug_lTex, 2, gl.FLOAT, false, dVertexLen, 12);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.debugVBO);
+        const vertexes = Float32Array.from([
+            0.0, 0.0, 0.0, 1.0, 1.0,
+            0.0, 1.0, 0.0, 1.0, 0.0,
+            -1.0, 0.0, 0.0, 0.0, 1.0,
+            -1.0, 1.0, 0.0, 0.0, 0.0
+        ]);
+        gl.bufferData(gl.ARRAY_BUFFER, vertexes, gl.STATIC_DRAW);
 
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.enableVertexAttribArray(this.debug_lPos);
+        gl.vertexAttribPointer(this.debug_lPos, 3, gl.FLOAT, false, dVertexLen, 0);
+        gl.enableVertexAttribArray(this.debug_lTex);
+        gl.vertexAttribPointer(this.debug_lTex, 2, gl.FLOAT, false, dVertexLen, 12);
 
-            gl.disableVertexAttribArray(this.debug_lPos);
-            gl.disableVertexAttribArray(this.debug_lTex);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        }
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gl.disableVertexAttribArray(this.debug_lPos);
+        gl.disableVertexAttribArray(this.debug_lTex);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 }
