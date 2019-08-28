@@ -154,71 +154,33 @@ export function getVertex(buffer: ArrayBuffer, index: number): object {
     }
 }
 
-export class RenderContext {
-    canvas: HTMLCanvasElement;
-    gl: WebGLRenderingContext;
+export class WorldContext {
+    parent: RenderContext; // Reference to parent
 
-    worldProg!: WebGLProgram; // Initialized in initWorldRenderer()
+    worldProg: WebGLProgram;
     worldAtlas?: Atlas;
-    worldTexAtlas!: WebGLTexture; // Initialized in initWorldRenderer()
-    worldVBO!: WebGLBuffer; // Initialized in initWorldRenderer()
+    worldTexAtlas: WebGLTexture;
+    worldVBO: WebGLBuffer;
     worldVerts: ArrayBuffer;
     worldVertCount: number;
-    worldEBO!: WebGLBuffer; // Initialized in initWorldRenderer()
-    worldInds!: Uint16Array; // Initialized in initWorldRenderer()
-    worldIndCount!: number;
+    worldEBO: WebGLBuffer;
+    worldInds: Uint16Array;
+    worldIndCount: number;
     worldProject: mat4;
-    world_lPos!: GLuint;
-    world_lAtlasInfo!: GLuint;
-    world_lTexCoord!: GLuint;
+    world_lPos: GLuint;
+    world_lAtlasInfo: GLuint;
+    world_lTexCoord: GLuint;
 
-    debugProg!: WebGLProgram; // Initialized in an initDebug...() call
-    debugVBO!: WebGLBuffer; // Initialized in an initDebug...() call
-    debug_lPos!: GLuint;
-    debug_lTex!: GLuint;
+    constructor(parent: RenderContext) {
+        this.parent = parent;
+        const gl = parent.gl;
 
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-
-        // Attach context to canvas element.
-        const gl = canvas.getContext("webgl");
-        if (gl === null) {
-            throw new Error("WebGL could not be initialized");
-        }
-
-        // Set up non-GL buffers.
+        // Set up non-JS data.
         this.worldVerts = new ArrayBuffer(32768);
         this.worldVertCount = 0;
         this.worldInds = new Uint16Array(1024);
         this.worldIndCount = 0;
-
-        // GL Settings.
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        this.gl = gl;
-        this.initWorldRenderer();
-
-        // Debug stuff
-        if (DEBUG === true) {
-            this.initDebugTexture();
-        }
-
         this.worldProject = mat4.create();
-        this.setProject(90);
-    }
-
-    /**
-     * Initialize the renderer of the 3D world
-     * 
-     * This is where anything having to do with rendering the 3D world is set
-     * up.  It's called by the constructor, you will never need to call this
-     * yourself.
-     */
-    private initWorldRenderer(): void {
-        const gl = this.gl;
 
         // 3D shader program, used for rendering walls, floors and ceilings.
         const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
@@ -295,85 +257,23 @@ export class RenderContext {
     }
 
     /**
-     * Initialize a debug renderer that draws a texture unit.
-     */
-    private initDebugTexture(): void {
-        const gl = this.gl;
-
-        // Debug shader program, which simply renders a texture to screen.
-        const vs = compileShader(gl, gl.VERTEX_SHADER, debug_texture_vert);
-        const fs = compileShader(gl, gl.FRAGMENT_SHADER, debug_texture_frag);
-        this.debugProg = linkShaderProgram(gl, [vs, fs]);
-
-        // We need a vertex buffer...
-        const vbo = gl.createBuffer();
-        if (vbo === null) {
-            throw new Error('Could not allocate debugVBO');
-        }
-        this.debugVBO = vbo;
-
-        // Layout of our vertexes, as passed to the vertex shader.
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-
-        // x, y and z positions.
-        this.debug_lPos = gl.getAttribLocation(this.debugProg, 'lPos');
-        if (this.debug_lPos === -1) {
-            throw new Error('Could not find lPos in debug program');
-        }
-        // u and v texture coords.
-        this.debug_lTex = gl.getAttribLocation(this.debugProg, 'lTex');
-        if (this.debug_lTex === -1) {
-            throw new Error('Could not find lTex in debug program');
-        }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
-
-        // Assign the texture to the debug program.
-        gl.useProgram(this.debugProg);
-        const textureLoc = gl.getUniformLocation(this.debugProg, "uTexture");
-        if (textureLoc === null) {
-            throw new Error('uTexture uniform location could not be found');
-        }
-        gl.uniform1i(textureLoc, 0);
-    }
-
-    /**
-     * Resize the canvas to the specified width and height.
-     * 
-     * @param width Desired width.
-     * @param height Desired height.
-     */
-    resize(width: number, height: number): void {
-        if (this.gl.canvas.width !== width ||
-            this.gl.canvas.height !== height) {
-            // Set the canvas internal width and height to the passed values.
-            this.gl.canvas.width = width;
-            this.gl.canvas.height = height;
-
-            // Ensure that the viewport is the size of the buffer.
-            this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
-
-            // Fix up the projection matrix to match the new aspect ratio.
-            this.setProject(90);
-        }
-    }
-
-    /**
      * Set up the projection matrix for the given FOV.
      * 
      * @param fov FOV in degrees.
      */
     setProject(fov: number): void {
+        const gl = this.parent.gl;
+
         // Use the world program.
-        this.gl.useProgram(this.worldProg);
+        gl.useProgram(this.worldProg);
 
         // Setup the projection matrix.
         mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
-            this.gl.canvas.clientWidth / this.gl.canvas.clientHeight, 1, 10_000);
+            gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 10_000);
 
         // Make sure our projection matrix goes into the shader program.
-        const projectionLoc = this.gl.getUniformLocation(this.worldProg, "uProjection");
-        this.gl.uniformMatrix4fv(projectionLoc, false, this.worldProject);
+        const projectionLoc = gl.getUniformLocation(this.worldProg, "uProjection");
+        gl.uniformMatrix4fv(projectionLoc, false, this.worldProject);
     }
 
     /**
@@ -521,22 +421,18 @@ export class RenderContext {
 
         // Get the texture atlas onto the GPU
         textures.persist((data, x, y) => {
-            const gl = this.gl;
+            const gl = this.parent.gl;
             gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
         });
     }
 
+    /**
+     * Render the world.
+     * 
+     * @param cam Camera that we're rendering a point of view from.
+     */
     render(cam: Camera): void {
-        this.renderWorld(cam);
-
-        // Debug stuff
-        if (DEBUG) {
-            this.renderDebugTexture();
-        }
-    }
-
-    private renderWorld(cam: Camera): void {
-        const gl = this.gl;
+        const gl = this.parent.gl;
 
         // Clear the buffer.
         gl.clearColor(0.0, 0.4, 0.4, 1.0);
@@ -584,13 +480,62 @@ export class RenderContext {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
+}
 
-    private renderDebugTexture(): void {
-        const gl = this.gl;
+export class DebugTextureContext {
+    parent: RenderContext; // Reference to parent
+    debugProg: WebGLProgram;
+    debugVBO: WebGLBuffer;
+    debug_lPos: GLuint;
+    debug_lTex: GLuint;
+
+    constructor(parent: RenderContext) {
+        this.parent = parent;
+        const gl = parent.gl;
+
+        // Debug shader program, which simply renders a texture to screen.
+        const vs = compileShader(gl, gl.VERTEX_SHADER, debug_texture_vert);
+        const fs = compileShader(gl, gl.FRAGMENT_SHADER, debug_texture_frag);
+        this.debugProg = linkShaderProgram(gl, [vs, fs]);
+
+        // We need a vertex buffer...
+        const vbo = gl.createBuffer();
+        if (vbo === null) {
+            throw new Error('Could not allocate debugVBO');
+        }
+        this.debugVBO = vbo;
+
+        // Layout of our vertexes, as passed to the vertex shader.
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+        // x, y and z positions.
+        this.debug_lPos = gl.getAttribLocation(this.debugProg, 'lPos');
+        if (this.debug_lPos === -1) {
+            throw new Error('Could not find lPos in debug program');
+        }
+        // u and v texture coords.
+        this.debug_lTex = gl.getAttribLocation(this.debugProg, 'lTex');
+        if (this.debug_lTex === -1) {
+            throw new Error('Could not find lTex in debug program');
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
+
+        // Assign the texture to the debug program.
+        gl.useProgram(this.debugProg);
+        const textureLoc = gl.getUniformLocation(this.debugProg, "uTexture");
+        if (textureLoc === null) {
+            throw new Error('uTexture uniform location could not be found');
+        }
+        gl.uniform1i(textureLoc, 0);
+    }
+
+    render(texture: WebGLTexture) {
+        const gl = this.parent.gl;
 
         // Render our texture atlas to screen.
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
 
         gl.useProgram(this.debugProg);
 
@@ -615,5 +560,63 @@ export class RenderContext {
         gl.disableVertexAttribArray(this.debug_lPos);
         gl.disableVertexAttribArray(this.debug_lTex);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    }
+}
+
+export class RenderContext {
+    canvas: HTMLCanvasElement;
+    gl: WebGLRenderingContext;
+
+    world: WorldContext;
+    debugTexture?: DebugTextureContext;
+
+    constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+
+        // Attach context to canvas element.
+        const gl = canvas.getContext("webgl");
+        if (gl === null) {
+            throw new Error("WebGL could not be initialized");
+        }
+        this.gl = gl;
+
+        // GL Settings.
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        this.world = new WorldContext(this);
+        if (DEBUG === true) {
+            this.debugTexture = new DebugTextureContext(this);
+        }
+    }
+
+    /**
+     * Resize the canvas to the specified width and height.
+     * 
+     * @param width Desired width.
+     * @param height Desired height.
+     */
+    resize(width: number, height: number): void {
+        if (this.gl.canvas.width !== width ||
+            this.gl.canvas.height !== height) {
+            // Set the canvas internal width and height to the passed values.
+            this.gl.canvas.width = width;
+            this.gl.canvas.height = height;
+
+            // Ensure that the viewport is the size of the buffer.
+            this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
+
+            // Fix up the projection matrix to match the new aspect ratio.
+            this.world.setProject(90);
+        }
+    }
+
+    render(cam: Camera): void {
+        this.world.render(cam);
+        if (this.debugTexture !== undefined && this.world.worldAtlas !== undefined) {
+            this.debugTexture.render(this.world.worldTexAtlas);
+        }
     }
 }
