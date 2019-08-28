@@ -122,12 +122,12 @@ export class FPCanvas extends React.Component<Props, State> {
         }
 
         // Persist the atlas to the GPU.
-        this.renderer.bakeAtlas(atlas);
+        this.renderer.world.bakeAtlas(atlas);
 
         // Draw our map
         const level = this.state.level;
         for (let i = 0;i < level.polygons.length;i++) {
-            this.renderer.addPolygon(level.polygons, i);
+            this.renderer.world.addPolygon(level.polygons, i);
         }
         this.renderer.render(this.state.camera);
     }
