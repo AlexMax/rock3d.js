@@ -7,25 +7,69 @@
  */
 
 import { mat3, vec2 } from "gl-matrix";
+import { Camera } from "../r3d";
 
-export class Camera {
+export interface Camera {
+    /**
+     * Location the camera is pointing at.
+     */
     center: vec2;
-    zoom: number;
-
-    constructor() {
-        this.center = vec2.create();
-        this.zoom = 1;
-    }
 
     /**
-     * Get a view matrix for looking straight at the center point
+     * Current zoom of the camera.
      */
-    getViewMatrix(): mat3 {
-        const scale = vec2.fromValues(0.5, 0.5);
-        const cameraMat = mat3.create();
-        mat3.translate(cameraMat, cameraMat, this.center);
-        mat3.rotate(cameraMat, cameraMat, 0);
-        mat3.scale(cameraMat, cameraMat, scale);
-        return cameraMat;
-    }
+    zoom: number;
+}
+
+/**
+ * Create a new camera.
+ */
+export function create(): Camera {
+    return {
+        center: vec2.create(),
+        zoom: 1.0,
+    };
+}
+
+/**
+ * Returns a new camera object that contains a different center.
+ * 
+ * @param camera Camera to modify.
+ * @param x X amount to move camera by, assuming 1.0 zoom.
+ * @param y Y amount to move camera by, assuming 1.0 zoom.
+ */
+export function pan(camera: Camera, x: number, y: number): Camera {
+    camera.center[0] += (x * (1 / camera.zoom));
+    camera.center[1] += (y * (1 / camera.zoom));
+
+    // Return a new object so shallow object equality fails.
+    return { ...camera };
+}
+
+/**
+ * Returns a new camera object that contains a different zoom.
+ * 
+ * @param camera Camera to modify.
+ * @param zoom Amount to modify zoom by.
+ */
+export function zoom(canera: Camera, zoom: number): Camera {
+    // Return a new object so shallow object equality fails.
+    return {
+        center: canera.center,
+        zoom: canera.zoom * zoom,
+    };
+}
+
+/**
+ * Get the view matrix of a given camera.
+ * 
+ * @param camera Camera to get view matrix for.
+ */
+export function getViewMatrix(camera: Camera): mat3 {
+    const scale = vec2.fromValues(camera.zoom, camera.zoom);
+    const cameraMat = mat3.create();
+    mat3.scale(cameraMat, cameraMat, scale);
+    mat3.translate(cameraMat, cameraMat, vec2.fromValues(
+        -camera.center[0], -camera.center[1]));
+    return cameraMat;
 }

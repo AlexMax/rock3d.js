@@ -8,7 +8,7 @@
 
 import { mat3, vec2 } from "gl-matrix";
 
-import { Camera } from './camera';
+import { Camera, getViewMatrix } from './camera';
 import { Level } from '../level';
 
 /**
@@ -85,7 +85,7 @@ export class RenderContext {
      */
     renderGrid(cam: Camera): void {
         const ctx = this.ctx;
-        const cameraMat = cam.getViewMatrix();
+        const cameraMat = getViewMatrix(cam);
 
         const leftTop = vec2.fromValues(0, 0);
         const rightBottom = vec2.fromValues(ctx.canvas.clientWidth, ctx.canvas.clientHeight);
@@ -130,7 +130,7 @@ export class RenderContext {
      */
     renderLevel(data: Level, cam: Camera): void {
         const ctx = this.ctx;
-        const cameraMat = cam.getViewMatrix();
+        const cameraMat = getViewMatrix(cam);
 
         ctx.beginPath();
         ctx.lineWidth = 1;
@@ -163,7 +163,7 @@ export class RenderContext {
      */
     renderVertexes(vertexes: vec2[], cam: Camera) {
         const ctx = this.ctx;
-        const cameraMat = cam.getViewMatrix();
+        const cameraMat = getViewMatrix(cam);
 
         ctx.beginPath();
         ctx.lineWidth = 1;
@@ -189,7 +189,7 @@ export class RenderContext {
      */
     screenToWorld(outCoord: vec2, screenCoord: vec2, cam: Camera): vec2 {
         // Invert our camera matrix
-        const cameraMatInv = cam.getViewMatrix();
+        const cameraMatInv = getViewMatrix(cam);
         mat3.invert(cameraMatInv, cameraMatInv);
 
         // Un-project back to view coordinates.
