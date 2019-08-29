@@ -18,28 +18,23 @@
 
 import { vec2 } from 'gl-matrix';
 import React from 'react';
-import * as rock3d from 'rock3d';
+import { r2d } from 'rock3d';
 
 import { MutLevel } from '../mutlevel';
 
 export interface Props {
     /**
-     * Level data coming from outside.
+     * Camera that looks at level data.
+     */
+    camera: r2d.Camera.Camera;
+
+    /**
+     * Level data.
      */
     level: MutLevel;
 };
 
 interface State {
-    /**
-     * Position that the canvas is "looking at".
-     */
-    camera: rock3d.r2d.Camera.Camera;
-
-    /**
-     * Current mutated level data we're looking at.
-     */
-    level: MutLevel;
-
     /**
      * Current mouse position inside the canvas.
      */
@@ -49,7 +44,7 @@ interface State {
 export class TopdownCanvas extends React.Component<Props, State> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    renderer?: rock3d.r2d.Render.RenderContext;
+    renderer?: r2d.Render.RenderContext;
 
     constructor(props: Props) {
         super(props);
@@ -57,8 +52,6 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.onMouseMove = this.onMouseMove.bind(this);
 
         this.state = {
-            camera: new rock3d.r2d.Camera.Camera(),
-            level: props.level, // FIXME: Needs a deep copy.
             mousePos: null,
         };
     }
@@ -81,17 +74,17 @@ export class TopdownCanvas extends React.Component<Props, State> {
         }
 
         // Initialize a new renderer.
-        this.renderer = new rock3d.r2d.Render.RenderContext(canvas);
+        this.renderer = new r2d.Render.RenderContext(canvas);
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Render our initial view.
         this.renderer.clear();
-        this.renderer.renderGrid(this.state.camera);
-        this.renderer.renderLevel(this.state.level, this.state.camera);
-        this.renderer.renderVertexes(this.state.level.vertexCache.toArray(), this.state.camera);
+        this.renderer.renderGrid(this.props.camera);
+        this.renderer.renderLevel(this.props.level, this.props.camera);
+        this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera);
     }
 
-    shouldComponentUpdate(_: Props, nextState: State): boolean {
+    shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
         if (this.renderer === undefined) {
             throw new Error('GridView renderer is missing');
         }
@@ -102,9 +95,9 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
         // Render.
         this.renderer.clear();
-        this.renderer.renderGrid(nextState.camera);
-        this.renderer.renderLevel(nextState.level, nextState.camera);
-        this.renderer.renderVertexes(nextState.level.vertexCache.toArray(), nextState.camera);
+        this.renderer.renderGrid(nextProps.camera);
+        this.renderer.renderLevel(nextProps.level, nextProps.camera);
+        this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera);
 
         if (nextState.mousePos === null) {
             return false; // We don't have mouse data
@@ -112,7 +105,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
         // DEBUG: World coordinates
         const coord = vec2.create();
-        this.renderer.screenToWorld(coord, nextState.mousePos, nextState.camera);
+        this.renderer.screenToWorld(coord, nextState.mousePos, nextProps.camera);
         this.renderer.ctx.strokeText(`x: ${coord[0]} y: ${coord[1]}`, 0, this.renderer.ctx.canvas.clientHeight);
 
         return false; // never re-render the DOM node with React

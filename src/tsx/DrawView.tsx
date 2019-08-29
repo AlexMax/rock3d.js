@@ -18,6 +18,9 @@
 
 import React from 'react';
 
+import { r2d } from 'rock3d';
+
+import { DrawInput } from './DrawInput';
 import { MutLevel } from '../mutlevel';
 import { Toolbar } from './ui/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
@@ -26,16 +29,57 @@ export interface Props {
     level: MutLevel;
 };
 
-export class DrawView extends React.Component<Props> {
+interface State {
+    camera: r2d.Camera.Camera;
+}
+
+export class DrawView extends React.Component<Props, State> {
 
     constructor(props: Readonly<Props>) {
         super(props);
+        this.panUp = this.panUp.bind(this);
+        this.panDown = this.panDown.bind(this);
+        this.panLeft = this.panLeft.bind(this);
+        this.panRight = this.panRight.bind(this);
+        this.zoomIn = this.zoomIn.bind(this);
+        this.zoomOut = this.zoomOut.bind(this);
+
+        this.state = {
+            camera: r2d.Camera.create(),
+        }
+    }
+
+    panUp() {
+        this.setState({ camera: r2d.Camera.pan(this.state.camera, 0, 64) });
+    }
+
+    panDown() {
+        this.setState({ camera: r2d.Camera.pan(this.state.camera, 0, -64) });
+    }
+
+    panLeft() {
+        this.setState({ camera: r2d.Camera.pan(this.state.camera, -64, 0) });
+    }
+
+    panRight() {
+        this.setState({ camera: r2d.Camera.pan(this.state.camera, 64, 0) });
+    }
+
+    zoomIn() {
+        this.setState({ camera: r2d.Camera.zoom(this.state.camera, 2) });
+    }
+
+    zoomOut() {
+        this.setState({ camera: r2d.Camera.zoom(this.state.camera, 0.5) });
     }
 
     render(): JSX.Element {
         return <div>
-            <TopdownCanvas level={this.props.level}/>
+            <TopdownCanvas camera={this.state.camera} level={this.props.level}/>
             <Toolbar title="A Test Toolbar"/>
+            <DrawInput panUp={this.panUp} panDown={this.panDown}
+                panLeft={this.panLeft} panRight={this.panRight}
+                zoomIn={this.zoomIn} zoomOut={this.zoomOut}/>
         </div>;
     }
 };
