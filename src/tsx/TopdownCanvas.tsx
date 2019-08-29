@@ -29,6 +29,11 @@ export interface Props {
     camera: r2d.Camera.Camera;
 
     /**
+     * Grid resolution.
+     */
+    gridSize: number;
+
+    /**
      * Level data.
      */
     level: MutLevel;
@@ -94,7 +99,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
         // Render our initial view.
         this.renderer.clear();
-        this.renderer.renderGrid(this.props.camera);
+        this.renderer.renderGrid(this.props.camera, this.props.gridSize);
         this.renderer.renderLevel(this.props.level, this.props.camera);
         this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera);
     }
@@ -110,7 +115,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
 
         // Render.
         this.renderer.clear();
-        this.renderer.renderGrid(nextProps.camera);
+        this.renderer.renderGrid(nextProps.camera, nextProps.gridSize);
         this.renderer.renderLevel(nextProps.level, nextProps.camera);
         this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera);
 

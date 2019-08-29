@@ -25,6 +25,8 @@ export interface Props {
     panRight: () => void;
     zoomIn: () => void;
     zoomOut: () => void;
+    gridIn: () => void;
+    gridOut: () => void;
 };
 
 /**
@@ -40,10 +42,12 @@ export class DrawInput extends React.Component<Props> {
 
     onGlobalKeydown(evt: KeyboardEvent) {
         switch (evt.key) {
-        case 'w': this.props.panUp(); break;
-        case 's': this.props.panDown(); break;
-        case 'a': this.props.panLeft(); break;
-        case 'd': this.props.panRight(); break;
+        case 'w': case 'ArrowUp': this.props.panUp(); break;
+        case 's': case 'ArrowDown': this.props.panDown(); break;
+        case 'a': case 'ArrowLeft': this.props.panLeft(); break;
+        case 'd': case 'ArrowRight': this.props.panRight(); break;
+        case '[': this.props.gridOut(); break;
+        case ']': this.props.gridIn(); break;
         }
     }
 

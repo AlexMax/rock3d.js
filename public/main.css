@@ -128,6 +128,15 @@ html, body, #rocked, .root, .mode, .mode-canvas {
     display: flex;
 }
 
+.status-bar > div {
+    padding: 0 0.5em 0 0.5em;
+}
+
+/* Push status bar elements that follow this to the right. */
+.status-bar > div.status-bar-push {
+    margin-left: auto;
+}
+
 /* #endregion */
 
 /* #region *** TITLE BAR ***/

@@ -32,6 +32,7 @@ export interface Props {
 
 interface State {
     camera: r2d.Camera.Camera;
+    gridSize: number;
     mousePos: vec2 | null;
 }
 
@@ -45,10 +46,13 @@ export class DrawView extends React.Component<Props, State> {
         this.panRight = this.panRight.bind(this);
         this.zoomIn = this.zoomIn.bind(this);
         this.zoomOut = this.zoomOut.bind(this);
+        this.gridIn = this.gridIn.bind(this);
+        this.gridOut = this.gridOut.bind(this);
         this.newMousePos = this.newMousePos.bind(this);
 
         this.state = {
             camera: r2d.Camera.create(),
+            gridSize: 32,
             mousePos: null,
         }
     }
@@ -77,6 +81,16 @@ export class DrawView extends React.Component<Props, State> {
         this.setState({ camera: r2d.Camera.zoom(this.state.camera, 0.5) });
     }
 
+    gridIn() {
+        const gridSize = Math.max(1, this.state.gridSize * 0.5);
+        this.setState({ gridSize: gridSize });
+    }
+
+    gridOut() {
+        const gridSize = Math.min(1024, this.state.gridSize * 2);
+        this.setState({ gridSize: gridSize });
+    }
+
     newMousePos(mousePos: vec2 | null) {
         if (mousePos !== null) {
             this.setState({ mousePos: vec2.fromValues(mousePos[0], mousePos[1]) });
@@ -90,15 +104,17 @@ export class DrawView extends React.Component<Props, State> {
         const posY = (this.state.mousePos !== null) ? this.state.mousePos[1].toFixed(0) : '-';
 
         return <>
-            <TopdownCanvas camera={this.state.camera} level={this.props.level}
-                onNewMousePos={this.newMousePos}/>
+            <TopdownCanvas camera={this.state.camera} gridSize={this.state.gridSize}
+                level={this.props.level} onNewMousePos={this.newMousePos}/>
             <StatusBar>
-                <div>{posX}, {posY}</div>
+                <div className="status-bar-push">Grid Size: {this.state.gridSize}</div>
+                <div>Coords: {posX}, {posY}</div>
             </StatusBar>
             <Toolbar title="A Test Toolbar"/>
             <DrawInput panUp={this.panUp} panDown={this.panDown}
                 panLeft={this.panLeft} panRight={this.panRight}
-                zoomIn={this.zoomIn} zoomOut={this.zoomOut}/>
+                zoomIn={this.zoomIn} zoomOut={this.zoomOut}
+                gridIn={this.gridIn} gridOut={this.gridOut}/>
         </>;
     }
 };
