@@ -22,6 +22,7 @@ import { r2d } from 'rock3d';
 
 import { DrawInput } from './DrawInput';
 import { MutLevel } from '../mutlevel';
+import { StatusBar } from './ui/StatusBar';
 import { Toolbar } from './ui/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
 
@@ -74,12 +75,13 @@ export class DrawView extends React.Component<Props, State> {
     }
 
     render(): JSX.Element {
-        return <div>
+        return <>
             <TopdownCanvas camera={this.state.camera} level={this.props.level}/>
+            <StatusBar/>
             <Toolbar title="A Test Toolbar"/>
             <DrawInput panUp={this.panUp} panDown={this.panDown}
                 panLeft={this.panLeft} panRight={this.panRight}
                 zoomIn={this.zoomIn} zoomOut={this.zoomOut}/>
-        </div>;
+        </>;
     }
 };

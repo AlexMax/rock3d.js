@@ -20,6 +20,7 @@ import React from 'react';
 
 import { FPCanvas } from './FPCanvas';
 import { MutLevel } from '../mutlevel';
+import { StatusBar } from './ui/StatusBar';
 
 export interface Props {
     level: MutLevel;
@@ -32,6 +33,9 @@ export class VisualView extends React.Component<Props> {
     }
 
     render(): JSX.Element {
-        return <FPCanvas level={this.props.level}/>;
+        return <>
+            <FPCanvas level={this.props.level}/>
+            <StatusBar/>
+        </>;
     }
 };

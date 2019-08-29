@@ -25,15 +25,6 @@ body {
    overflow: hidden;
 }
 
-/* #region *** FP CANVAS ***/
-
-.fp-canvas {
-    height: 100%;
-    width: 100%;
-}
-
-/* #endregion */
-
 /* #region *** HTML ELEMENTS ***/
 
 button {
@@ -51,22 +42,27 @@ button:active {
 
 /* #region *** MAIN LAYOUT ***/
 
-html, body, #rocked, .root-flex, .content {
+html, body, #rocked, .root, .mode, .mode-canvas {
     height: 100%;
     width: 100%;
 }
 
-.root-flex {
+.root, .mode {
     display: flex;
     flex-direction: column;
 }
 
-.content {
+/* The mode container */
+.mode {
     background-color: var(--background-color);
+
+     /* Ensure that resizing the window covers up the content */
+    overflow: hidden;
 }
 
-.content {
-     /* Ensure that resizing the window covers up the content */
+/* The main canvas used for a mode */
+.mode-canvas {
+    /* Ensure that resizing the window doesn't push anything out of view */
     overflow: hidden;
 }
 
@@ -143,15 +139,6 @@ html, body, #rocked, .root-flex, .content {
     border-width: 1px;
     color: var(--window-title-color);
     text-align: center;
-}
-
-/* #endregion */
-
-/* #region *** TOPDOWN CANVAS ***/
-
-.topdown-canvas {
-    height: 100%;
-    width: 100%;
 }
 
 /* #endregion */

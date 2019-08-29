@@ -151,7 +151,7 @@ export class FPCanvas extends React.Component<Props, State> {
     }
 
     render() {
-        return <canvas className="fp-canvas" ref={this.canvas}
+        return <canvas className="mode-canvas" ref={this.canvas}
             onMouseMove={this.onMouseMove}/>;
     }
 }

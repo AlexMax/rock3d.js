@@ -22,7 +22,6 @@ import { LevelData } from 'rock3d';
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
 import { MutLevel } from '../mutlevel';
-import { StatusBar } from './ui/StatusBar';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 
@@ -32,10 +31,6 @@ export enum Mode {
     DrawView,
     VisualView,
 };
-
-type ModeElements = {
-    [key in Mode]: any
-}
 
 interface State {
     level: MutLevel | null;
@@ -109,14 +104,13 @@ export class Root extends React.Component<{}, State> {
             }
         }
 
-        return <div className="root-flex">
+        return <div className="root">
             <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile} 
                 onDrawView={this.drawView} onVisualView={this.visualView}
                 onAbout={this.about}/>
-            <div className="content">
+            <div className="mode">
                 {modeElement}
             </div>
-            <StatusBar/>
             {this.state.modal}
         </div>;
     }

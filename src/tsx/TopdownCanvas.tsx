@@ -112,7 +112,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
     }
 
     render() {
-        return <canvas className="topdown-canvas" ref={this.canvas}
+        return <canvas className="mode-canvas" ref={this.canvas}
             onMouseMove={this.onMouseMove}/>;
     }
 }
