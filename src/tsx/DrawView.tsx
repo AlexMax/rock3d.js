@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { vec2 } from 'gl-matrix';
 import React from 'react';
-
 import { r2d } from 'rock3d';
 
 import { DrawInput } from './DrawInput';
@@ -32,6 +32,7 @@ export interface Props {
 
 interface State {
     camera: r2d.Camera.Camera;
+    mousePos: vec2 | null;
 }
 
 export class DrawView extends React.Component<Props, State> {
@@ -44,9 +45,11 @@ export class DrawView extends React.Component<Props, State> {
         this.panRight = this.panRight.bind(this);
         this.zoomIn = this.zoomIn.bind(this);
         this.zoomOut = this.zoomOut.bind(this);
+        this.newMousePos = this.newMousePos.bind(this);
 
         this.state = {
             camera: r2d.Camera.create(),
+            mousePos: null,
         }
     }
 
@@ -74,10 +77,24 @@ export class DrawView extends React.Component<Props, State> {
         this.setState({ camera: r2d.Camera.zoom(this.state.camera, 0.5) });
     }
 
+    newMousePos(mousePos: vec2 | null) {
+        if (mousePos !== null) {
+            this.setState({ mousePos: vec2.fromValues(mousePos[0], mousePos[1]) });
+        } else {
+            this.setState({ mousePos: null });
+        }
+    }
+
     render(): JSX.Element {
+        const posX = (this.state.mousePos !== null) ? this.state.mousePos[0].toFixed(0) : '-';
+        const posY = (this.state.mousePos !== null) ? this.state.mousePos[1].toFixed(0) : '-';
+
         return <>
-            <TopdownCanvas camera={this.state.camera} level={this.props.level}/>
-            <StatusBar/>
+            <TopdownCanvas camera={this.state.camera} level={this.props.level}
+                onNewMousePos={this.newMousePos}/>
+            <StatusBar>
+                <div>{posX}, {posY}</div>
+            </StatusBar>
             <Toolbar title="A Test Toolbar"/>
             <DrawInput panUp={this.panUp} panDown={this.panDown}
                 panLeft={this.panLeft} panRight={this.panRight}

@@ -21,7 +21,7 @@ import React from 'react';
 export class StatusBar extends React.Component {
     render() {
         return <div className="status-bar">
-            <div>320, 240</div>
+            {this.props.children}
         </div>;
     }
 };

@@ -32,6 +32,11 @@ export interface Props {
      * Level data.
      */
     level: MutLevel;
+
+    /**
+     * Called when we set the mouse position.
+     */
+    onNewMousePos: (mousePos: vec2 | null) => void;
 };
 
 interface State {
@@ -62,15 +67,25 @@ export class TopdownCanvas extends React.Component<Props, State> {
             throw new Error('GridView canvas is inaccessible');
         }
         const rect = canvas.getBoundingClientRect();
+        const mousePos = vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top);
+
         this.setState({
-            mousePos: vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top)
+            mousePos: mousePos,
         });
+
+        // Send our mouse coordinates elsewhere.
+        if (this.renderer === undefined) {
+            throw new Error('Renderer is missing');
+        }
+        const coord = vec2.create();
+        this.renderer.screenToWorld(coord, mousePos, this.props.camera);
+        this.props.onNewMousePos(coord);
     }
 
     componentDidMount() {
         const canvas = this.canvas.current;
         if (canvas === null) {
-            throw new Error('GridView canvas is inaccessible');
+            throw new Error('Canvas is inaccessible');
         }
 
         // Initialize a new renderer.
@@ -84,9 +99,9 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera);
     }
 
-    shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
+    shouldComponentUpdate(nextProps: Props): boolean {
         if (this.renderer === undefined) {
-            throw new Error('GridView renderer is missing');
+            throw new Error('Renderer is missing');
         }
 
         // Our view might have resized, Handle it.
@@ -98,15 +113,6 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.renderer.renderGrid(nextProps.camera);
         this.renderer.renderLevel(nextProps.level, nextProps.camera);
         this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera);
-
-        if (nextState.mousePos === null) {
-            return false; // We don't have mouse data
-        }
-
-        // DEBUG: World coordinates
-        const coord = vec2.create();
-        this.renderer.screenToWorld(coord, nextState.mousePos, nextProps.camera);
-        this.renderer.ctx.strokeText(`x: ${coord[0]} y: ${coord[1]}`, 0, this.renderer.ctx.canvas.clientHeight);
 
         return false; // never re-render the DOM node with React
     }
