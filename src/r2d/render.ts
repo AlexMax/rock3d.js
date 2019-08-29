@@ -83,7 +83,7 @@ export class RenderContext {
      * 
      * @param cam Camera of the view.
      */
-    renderGrid(cam: Camera): void {
+    renderGrid(cam: Camera, size: number): void {
         const ctx = this.ctx;
         const cameraMat = getViewMatrix(cam);
 
@@ -92,33 +92,61 @@ export class RenderContext {
         this.screenToWorld(leftTop, leftTop, cam);
         this.screenToWorld(rightBottom, rightBottom, cam);
 
-        // Stroke vertical lines.
-        ctx.beginPath();
-        ctx.strokeStyle = 'rgba(57, 89, 111, 0.5)';
+        const gridLines: vec2[] = [];
+        const gridLines64: vec2[] = [];
 
-        for (let x = Math.round(leftTop[0] / 64) * 64;x < rightBottom[0];x += 64) {
-            let v = vec2.fromValues(x, leftTop[1]);
-            vec2.transformMat3(v, v, cameraMat);
-            vec2.transformMat3(v, v, this.canvasProject);
-            ctx.moveTo(crisp(v[0]), crisp(v[1]));
-            vec2.set(v, x, rightBottom[1]);
-            vec2.transformMat3(v, v, cameraMat);
-            vec2.transformMat3(v, v, this.canvasProject);
-            ctx.lineTo(crisp(v[0]), crisp(v[1]));
+        // Vertical lines.
+        for (let x = Math.round(leftTop[0] / size) * size;x < rightBottom[0];x += size) {
+            const v1 = vec2.fromValues(x, leftTop[1]);
+            vec2.transformMat3(v1, v1, cameraMat);
+            vec2.transformMat3(v1, v1, this.canvasProject);
+            const v2 = vec2.fromValues(x, rightBottom[1]);
+            vec2.transformMat3(v2, v2, cameraMat);
+            vec2.transformMat3(v2, v2, this.canvasProject);
+
+            if (x % 64 === 0) {
+                gridLines64.push(v1);
+                gridLines64.push(v2);
+            } else {
+                gridLines.push(v1);
+                gridLines.push(v2);
+            }
         }
 
         // Stroke horizontal lines.
-        for (let y = Math.round(rightBottom[1] / 64) * 64;y < leftTop[1];y += 64) {
-            let v = vec2.fromValues(leftTop[0], y);
-            vec2.transformMat3(v, v, cameraMat);
-            vec2.transformMat3(v, v, this.canvasProject);
-            ctx.moveTo(crisp(v[0]), crisp(v[1]));
-            vec2.set(v, rightBottom[0], y);
-            vec2.transformMat3(v, v, cameraMat);
-            vec2.transformMat3(v, v, this.canvasProject);
-            ctx.lineTo(crisp(v[0]), crisp(v[1]));
+        for (let y = Math.round(rightBottom[1] / size) * size;y < leftTop[1];y += size) {
+            const v1 = vec2.fromValues(leftTop[0], y);
+            vec2.transformMat3(v1, v1, cameraMat);
+            vec2.transformMat3(v1, v1, this.canvasProject);
+            const v2 = vec2.fromValues(rightBottom[0], y);
+            vec2.transformMat3(v2, v2, cameraMat);
+            vec2.transformMat3(v2, v2, this.canvasProject);
+
+            if (y % 64 === 0) {
+                gridLines64.push(v1);
+                gridLines64.push(v2);
+            } else {
+                gridLines.push(v1);
+                gridLines.push(v2);
+            }
         }
 
+        // Stroke our normal lines.
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(70, 70, 70, 0.5)';
+        for (let i = 0;i < gridLines.length;i += 2) {
+            ctx.moveTo(crisp(gridLines[i][0]), crisp(gridLines[i][1]));
+            ctx.lineTo(crisp(gridLines[i + 1][0]), crisp(gridLines[i + 1][1]));
+        }
+        ctx.stroke();
+
+        // Stroke our 64 lines.
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(57, 89, 111, 0.5)';
+        for (let i = 0;i < gridLines64.length;i += 2) {
+            ctx.moveTo(crisp(gridLines64[i][0]), crisp(gridLines64[i][1]));
+            ctx.lineTo(crisp(gridLines64[i + 1][0]), crisp(gridLines64[i + 1][1]));
+        }
         ctx.stroke();
     }
 
