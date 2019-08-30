@@ -185,17 +185,54 @@ export class RenderContext {
     }
 
     /**
-     * Given an array of vertexes, render all of them.
+     * Given an array of vertexes, render lines between them.  Vertexes
+     * are shared between the ending of one line and start of another.
      * 
-     * @param vertexes Array of vertexes to render.
+     * @param vertexes Array of vertexes of lines to render.
      */
-    renderVertexes(vertexes: vec2[], cam: Camera) {
+    renderLines(vertexes: vec2[], cam: Camera, style: string) {
+        if (vertexes.length < 2) {
+            // We can't render a line with less than two vertexes.
+            return;
+        }
+
         const ctx = this.ctx;
         const cameraMat = getViewMatrix(cam);
 
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgb(81, 168, 255)';
+        ctx.strokeStyle = style;
+
+        for (let i = 1;i < vertexes.length;i += 1) {
+            if (i === 1) {
+                // Move to the origin vertex.
+                let o = vec2.create();
+                vec2.transformMat3(o, vertexes[i - 1], cameraMat);
+                vec2.transformMat3(o, o, this.canvasProject);
+                ctx.moveTo(crisp(o[0]), crisp(o[1]));
+            }
+
+            // Draw to the next vertex.
+            let v = vec2.create();
+            vec2.transformMat3(v, vertexes[i], cameraMat);
+            vec2.transformMat3(v, v, this.canvasProject);
+            ctx.lineTo(crisp(v[0]), crisp(v[1]));
+        }
+        ctx.stroke();
+    }
+
+    /**
+     * Given an array of vertexes, render all of them.
+     * 
+     * @param vertexes Array of vertexes to render.
+     */
+    renderVertexes(vertexes: vec2[], cam: Camera, style: string) {
+        const ctx = this.ctx;
+        const cameraMat = getViewMatrix(cam);
+
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = style;
         vertexes.forEach((vertex) => {
             let v = vec2.create();
             vec2.transformMat3(v, vertex, cameraMat);
