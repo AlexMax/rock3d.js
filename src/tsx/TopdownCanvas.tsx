@@ -29,6 +29,11 @@ export interface Props {
     camera: r2d.Camera.Camera;
 
     /**
+     * Extra lines that are currently being drawn.
+     */
+    drawLines: vec2[];
+
+    /**
      * Grid resolution.
      */
     gridSize: number;
@@ -39,19 +44,22 @@ export interface Props {
     level: MutLevel;
 
     /**
-     * Called when we set the mouse position.
+     * Called when we detect a new mouse position in the level.
      */
-    onNewMousePos: (mousePos: vec2 | null) => void;
+    onLevelPos: (mousePos: vec2 | null) => void;
+
+    /**
+     * Called when we detect a mouse click in the level.
+     */
+    onLevelClick: (mousePos: vec2) => void;
 };
 
-interface State {
-    /**
-     * Current mouse position inside the canvas.
-     */
-    mousePos: vec2 | null;
-}
+const styles = {
+    drawLines: 'rgb(255, 172, 0)',
+    vertexes: 'rgb(81, 168, 255)',
+};
 
-export class TopdownCanvas extends React.Component<Props, State> {
+export class TopdownCanvas extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
     renderer?: r2d.Render.RenderContext;
@@ -60,10 +68,7 @@ export class TopdownCanvas extends React.Component<Props, State> {
         super(props);
         this.canvas = React.createRef();
         this.onMouseMove = this.onMouseMove.bind(this);
-
-        this.state = {
-            mousePos: null,
-        };
+        this.onClick = this.onClick.bind(this);
     }
 
     onMouseMove(event: React.MouseEvent) {
@@ -74,17 +79,30 @@ export class TopdownCanvas extends React.Component<Props, State> {
         const rect = canvas.getBoundingClientRect();
         const mousePos = vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top);
 
-        this.setState({
-            mousePos: mousePos,
-        });
-
-        // Send our mouse coordinates elsewhere.
+        // Send our level coordinates to parent callback.
         if (this.renderer === undefined) {
             throw new Error('Renderer is missing');
         }
         const coord = vec2.create();
         this.renderer.screenToWorld(coord, mousePos, this.props.camera);
-        this.props.onNewMousePos(coord);
+        this.props.onLevelPos(coord);
+    }
+
+    onClick(event: React.MouseEvent) {
+        const canvas = this.canvas.current;
+        if (canvas === null) {
+            throw new Error('GridView canvas is inaccessible');
+        }
+        const rect = canvas.getBoundingClientRect();
+        const mousePos = vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top);
+
+        // Send our level click event to parent callback.
+        if (this.renderer === undefined) {
+            throw new Error('Renderer is missing');
+        }
+        const coord = vec2.create();
+        this.renderer.screenToWorld(coord, mousePos, this.props.camera);
+        this.props.onLevelClick(coord);
     }
 
     componentDidMount() {
@@ -101,7 +119,10 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.renderer.clear();
         this.renderer.renderGrid(this.props.camera, this.props.gridSize);
         this.renderer.renderLevel(this.props.level, this.props.camera);
-        this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera);
+        this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera, styles.vertexes);
+
+        this.renderer.renderLines(this.props.drawLines, this.props.camera, styles.drawLines);
+        this.renderer.renderVertexes(this.props.drawLines, this.props.camera, styles.drawLines);
     }
 
     shouldComponentUpdate(nextProps: Props): boolean {
@@ -117,13 +138,16 @@ export class TopdownCanvas extends React.Component<Props, State> {
         this.renderer.clear();
         this.renderer.renderGrid(nextProps.camera, nextProps.gridSize);
         this.renderer.renderLevel(nextProps.level, nextProps.camera);
-        this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera);
+        this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera, styles.vertexes);
+
+        this.renderer.renderLines(nextProps.drawLines, nextProps.camera, styles.drawLines);
+        this.renderer.renderVertexes(nextProps.drawLines, nextProps.camera, styles.drawLines);
 
         return false; // never re-render the DOM node with React
     }
 
     render() {
         return <canvas className="mode-canvas" ref={this.canvas}
-            onMouseMove={this.onMouseMove}/>;
+            onMouseMove={this.onMouseMove} onClick={this.onClick}/>;
     }
 }

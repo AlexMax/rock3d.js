@@ -25,15 +25,32 @@ import { MutLevel } from '../mutlevel';
 import { StatusBar } from './ui/StatusBar';
 import { Toolbar } from './ui/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
+import { mround } from '../util';
 
 export interface Props {
     level: MutLevel;
 };
 
 interface State {
+    /**
+     * Current camera position.
+     */
     camera: r2d.Camera.Camera;
+
+    /**
+     * Lines that we are using for a draw command.
+     */
+    drawLines: vec2[];
+
+    /**
+     * Current grid size.
+     */
     gridSize: number;
-    mousePos: vec2 | null;
+
+    /**
+     * Current position of mouse in level.
+     */
+    levelPos: vec2 | null;
 }
 
 export class DrawView extends React.Component<Props, State> {
@@ -48,12 +65,14 @@ export class DrawView extends React.Component<Props, State> {
         this.zoomOut = this.zoomOut.bind(this);
         this.gridIn = this.gridIn.bind(this);
         this.gridOut = this.gridOut.bind(this);
-        this.newMousePos = this.newMousePos.bind(this);
+        this.levelPos = this.levelPos.bind(this);
+        this.levelClick = this.levelClick.bind(this);
 
         this.state = {
             camera: r2d.Camera.create(),
+            drawLines: [],
             gridSize: 32,
-            mousePos: null,
+            levelPos: null,
         }
     }
 
@@ -91,21 +110,42 @@ export class DrawView extends React.Component<Props, State> {
         this.setState({ gridSize: gridSize });
     }
 
-    newMousePos(mousePos: vec2 | null) {
-        if (mousePos !== null) {
-            this.setState({ mousePos: vec2.fromValues(mousePos[0], mousePos[1]) });
+    levelPos(levelPos: vec2 | null) {
+        if (levelPos !== null) {
+            this.setState({ levelPos: vec2.fromValues(levelPos[0], levelPos[1]) });
+
+            // Moving the mouse also adjusts our drawling line, if it exists.
+            if (this.state.drawLines.length > 0) {
+                const snapped = vec2.fromValues(
+                    mround(levelPos[0], this.state.gridSize),
+                    mround(levelPos[1], this.state.gridSize));
+                const newLines = this.state.drawLines.slice(0);
+                newLines[newLines.length - 1] = snapped;
+                this.setState({ drawLines: newLines });
+            }
         } else {
-            this.setState({ mousePos: null });
+            this.setState({ levelPos: null });
         }
     }
 
+    levelClick(levelPos: vec2) {
+        // Snap to grid.
+        const snapped = vec2.fromValues(
+            mround(levelPos[0], this.state.gridSize),
+            mround(levelPos[1], this.state.gridSize));
+    
+        const drawLines = [...this.state.drawLines, snapped];
+        this.setState({ drawLines: drawLines });
+    }
+
     render(): JSX.Element {
-        const posX = (this.state.mousePos !== null) ? this.state.mousePos[0].toFixed(0) : '-';
-        const posY = (this.state.mousePos !== null) ? this.state.mousePos[1].toFixed(0) : '-';
+        const posX = (this.state.levelPos !== null) ? this.state.levelPos[0].toFixed(0) : '-';
+        const posY = (this.state.levelPos !== null) ? this.state.levelPos[1].toFixed(0) : '-';
 
         return <>
-            <TopdownCanvas camera={this.state.camera} gridSize={this.state.gridSize}
-                level={this.props.level} onNewMousePos={this.newMousePos}/>
+            <TopdownCanvas camera={this.state.camera} drawLines={this.state.drawLines}
+                gridSize={this.state.gridSize} level={this.props.level}
+                onLevelPos={this.levelPos} onLevelClick={this.levelClick}/>
             <StatusBar>
                 <div className="status-bar-push">Grid Size: {this.state.gridSize}</div>
                 <div>Coords: {posX}, {posY}</div>

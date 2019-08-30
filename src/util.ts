@@ -25,6 +25,13 @@ export interface Texture {
 };
 
 /**
+ * Round a number to the nearest multiple.
+ */
+export function mround(num: number, multi: number) {
+    return Math.round(num / multi) * multi;
+}
+
+/**
  * Asynchronously load an image and resolves the returned promise when the
  * image finishes loading, or rejects it if there was an error.
  * 

@@ -62,6 +62,8 @@ html, body, #rocked, .root, .mode, .mode-canvas {
 
 /* The main canvas used for a mode */
 .mode-canvas {
+    cursor: crosshair;
+
     /* Ensure that resizing the window doesn't push anything out of view */
     overflow: hidden;
 }
