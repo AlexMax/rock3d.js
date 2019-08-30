@@ -4,8 +4,12 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "outDir": "dist",
+    "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
     "target": "es2015",
-  }
+  },
+  "exclude": [
+    "**/__tests__"
+  ]
 }

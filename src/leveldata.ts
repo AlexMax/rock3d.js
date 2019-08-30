@@ -7,7 +7,7 @@
  */
 
 export interface SideData {
-    vertex: [number, number];
+    vertex: number[];
     upperTex?: string;
     middleTex?: string;
     lowerTex?: string;

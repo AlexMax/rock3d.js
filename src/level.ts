@@ -81,3 +81,43 @@ export class Level {
         });
     }
 }
+
+type ShouldFloodFn = (level: Level, checkPoly: number, sourcePoly: number, side: number) => boolean;
+
+function floodRecursive(level: Level, current: number,
+        shouldFlood: ShouldFloodFn, flooded: Set<number>)
+{
+    flooded.add(current);
+    const poly = level.polygons[current];
+    for (let i = 0;i < poly.sides.length;i++) {
+        const side = poly.sides[i];
+        if (side.backPoly === null) {
+            // There is no polygon to examine.
+            continue;
+        }
+        if (flooded.has(side.backPoly)) {
+            // We've already looked at this polygon.
+            continue;
+        }
+        if (shouldFlood(level, side.backPoly, current, i) === false) {
+            // We shouldn't flood this polygon.
+            continue;
+        }
+        // Flood into this polygon.
+        floodRecursive(level, side.backPoly, shouldFlood, flooded);
+    }
+}
+
+/**
+ * Return all polygons that are reachable from the passed starting polygon.
+ *
+ * @param level Level to traverse.
+ * @param start Starting polygon index.
+ * @param shouldFlood A function that returns true if the given polygon
+ *                    should be included in the result set, otherwise false.
+ */
+export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): Set<number> {
+    const flooded: Set<number> = new Set();
+    floodRecursive(level, start, shouldFlood, flooded);
+    return flooded;
+}
