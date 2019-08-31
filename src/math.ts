@@ -34,3 +34,38 @@ export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null 
     // Find the point of intersection.
     return vec2.fromValues(p[0] + dx12 * t1, p[1] + dy12 * t1);
 }
+
+/**
+ * Check if point is inside rectangle.
+ * 
+ * The two points on the rectangle can be passed using any orientation.
+ * 
+ * @param p Point to check.
+ * @param q Origin point of rectangle. 
+ * @param r Opposite point of rectangle.
+ */
+export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
+    if (q[0] < r[0]) {
+        var minX = q[0];
+        var maxX = r[0];
+    } else {
+        var maxX = q[0];
+        var minX = r[0];
+    }
+
+    if (q[1] < r[1]) {
+        var minY = q[1];
+        var maxY = r[1];
+    } else {
+        var maxY = q[1];
+        var minY = r[1];
+    }
+
+    if (p[0] < minX || p[0] > maxX) {
+        return false;
+    }
+    if (p[1] < minY || p[1] > maxY) {
+        return false;
+    }
+    return true;
+}
