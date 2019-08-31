@@ -10,6 +10,7 @@ import earcut from "earcut";
 import { vec2 } from "gl-matrix";
 
 import { LevelData, PolygonData, SideData } from "./leveldata";
+import { intersectLines, pointInRect } from './math';
 
 interface Side {
     vertex: vec2;
@@ -85,7 +86,7 @@ export class Level {
 type ShouldFloodFn = (level: Level, checkPoly: number, sourcePoly: number, side: number) => boolean;
 
 function floodRecursive(level: Level, current: number,
-        shouldFlood: ShouldFloodFn, flooded: Set<number>)
+    shouldFlood: ShouldFloodFn, flooded: Set<number>)
 {
     flooded.add(current);
     const poly = level.polygons[current];
@@ -120,4 +121,48 @@ export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): 
     const flooded: Set<number> = new Set();
     floodRecursive(level, start, shouldFlood, flooded);
     return flooded;
+}
+
+/**
+ * Cast a hitscan ray from a given starting position.
+ */
+export function hitscan(level: Level, startPoly: number, startPos: vec2,
+    startDir: vec2): vec2 | null
+{
+    const v2 = vec2.fromValues(startPos[0] + startDir[0], startPos[1] + startDir[1]);
+    const poly = level.polygons[startPoly];
+    for (let i = 0;i < poly.sides.length;i++) {
+        // Check for line intersection.
+        const v3 = poly.sides[i].vertex;
+        const v4 = poly.sides[(i + 1) % poly.sides.length].vertex;
+        const inter = intersectLines(startPos, v2, v3, v4);
+        if (inter === null) {
+            // We don't intersect the line.
+            continue;
+        }
+
+        // Make sure that the point is actually on the line.
+        if (!pointInRect(inter, v3, v4)) {
+            continue;
+        }
+
+        // Not every intersection is a valid one, because we're treating
+        // the first line like a directed ray, not a segment.
+        if (startDir[0] > 0 && inter[0] < startPos[0]) {
+            continue; // Direction is +X, intersection is -X
+        } else if (startDir[0] < 0 && inter[0] > startPos[0]) {
+            continue; // Direction is -X, intersection is +X
+        }
+        if (startDir[1] > 0 && inter[1] < startPos[1]) {
+            continue; // Direction is +Y, intersection is -Y
+        } else if (startDir[1] < 0 && inter[1] > startPos[1]) {
+            continue; // Direction is -Y, intersection is +Y
+        }
+
+        // We hit the side of a polygon!
+        return inter;
+    }
+
+    // Ray did not hit side of polygon.
+    return null;
 }
