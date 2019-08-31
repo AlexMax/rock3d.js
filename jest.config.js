@@ -1,6 +1,13 @@
 module.exports = {
-    roots: ["<rootDir>/__tests__/"],
+    roots: [
+        "<rootDir>/__tests__/",
+        "<rootDir>/src/" // No tests, but needed for coverage.
+    ],
     transform: {
-        "^.+\\.tsx?$": "ts-jest"
+        "^.+\\.ts$": "ts-jest"
     },
+    collectCoverage: true,
+    collectCoverageFrom: [
+        "**/*.ts",
+    ]
 };
