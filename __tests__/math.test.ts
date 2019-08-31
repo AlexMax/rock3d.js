@@ -8,7 +8,7 @@
 
 import { vec2 } from 'gl-matrix';
 
-import { intersectLines, pointInRect } from '../src/math';
+import { intersectLines, pointInCircle, pointInRect } from '../src/math';
 
 test('Lines intersect', () => {
     const p = vec2.fromValues(0, 0);
@@ -81,6 +81,22 @@ test('Lines do not intersect, they are on the same line (Y axis)', () => {
 
     const actual = intersectLines(p, q, r, s);
     expect(actual).toBeNull();
+});
+
+test('Point is in circle', () => {
+    const p = vec2.fromValues(1, 1);
+    const q = vec2.fromValues(2, 2);
+
+    const actual = pointInCircle(p, q, 3);
+    expect(actual).toBeTruthy();
+});
+
+test('Point is outside circle', () => {
+    const p = vec2.fromValues(5, 5);
+    const q = vec2.fromValues(2, 2);
+
+    const actual = pointInCircle(p, q, 3);
+    expect(actual).toBeFalsy();
 });
 
 test('Point is in rectangle', () => {

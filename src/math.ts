@@ -36,6 +36,17 @@ export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null 
 }
 
 /**
+ * Check if point is inside circle.
+ * 
+ * @param p Point to check.
+ * @param q Origin point of circle.
+ * @param r Radius of circle.
+ */
+export function pointInCircle(p: vec2, q: vec2, r: number): boolean {
+    return (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < r ** 2;
+}
+
+/**
  * Check if point is inside rectangle.
  * 
  * The two points on the rectangle can be passed using any orientation.
