@@ -6,7 +6,7 @@
  * source distribution.
  */
 
-import { vec2 } from 'gl-matrix';
+import { vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
  * Compute the point, if any, where two lines intersect.
@@ -36,6 +36,32 @@ export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null 
 }
 
 /**
+ * Compute the point, if any, where a line intersects a plane.
+ * 
+ * @param p First point of line.
+ * @param q Second point of line.
+ * @param r A plane in the form of Ax + By + Cz + D = 0 where r is ABCD.
+ */
+export function intersectPlane(p: vec3, q: vec3, r: vec4): vec3 | null {
+    const dx = q[0] - p[0];
+    const dy = q[1] - p[1];
+    const dz = q[2] - p[2];
+
+    const denominator = r[0] * dx + r[1] * dy + r[2] * dz;
+    if (denominator === 0) {
+        return null;
+    }
+
+    const common = r[0] * p[0] + r[1] * p[1] + r[2] * p[2] + r[3];
+
+    return vec3.fromValues(
+        p[0] - ((dx * common) / denominator),
+        p[1] - ((dy * common) / denominator),
+        p[2] - ((dz * common) / denominator)
+    );
+}
+
+/**
  * Check if point is inside circle.
  * 
  * @param p Point to check.
@@ -44,6 +70,48 @@ export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null 
  */
 export function pointInCircle(p: vec2, q: vec2, r: number): boolean {
     return (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < r ** 2;
+}
+
+/**
+ * Check if point is inside cube.
+ * 
+ * The two points on the rectangle can be passed using any orientation.
+ */
+export function pointInCube(p: vec3, q: vec3, r: vec3): boolean {
+    if (q[0] < r[0]) {
+        var minX = q[0];
+        var maxX = r[0];
+    } else {
+        var maxX = q[0];
+        var minX = r[0];
+    }
+
+    if (q[1] < r[1]) {
+        var minY = q[1];
+        var maxY = r[1];
+    } else {
+        var maxY = q[1];
+        var minY = r[1];
+    }
+
+    if (q[2] < r[2]) {
+        var minZ = q[2];
+        var maxZ = r[2];
+    } else {
+        var maxZ = q[2];
+        var minZ = r[2];
+    }
+
+    if (p[0] < minX || p[0] > maxX) {
+        return false;
+    }
+    if (p[1] < minY || p[1] > maxY) {
+        return false;
+    }
+    if (p[2] < minZ || p[2] > maxZ) {
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -79,4 +147,23 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
         return false;
     }
     return true;
+}
+
+/**
+ * Turn a series of vertexes into a plane.
+ * 
+ * @param p First point of plane.
+ * @param q Second point of plane.
+ * @param r Third point of plane.
+ */
+export function toPlane(p: vec3, q: vec3, r: vec3): vec4 {
+    const AB = vec3.create();
+    vec3.sub(AB, q, p);
+    const AC = vec3.create();
+    vec3.sub(AC, r, p);
+
+    const cross = vec3.create();
+    vec3.cross(cross, AB, AC);
+    const w = -(cross[0] * p[0] + cross[1] * p[1] + cross[2] * p[2]);
+    return vec4.fromValues(cross[0], cross[1], cross[2], w);
 }

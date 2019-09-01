@@ -7,10 +7,10 @@
  */
 
 import earcut from "earcut";
-import { vec2 } from "gl-matrix";
+import { vec2, vec3 } from "gl-matrix";
 
 import { LevelData, PolygonData, SideData } from "./leveldata";
-import { intersectLines, pointInRect } from './math';
+import { intersectPlane, pointInCube, toPlane } from './math';
 
 interface Side {
     vertex: vec2;
@@ -126,23 +126,30 @@ export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): 
 /**
  * Cast a hitscan ray from a given starting position.
  */
-export function hitscan(level: Level, startPoly: number, startPos: vec2,
-    startDir: vec2): vec2 | null
+export function hitscan(level: Level, startPoly: number, startPos: vec3,
+    startDir: vec3): vec3 | null
 {
-    const v2 = vec2.fromValues(startPos[0] + startDir[0], startPos[1] + startDir[1]);
     const poly = level.polygons[startPoly];
+    const v2 = vec3.create();
+    vec3.add(v2, startPos, startDir);
+
     for (let i = 0;i < poly.sides.length;i++) {
-        // Check for line intersection.
-        const v3 = poly.sides[i].vertex;
-        const v4 = poly.sides[(i + 1) % poly.sides.length].vertex;
-        const inter = intersectLines(startPos, v2, v3, v4);
+        const v3XY = poly.sides[i].vertex;
+        const v4XY = poly.sides[(i + 1) % poly.sides.length].vertex;
+
+        const v3 = vec3.fromValues(v3XY[0], v3XY[1], poly.floorHeight);
+        const v4 = vec3.fromValues(v4XY[0], v4XY[1], poly.ceilHeight);
+
+        // Check for line intersection on 3D plane.
+        const plane = toPlane(v3, v4, vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight));
+        const inter = intersectPlane(startPos, v2, plane);
         if (inter === null) {
             // We don't intersect the line.
             continue;
         }
 
         // Make sure that the point is actually on the line.
-        if (!pointInRect(inter, v3, v4)) {
+        if (!pointInCube(inter, v3, v4)) {
             continue;
         }
 
@@ -157,6 +164,11 @@ export function hitscan(level: Level, startPoly: number, startPos: vec2,
             continue; // Direction is +Y, intersection is -Y
         } else if (startDir[1] < 0 && inter[1] > startPos[1]) {
             continue; // Direction is -Y, intersection is +Y
+        }
+        if (startDir[2] > 0 && inter[2] < startPos[2]) {
+            continue; // Direction is +Z, intersection is -Z
+        } else if (startDir[2] < 0 && inter[2] > startPos[2]) {
+            continue; // Direction is -Z, intersection is +Z
         }
 
         // We hit the side of a polygon!

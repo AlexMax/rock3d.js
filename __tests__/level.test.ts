@@ -6,7 +6,7 @@
  * source distribution.
  */
 
-import { vec2 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 
 import { flood, hitscan, Level } from '../src/level';
 import { isLevelData } from '../src/leveldata';
@@ -36,26 +36,26 @@ test('Flood-fill that always fails', () => {
 });
 
 test('Hitscan (looking south, hits a flat wall)', () => {
-    const startPos = vec2.fromValues(0, 0);
-    const startDir = vec2.fromValues(0, -1);
+    const startPos = vec3.fromValues(0, 0, 48);
+    const startDir = vec3.fromValues(0, -1, 0);
 
     const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, -64]);
+    expect(Array.prototype.slice.call(actual)).toEqual([0, -64, 48]);
 });
 
 test('Hitscan (looking north, hits the tip of the staircase)', () => {
-    const startPos = vec2.fromValues(0, 0);
-    const startDir = vec2.fromValues(0, 1);
+    const startPos = vec3.fromValues(0, 0, 48);
+    const startDir = vec3.fromValues(0, 1, 0);
 
     const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, 256]);
+    expect(Array.prototype.slice.call(actual)).toEqual([0, 256, 48]);
 });
 
 test('Hitscan (outside of the polygon)', () => {
-    const startPos = vec2.fromValues(0, -128);
-    const startDir = vec2.fromValues(0, -1);
+    const startPos = vec3.fromValues(0, -128, 48);
+    const startDir = vec3.fromValues(0, -1, 48);
 
     const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).toBeNull();
