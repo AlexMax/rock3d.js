@@ -141,38 +141,88 @@ export function hitscan(level: Level, startPoly: number, startPos: vec3,
         const v4 = vec3.fromValues(v4XY[0], v4XY[1], poly.ceilHeight);
 
         // Check for line intersection on 3D plane.
-        const plane = toPlane(v3, v4, vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight));
-        const inter = intersectPlane(startPos, v2, plane);
-        if (inter === null) {
-            // We don't intersect the line.
+        // FIXME: This is wasteful.  The planes should be calculated once
+        //        and cached for later use.
+        const planes = [
+            toPlane(
+                v3,
+                v4,
+                vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight)
+            ),
+            toPlane(
+                vec3.fromValues(0, 0, poly.floorHeight),
+                vec3.fromValues(1, 1, poly.floorHeight),
+                vec3.fromValues(1, 0, poly.floorHeight)
+            ),
+            toPlane(
+                vec3.fromValues(0, 0, poly.ceilHeight),
+                vec3.fromValues(1, 1, poly.ceilHeight),
+                vec3.fromValues(1, 0, poly.ceilHeight)
+            )
+        ];
+        const inters = planes.map((plane) => {
+            return intersectPlane(startPos, v2, plane);
+        });
+        const filtered = inters.map((inter, index) => {
+            if (inter === null) {
+                // Don't do anything with null intercepts.
+                return null;
+            }
+
+            // Quickly discard points that didn't actually hit the wall
+            // plane inside its actual boundary.
+            // FIXME: Use Point-in-polygon on floors and ceiling.
+            if (index === 0 && !pointInCube(inter, v3, v4)) {
+                return null;
+            }
+
+            // Not every intersection is a valid one, because we're treating
+            // the first line like a directed ray, not a segment.
+            if (startDir[0] > 0 && inter[0] < startPos[0]) {
+                return null; // Direction is +X, intersection is -X
+            } else if (startDir[0] < 0 && inter[0] > startPos[0]) {
+                return null; // Direction is -X, intersection is +X
+            }
+            if (startDir[1] > 0 && inter[1] < startPos[1]) {
+                return null; // Direction is +Y, intersection is -Y
+            } else if (startDir[1] < 0 && inter[1] > startPos[1]) {
+                return null; // Direction is -Y, intersection is +Y
+            }
+            if (startDir[2] > 0 && inter[2] < startPos[2]) {
+                return null; // Direction is +Z, intersection is -Z
+            } else if (startDir[2] < 0 && inter[2] > startPos[2]) {
+                return null; // Direction is -Z, intersection is +Z
+            }
+
+            return inter;
+        });
+        const dists = filtered.map((inter) => {
+            if (inter === null) {
+                // Don't do anything with null intercepts.
+                return null;
+            }
+
+            return vec3.squaredDistance(startPos, inter);
+        });
+
+        // Find the least distance by index.
+        let leastIndex = null;
+        for (let i = 0;i < dists.length;i++) {
+            const dist = dists[i];
+            if (dist === null) {
+                continue;
+            }
+            if (leastIndex === null || dist < leastIndex) {
+                leastIndex = i;
+            }
+        }
+
+        if (leastIndex === null) {
+            // None of the planes are valid targets for the ray.
             continue;
         }
 
-        // Make sure that the point is actually on the line.
-        if (!pointInCube(inter, v3, v4)) {
-            continue;
-        }
-
-        // Not every intersection is a valid one, because we're treating
-        // the first line like a directed ray, not a segment.
-        if (startDir[0] > 0 && inter[0] < startPos[0]) {
-            continue; // Direction is +X, intersection is -X
-        } else if (startDir[0] < 0 && inter[0] > startPos[0]) {
-            continue; // Direction is -X, intersection is +X
-        }
-        if (startDir[1] > 0 && inter[1] < startPos[1]) {
-            continue; // Direction is +Y, intersection is -Y
-        } else if (startDir[1] < 0 && inter[1] > startPos[1]) {
-            continue; // Direction is -Y, intersection is +Y
-        }
-        if (startDir[2] > 0 && inter[2] < startPos[2]) {
-            continue; // Direction is +Z, intersection is -Z
-        } else if (startDir[2] < 0 && inter[2] > startPos[2]) {
-            continue; // Direction is -Z, intersection is +Z
-        }
-
-        // We hit the side of a polygon!
-        return inter;
+        return inters[leastIndex];
     }
 
     // Ray did not hit side of polygon.

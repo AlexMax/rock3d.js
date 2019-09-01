@@ -53,9 +53,27 @@ test('Hitscan (looking north, hits the tip of the staircase)', () => {
     expect(Array.prototype.slice.call(actual)).toEqual([0, 256, 48]);
 });
 
+test('Hitscan (looking north, hits the floor)', () => {
+    const startPos = vec3.fromValues(0, 0, 48);
+    const startDir = vec3.fromValues(0, 1, -1);
+
+    const actual = hitscan(testLevel, 0, startPos, startDir);
+    expect(actual).not.toBeNull();
+    expect(Array.prototype.slice.call(actual)).toEqual([0, 48, 0]);
+});
+
+test('Hitscan (looking north, hits the ceiling)', () => {
+    const startPos = vec3.fromValues(0, 0, 48);
+    const startDir = vec3.fromValues(0, 1, 1);
+
+    const actual = hitscan(testLevel, 0, startPos, startDir);
+    expect(actual).not.toBeNull();
+    expect(Array.prototype.slice.call(actual)).toEqual([0, 80, 128]);
+});
+
 test('Hitscan (outside of the polygon)', () => {
     const startPos = vec3.fromValues(0, -128, 48);
-    const startDir = vec3.fromValues(0, -1, 48);
+    const startDir = vec3.fromValues(0, -1, 0);
 
     const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).toBeNull();
