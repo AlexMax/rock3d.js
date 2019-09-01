@@ -11,12 +11,13 @@ import { vec2, vec3, vec4 } from 'gl-matrix';
 /**
  * Compute the point, if any, where two lines intersect.
  * 
+ * @param out Output vector.
  * @param p First point of first line.
  * @param q Second point of first line.
  * @param r First point of second line.
  * @param s Second point of second line.
  */
-export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null {
+export function intersectLines(out: vec2, p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null {
     const dx12 = q[0] - p[0];
     const dy12 = q[1] - p[1];
     const dx34 = s[0] - r[0];
@@ -32,17 +33,19 @@ export function intersectLines(p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null 
     const t1 = ((p[0] - r[0]) * dy34 + (r[1] - p[1]) * dx34) / denominator;
 
     // Find the point of intersection.
-    return vec2.fromValues(p[0] + dx12 * t1, p[1] + dy12 * t1);
+    vec2.set(out, p[0] + dx12 * t1, p[1] + dy12 * t1);
+    return out;
 }
 
 /**
  * Compute the point, if any, where a line intersects a plane.
  * 
+ * @param out Output vector.
  * @param p First point of line.
  * @param q Second point of line.
  * @param r A plane in the form of Ax + By + Cz + D = 0 where r is ABCD.
  */
-export function intersectPlane(p: vec3, q: vec3, r: vec4): vec3 | null {
+export function intersectPlane(out: vec3, p: vec3, q: vec3, r: vec4): vec3 | null {
     const dx = q[0] - p[0];
     const dy = q[1] - p[1];
     const dz = q[2] - p[2];
@@ -54,11 +57,12 @@ export function intersectPlane(p: vec3, q: vec3, r: vec4): vec3 | null {
 
     const common = r[0] * p[0] + r[1] * p[1] + r[2] * p[2] + r[3];
 
-    return vec3.fromValues(
+    vec3.set(out,
         p[0] - ((dx * common) / denominator),
         p[1] - ((dy * common) / denominator),
         p[2] - ((dz * common) / denominator)
     );
+    return out;
 }
 
 /**
@@ -152,18 +156,18 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
 /**
  * Turn a series of vertexes into a plane.
  * 
+ * @param out Output vector.
  * @param p First point of plane.
  * @param q Second point of plane.
  * @param r Third point of plane.
  */
-export function toPlane(p: vec3, q: vec3, r: vec3): vec4 {
-    const AB = vec3.create();
-    vec3.sub(AB, q, p);
-    const AC = vec3.create();
-    vec3.sub(AC, r, p);
+export function toPlane(out: vec4, p: vec3, q: vec3, r: vec3): vec4 {
+    const AB = vec3.sub(vec3.create(), q, p);
+    const AC = vec3.sub(vec3.create(), r, p);
 
-    const cross = vec3.create();
-    vec3.cross(cross, AB, AC);
+    const cross = vec3.cross(vec3.create(), AB, AC);
     const w = -(cross[0] * p[0] + cross[1] * p[1] + cross[2] * p[2]);
-    return vec4.fromValues(cross[0], cross[1], cross[2], w);
+
+    vec4.set(out, cross[0], cross[1], cross[2], w);
+    return out;
 }

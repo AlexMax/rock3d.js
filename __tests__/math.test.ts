@@ -17,7 +17,7 @@ describe('intersectLines', () => {
         const r = vec2.fromValues(2, 3);
         const s = vec2.fromValues(6, 1);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
         expect(Array.prototype.slice.call(actual)).toEqual([4, 2]);
     });
@@ -28,7 +28,7 @@ describe('intersectLines', () => {
         const r = vec2.fromValues(2, -3);
         const s = vec2.fromValues(6, -1);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
         expect(Array.prototype.slice.call(actual)).toEqual([4, -2]);
     });
@@ -39,7 +39,7 @@ describe('intersectLines', () => {
         const r = vec2.fromValues(1, 0);
         const s = vec2.fromValues(1, 2);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
         expect(Array.prototype.slice.call(actual)).toEqual([1, 1]);
     });
@@ -50,7 +50,7 @@ describe('intersectLines', () => {
         const q = vec2.fromValues(0, 1);
         const s = vec2.fromValues(4, 1);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).toBeNull();
     });
 
@@ -60,7 +60,7 @@ describe('intersectLines', () => {
         const q = vec2.fromValues(1, 0);
         const s = vec2.fromValues(1, 4);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).toBeNull();
     });
 
@@ -70,7 +70,7 @@ describe('intersectLines', () => {
         const q = vec2.fromValues(8, 0);
         const s = vec2.fromValues(16, 0);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).toBeNull();
     });
 
@@ -80,7 +80,7 @@ describe('intersectLines', () => {
         const q = vec2.fromValues(0, 8);
         const s = vec2.fromValues(0, 16);
 
-        const actual = intersectLines(p, q, r, s);
+        const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).toBeNull();
     });
 });

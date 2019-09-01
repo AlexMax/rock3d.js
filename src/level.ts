@@ -7,7 +7,7 @@
  */
 
 import earcut from "earcut";
-import { vec2, vec3 } from "gl-matrix";
+import { vec2, vec3, vec4 } from "gl-matrix";
 
 import { LevelData, PolygonData, SideData } from "./leveldata";
 import { intersectPlane, pointInCube, toPlane } from './math';
@@ -131,6 +131,8 @@ export function hitscan(level: Level, startPoly: number, startPos: vec3,
 {
     const poly = level.polygons[startPoly];
     const v2 = vec3.create();
+    const planes = [vec4.create(), vec4.create(), vec4.create()];
+ 
     vec3.add(v2, startPos, startDir);
 
     for (let i = 0;i < poly.sides.length;i++) {
@@ -143,25 +145,24 @@ export function hitscan(level: Level, startPoly: number, startPos: vec3,
         // Check for line intersection on 3D plane.
         // FIXME: This is wasteful.  The planes should be calculated once
         //        and cached for later use.
-        const planes = [
-            toPlane(
-                v3,
-                v4,
-                vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight)
-            ),
-            toPlane(
-                vec3.fromValues(0, 0, poly.floorHeight),
-                vec3.fromValues(1, 1, poly.floorHeight),
-                vec3.fromValues(1, 0, poly.floorHeight)
-            ),
-            toPlane(
-                vec3.fromValues(0, 0, poly.ceilHeight),
-                vec3.fromValues(1, 1, poly.ceilHeight),
-                vec3.fromValues(1, 0, poly.ceilHeight)
-            )
-        ];
+        toPlane(planes[0],
+            v3,
+            v4,
+            vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight)
+        );
+        toPlane(planes[1],
+            vec3.fromValues(0, 0, poly.floorHeight),
+            vec3.fromValues(1, 1, poly.floorHeight),
+            vec3.fromValues(1, 0, poly.floorHeight)
+        );
+        toPlane(planes[2],
+            vec3.fromValues(0, 0, poly.ceilHeight),
+            vec3.fromValues(1, 1, poly.ceilHeight),
+            vec3.fromValues(1, 0, poly.ceilHeight)
+        );
+
         const inters = planes.map((plane) => {
-            return intersectPlane(startPos, v2, plane);
+            return intersectPlane(vec3.create(), startPos, v2, plane);
         });
         const filtered = inters.map((inter, index) => {
             if (inter === null) {
