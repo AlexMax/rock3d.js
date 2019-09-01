@@ -4,9 +4,13 @@
         "esModuleInterop": true,
         "moduleResolution": "node",
         "outDir": "dist",
-        "resolveJsonModule": true,
         "sourceMap": true,
         "strict": true,
         "target": "es2015",
-    }
+    },
+    // We include this here because otherwise we end up with a needless 'src'
+    // directory in our 'dist' folder.
+    "exclude": [
+        "**/__tests__"
+    ]
 }
