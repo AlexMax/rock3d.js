@@ -52,9 +52,8 @@ export function moveRelative(camera: Camera, x: number, y: number, z: number): C
  * direction.
  */
 export function rotateRelative(camera: Camera, x: number, y:number, z: number): Camera {
-    const dir = quat.fromEuler(quat.create(), x, y, z);
-    quat.multiply(dir, dir, camera.dir);
-
+    const dir = quat.fromEuler(quat.create(), x, y, -z);
+    quat.multiply(dir, camera.dir, dir);
     return {
         pos: camera.pos,
         dir: dir,
