@@ -10,10 +10,7 @@ import earcut from "earcut";
 import { vec2, vec3, vec4 } from "gl-matrix";
 
 import { LevelData, PolygonData, SideData } from "./leveldata";
-import {
-    intersectLines, intersectPlane, pointInCube, pointInDirection2,
-    pointInDirection3, pointInRect, toPlane
-} from './math';
+import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
 
 interface Side {
     vertex: vec2;

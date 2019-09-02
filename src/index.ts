@@ -12,5 +12,6 @@ import * as r3d from "./r3d/index";
 import * as Atlas from "./atlas";
 import * as LevelData from "./leveldata";
 import * as Level from "./level";
+import * as Math from "./math";
 
-export { r2d, r3d, Atlas, LevelData, Level };
+export { r2d, r3d, Atlas, LevelData, Level, Math };
