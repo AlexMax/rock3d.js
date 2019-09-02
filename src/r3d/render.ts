@@ -9,7 +9,7 @@
 import { glMatrix, mat4, vec2 } from "gl-matrix";
 
 import { Atlas } from '../atlas';
-import { Camera } from './camera';
+import { Camera, getViewMatrix } from './camera';
 import * as Map from "../level";
 import { Polygon } from '../level';
 
@@ -458,7 +458,7 @@ export class WorldContext {
         gl.useProgram(this.worldProg);
 
         // Bind our camera data.
-        const view = cam.getViewMatrix();
+        const view = getViewMatrix(cam);
         const viewLoc = gl.getUniformLocation(this.worldProg, "uView");
         if (viewLoc === null) {
             throw new Error('uView uniform location could not be found');
