@@ -49,7 +49,7 @@ export class VisualView extends React.Component<Props, State> {
         this.rotateLeft = this.rotateLeft.bind(this);
         this.rotateRight = this.rotateRight.bind(this);
 
-        let camera = r3d.Camera.create();
+        let camera = r3d.Camera.create(0, 0, 48);
         this.state = {
             camera: camera,
         };
