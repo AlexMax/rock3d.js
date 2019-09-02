@@ -9,22 +9,21 @@
 import { mat4, quat, vec3 } from "gl-matrix";
 
 export interface Camera {
-    pos: vec3;
-    dir: quat;
+    pos: vec3,
+    dir: quat,
 }
 
-const forward = vec3.fromValues(0, 1, 0);
-const right = vec3.fromValues(1, 0, 0);
-const up = vec3.fromValues(0, 0, 1);
+const unitForward = vec3.fromValues(0, 1, 0);
+const unitRight = vec3.fromValues(1, 0, 0);
+const unitUp = vec3.fromValues(0, 0, 1);
 
 /**
  * Create a new camera.
  */
-export function create(): Camera {
-    const dir = quat.setAxes(quat.create(), forward, right, up);
-    console.log(forward, right, up, dir);
+export function create(x: number, y: number, z: number): Camera {
+    const dir = quat.create();
     return {
-        pos: vec3.create(),
+        pos: vec3.fromValues(x, y, z),
         dir: dir,
     };
 }
@@ -53,11 +52,8 @@ export function moveRelative(camera: Camera, x: number, y: number, z: number): C
  * direction.
  */
 export function rotateRelative(camera: Camera, x: number, y:number, z: number): Camera {
-    const dir = quat.setAxes(quat.create(), forward, right, up);
-    console.log(forward, right, up, dir);
-    // quat.rotateX(dir, dir, x);
-    // quat.rotateY(dir, dir, y);
-    // quat.rotateZ(dir, dir, z);
+    const dir = quat.fromEuler(quat.create(), x, y, z);
+    quat.multiply(dir, dir, camera.dir);
 
     return {
         pos: camera.pos,
@@ -69,16 +65,12 @@ export function rotateRelative(camera: Camera, x: number, y:number, z: number): 
  * Get a view matrix for looking through the Camera.
  */
 export function getViewMatrix(camera: Camera) {
-    const cameraMat = mat4.create();
-    const position = vec3.fromValues(0, 0, 0);
-    const target = vec3.fromValues(0, 1, 0);
-    const up = vec3.fromValues(0, 0, 1);
-    const rot = mat4.fromQuat(mat4.create(), camera.dir);
-    console.log('rot', camera.dir);
-    mat4.lookAt(cameraMat, position, target, up);
-    mat4.multiply(cameraMat, cameraMat, rot);
-    mat4.translate(cameraMat, cameraMat, vec3.fromValues(
-        -camera.pos[0], -camera.pos[1], -camera.pos[2],
-    ));
+    const cameraMat = mat4.lookAt(mat4.create(), vec3.fromValues(0, 0, 0), unitForward, unitUp);
+    const rot = quat.conjugate(quat.create(), camera.dir);
+    const cameraRot = mat4.fromQuat(mat4.create(), rot);
+    const trans = vec3.fromValues(-camera.pos[0], -camera.pos[1], -camera.pos[2]);
+    const cameraTrans = mat4.fromTranslation(mat4.create(), trans);
+    mat4.multiply(cameraMat, cameraMat, cameraRot);
+    mat4.multiply(cameraMat, cameraMat, cameraTrans);
     return cameraMat;
 }
