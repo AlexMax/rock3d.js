@@ -23,8 +23,10 @@ export interface Props {
     moveBackward: () => void;
     strafeLeft: () => void;
     strafeRight: () => void;
-    rotateLeft: () => void;
-    rotateRight: () => void;
+    lookUp: () => void;
+    lookDown: () => void;
+    lookLeft: () => void;
+    lookRight: () => void;
 }
 
 /**
@@ -38,13 +40,16 @@ export class VisualInput extends React.Component<Props> {
     }
 
     onGlobalKeydown(evt: KeyboardEvent) {
+        console.log(evt.key);
         switch (evt.key) {
         case 'w': case 'ArrowUp': this.props.moveForward(); break;
         case 's': case 'ArrowDown': this.props.moveBackward(); break;
         case 'a': this.props.strafeLeft(); break;
         case 'd': this.props.strafeRight(); break;
-        case 'ArrowLeft': this.props.rotateLeft(); break;
-        case 'ArrowRight': this.props.rotateRight(); break;
+        case 'PageUp': this.props.lookUp(); break;
+        case 'PageDown': this.props.lookDown(); break;
+        case 'ArrowLeft': this.props.lookLeft(); break;
+        case 'ArrowRight': this.props.lookRight(); break;
         }
     }
 

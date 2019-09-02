@@ -46,8 +46,10 @@ export class VisualView extends React.Component<Props, State> {
         this.moveBackward = this.moveBackward.bind(this);
         this.strafeLeft = this.strafeLeft.bind(this);
         this.strafeRight = this.strafeRight.bind(this);
-        this.rotateLeft = this.rotateLeft.bind(this);
-        this.rotateRight = this.rotateRight.bind(this);
+        this.lookUp = this.lookUp.bind(this);
+        this.lookDown = this.lookDown.bind(this);
+        this.lookLeft = this.lookLeft.bind(this);
+        this.lookRight = this.lookRight.bind(this);
 
         let camera = r3d.Camera.create(0, 0, 48);
         this.state = {
@@ -79,15 +81,27 @@ export class VisualView extends React.Component<Props, State> {
         )});
     }
 
-    rotateLeft() {
+    lookUp() {
         this.setState({ camera: r3d.Camera.rotateRelative(
-            this.state.camera, Math.PI / 8, 0, 0
+            this.state.camera, 15, 0, 0
         )});
     }
 
-    rotateRight() {
+    lookDown() {
         this.setState({ camera: r3d.Camera.rotateRelative(
-            this.state.camera, 0, 0, Math.PI / 8
+            this.state.camera, -15, 0, 0
+        )});
+    }
+
+    lookLeft() {
+        this.setState({ camera: r3d.Camera.rotateRelative(
+            this.state.camera, 0, 0, -15
+        )});
+    }
+
+    lookRight() {
+        this.setState({ camera: r3d.Camera.rotateRelative(
+            this.state.camera, 0, 0, 15
         )});
     }
 
@@ -97,7 +111,8 @@ export class VisualView extends React.Component<Props, State> {
             <StatusBar/>
             <VisualInput moveForward={this.moveForward} moveBackward={this.moveBackward}
                 strafeLeft={this.strafeLeft} strafeRight={this.strafeRight}
-                rotateLeft={this.rotateLeft} rotateRight={this.rotateRight}/>
+                lookUp={this.lookUp} lookDown={this.lookDown}
+                lookLeft={this.lookLeft} lookRight={this.lookRight}/>
         </>;
     }
 };
