@@ -127,14 +127,34 @@ export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): 
 }
 
 /**
+ * Defines possible types of return values from hitscan functions.
+ */
+export enum HitType {
+    Wall,
+    Floor,
+    Ceiling,
+    Entity,
+}
+
+/**
+ * Defines possible return values from hitscan functions.
+ */
+export interface Hit {
+    type: HitType,
+    pos: vec3,
+    wallNum?: number,
+    entityNum?: number,
+}
+
+/**
  * Cast a hitscan ray from a given starting position into the geometry of
  * the level.
  * 
- * @param poly 
- * @param pos 
- * @param dir 
+ * @param poly Polygon to cast histcan inside.
+ * @param pos Ray origin.
+ * @param dir Normalized ray direction.
  */
-export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): vec3 | null {
+export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null {
     // Some functions require absolute position of startDir.
     const v2 = vec3.add(vec3.create(), pos, dir);
 
@@ -217,15 +237,25 @@ export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): vec3 | null
 
     if (isFinite(ceilDist) && ceilDist < shortestWallDist && ceilDist < floorDist) {
         // Hit the ceiling.
-        return ceilInter;
+        return {
+            type: HitType.Ceiling,
+            pos: ceilInter as vec3, // is never null
+        };
     }
     if (isFinite(floorDist) && floorDist < shortestWallDist && floorDist < ceilDist) {
         // Hit the floor.
-        return floorInter;
+        return {
+            type: HitType.Floor,
+            pos: floorInter as vec3, // is never null
+        };
     }
     if (isFinite(shortestWallDist)) {
         // Hit a wall.
-        return shortestWallInter;
+        return {
+            type: HitType.Wall,
+            pos: shortestWallInter as vec3, // is never null
+            wallNum: shortestWall as number, // is never null
+        };
     }
 
     // Did not hit side of polygon.

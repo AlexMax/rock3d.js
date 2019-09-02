@@ -8,7 +8,7 @@
 
 import { vec3 } from 'gl-matrix';
 
-import { flood, hitscanPolygon, Level } from '../src/level';
+import { flood, Hit, HitType, hitscanPolygon, Level } from '../src/level';
 import { isLevelData } from '../src/leveldata';
 
 import TESTMAP from './TESTMAP.json';
@@ -41,7 +41,8 @@ test('Hitscan Polygon (looking south, hits a flat wall)', () => {
 
     const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, -64, 48]);
+    expect((actual as Hit).type).toBe(HitType.Wall);
+    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, -64, 48]);
 });
 
 test('Hitscan Polygon (looking north, hits the tip of the staircase)', () => {
@@ -50,7 +51,8 @@ test('Hitscan Polygon (looking north, hits the tip of the staircase)', () => {
 
     const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, 256, 48]);
+    expect((actual as Hit).type).toBe(HitType.Wall);
+    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 256, 48]);
 });
 
 test('Hitscan Polygon (looking north, hits the floor)', () => {
@@ -59,7 +61,8 @@ test('Hitscan Polygon (looking north, hits the floor)', () => {
 
     const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, 48, 0]);
+    expect((actual as Hit).type).toBe(HitType.Floor);
+    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 48, 0]);
 });
 
 test('Hitscan Polygon (looking north, hits the ceiling)', () => {
@@ -68,7 +71,8 @@ test('Hitscan Polygon (looking north, hits the ceiling)', () => {
 
     const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
     expect(actual).not.toBeNull();
-    expect(Array.prototype.slice.call(actual)).toEqual([0, 80, 128]);
+    expect((actual as Hit).type).toBe(HitType.Ceiling);
+    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 80, 128]);
 });
 
 test('Hitscan Polygon (outside of the polygon)', () => {
