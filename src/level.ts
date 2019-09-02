@@ -210,8 +210,8 @@ export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null 
         const plane = toPlane(vec4.create(), v3, v4, v5);
 
         // Check for plane intersection.
-        intersectPlane(wallInter, pos, v2, plane);
-        if (wallInter === null) {
+        const didInter = intersectPlane(wallInter, pos, v2, plane);
+        if (didInter === null) {
             // No intersection.
             continue;
         }
