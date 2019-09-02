@@ -263,13 +263,14 @@ export class WorldContext {
      */
     setProject(fov: number): void {
         const gl = this.parent.gl;
+        const canvas = gl.canvas as HTMLCanvasElement;
 
         // Use the world program.
         gl.useProgram(this.worldProg);
 
         // Setup the projection matrix.
         mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
-            gl.canvas.clientWidth / gl.canvas.clientHeight, 1, 10_000);
+            canvas.clientWidth / canvas.clientHeight, 1, 10_000);
 
         // Make sure our projection matrix goes into the shader program.
         const projectionLoc = gl.getUniformLocation(this.worldProg, "uProjection");
