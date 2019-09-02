@@ -10,7 +10,10 @@ import earcut from "earcut";
 import { vec2, vec3, vec4 } from "gl-matrix";
 
 import { LevelData, PolygonData, SideData } from "./leveldata";
-import { intersectPlane, pointInCube, toPlane } from './math';
+import {
+    intersectLines, intersectPlane, pointInCube, pointInDirection2,
+    pointInDirection3, pointInRect, toPlane
+} from './math';
 
 interface Side {
     vertex: vec2;
@@ -124,108 +127,107 @@ export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): 
 }
 
 /**
- * Cast a hitscan ray from a given starting position.
+ * Cast a hitscan ray from a given starting position into the geometry of
+ * the level.
+ * 
+ * @param poly 
+ * @param pos 
+ * @param dir 
  */
-export function hitscan(level: Level, startPoly: number, startPos: vec3,
-    startDir: vec3): vec3 | null
-{
-    const poly = level.polygons[startPoly];
-    const v2 = vec3.create();
-    const planes = [vec4.create(), vec4.create(), vec4.create()];
- 
-    vec3.add(v2, startPos, startDir);
+export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): vec3 | null {
+    // Some functions require absolute position of startDir.
+    const v2 = vec3.add(vec3.create(), pos, dir);
 
+    // First, test collision with floor.
+    const floorPlane = toPlane(vec4.create(),
+        vec3.fromValues(0, 0, poly.floorHeight),
+        vec3.fromValues(1, 1, poly.floorHeight),
+        vec3.fromValues(1, 0, poly.floorHeight)
+    );
+    const floorInter = intersectPlane(vec3.create(), pos, v2, floorPlane);
+    if (floorInter === null) {
+        // Didn't hit.
+        var floorDist = Infinity;
+    } else if (!pointInDirection3(pos, dir, floorInter)) {
+        // Wrong direction.
+        var floorDist = Infinity;
+    } else {
+        var floorDist = vec3.squaredDistance(pos, floorInter);
+    }
+
+    // Next, test collision with ceiling.
+    const ceilPlane = toPlane(vec4.create(),
+        vec3.fromValues(0, 0, poly.ceilHeight),
+        vec3.fromValues(1, 1, poly.ceilHeight),
+        vec3.fromValues(1, 0, poly.ceilHeight)
+    );
+    const ceilInter = intersectPlane(vec3.create(), pos, v2, ceilPlane);
+    if (ceilInter === null) {
+        // Didn't hit.
+        var ceilDist = Infinity;
+    } else if (!pointInDirection3(pos, dir, ceilInter)) {
+        // Wrong direction.
+        var ceilDist = Infinity;
+    } else {
+        var ceilDist = vec3.squaredDistance(pos, ceilInter);
+    }
+
+    // Finally, test collisions with walls.
+    let shortestWall: number | null = null;
+    let shortestWallInter: vec3 = vec3.create();
+    let shortestWallDist: number = Infinity;
+
+    const wallInter = vec3.create();
     for (let i = 0;i < poly.sides.length;i++) {
-        const v3XY = poly.sides[i].vertex;
-        const v4XY = poly.sides[(i + 1) % poly.sides.length].vertex;
+        const v32 = poly.sides[i].vertex;
+        const v42 = poly.sides[(i + 1) % poly.sides.length].vertex;
+        const v3 = vec3.fromValues(v32[0], v32[1], poly.floorHeight);
+        const v4 = vec3.fromValues(v42[0], v42[1], poly.ceilHeight);
+        const v5 = vec3.fromValues(v42[0], v42[1], poly.floorHeight);
 
-        const v3 = vec3.fromValues(v3XY[0], v3XY[1], poly.floorHeight);
-        const v4 = vec3.fromValues(v4XY[0], v4XY[1], poly.ceilHeight);
+        // Construct a plane for the wall.
+        // FIXME: This should be cached someplace.
+        const plane = toPlane(vec4.create(), v3, v4, v5);
 
-        // Check for line intersection on 3D plane.
-        // FIXME: This is wasteful.  The planes should be calculated once
-        //        and cached for later use.
-        toPlane(planes[0],
-            v3,
-            v4,
-            vec3.fromValues(v3XY[0], v3XY[1], poly.ceilHeight)
-        );
-        toPlane(planes[1],
-            vec3.fromValues(0, 0, poly.floorHeight),
-            vec3.fromValues(1, 1, poly.floorHeight),
-            vec3.fromValues(1, 0, poly.floorHeight)
-        );
-        toPlane(planes[2],
-            vec3.fromValues(0, 0, poly.ceilHeight),
-            vec3.fromValues(1, 1, poly.ceilHeight),
-            vec3.fromValues(1, 0, poly.ceilHeight)
-        );
-
-        const inters = planes.map((plane) => {
-            return intersectPlane(vec3.create(), startPos, v2, plane);
-        });
-        const filtered = inters.map((inter, index) => {
-            if (inter === null) {
-                // Don't do anything with null intercepts.
-                return null;
-            }
-
-            // Quickly discard points that didn't actually hit the wall
-            // plane inside its actual boundary.
-            // FIXME: Use Point-in-polygon on floors and ceiling.
-            if (index === 0 && !pointInCube(inter, v3, v4)) {
-                return null;
-            }
-
-            // Not every intersection is a valid one, because we're treating
-            // the first line like a directed ray, not a segment.
-            if (startDir[0] > 0 && inter[0] < startPos[0]) {
-                return null; // Direction is +X, intersection is -X
-            } else if (startDir[0] < 0 && inter[0] > startPos[0]) {
-                return null; // Direction is -X, intersection is +X
-            }
-            if (startDir[1] > 0 && inter[1] < startPos[1]) {
-                return null; // Direction is +Y, intersection is -Y
-            } else if (startDir[1] < 0 && inter[1] > startPos[1]) {
-                return null; // Direction is -Y, intersection is +Y
-            }
-            if (startDir[2] > 0 && inter[2] < startPos[2]) {
-                return null; // Direction is +Z, intersection is -Z
-            } else if (startDir[2] < 0 && inter[2] > startPos[2]) {
-                return null; // Direction is -Z, intersection is +Z
-            }
-
-            return inter;
-        });
-        const dists = filtered.map((inter) => {
-            if (inter === null) {
-                // Don't do anything with null intercepts.
-                return null;
-            }
-
-            return vec3.squaredDistance(startPos, inter);
-        });
-
-        // Find the least distance by index.
-        let leastIndex = null;
-        for (let i = 0;i < dists.length;i++) {
-            const dist = dists[i];
-            if (dist === null) {
-                continue;
-            }
-            if (leastIndex === null || dist < leastIndex) {
-                leastIndex = i;
-            }
-        }
-
-        if (leastIndex === null) {
-            // None of the planes are valid targets for the ray.
+        // Check for plane intersection.
+        intersectPlane(wallInter, pos, v2, plane);
+        if (wallInter === null) {
+            // No intersection.
             continue;
         }
 
-        return inters[leastIndex];
+        if (!pointInCube(wallInter, v3, v4)) {
+            // Fails destination AABB test.
+            continue;
+        }
+
+        if (!pointInDirection3(pos, dir, wallInter)) {
+            // Fails directional AABB test.
+            continue;
+        }
+
+        // We hit a wall.  But did we hit the closest wall?
+        const wallDist = vec3.squaredDistance(pos, wallInter);
+        if (shortestWall === null || wallDist < shortestWallDist) {
+            shortestWall = i;
+            vec3.copy(shortestWallInter, wallInter);
+            shortestWallDist = wallDist;
+        }
     }
 
-    // Ray did not hit side of polygon.
+    if (isFinite(ceilDist) && ceilDist < shortestWallDist && ceilDist < floorDist) {
+        // Hit the ceiling.
+        return ceilInter;
+    }
+    if (isFinite(floorDist) && floorDist < shortestWallDist && floorDist < ceilDist) {
+        // Hit the floor.
+        return floorInter;
+    }
+    if (isFinite(shortestWallDist)) {
+        // Hit a wall.
+        return shortestWallInter;
+    }
+
+    // Did not hit side of polygon.
     return null;
 }

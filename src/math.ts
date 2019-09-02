@@ -119,6 +119,57 @@ export function pointInCube(p: vec3, q: vec3, r: vec3): boolean {
 }
 
 /**
+ * Figure out if a checked point is in the axis-aligned bounding box defined
+ * by an origin point and direction.
+ * 
+ * @param p Origin point we're comparing against.
+ * @param q Origin direction.  Note that the length of (p, q) is irrelevant,
+ *          only the direction.
+ * @param r Point we are checking.
+ */
+export function pointInDirection2(p: vec2, q: vec2, r: vec2): boolean {
+    if (q[0] > 0 && r[0] < p[0]) {
+        return false; // Direction is +X, intersection is -X
+    } else if (q[0] < 0 && r[0] > p[0]) {
+        return false; // Direction is -X, intersection is +X
+    }
+    if (q[1] > 0 && r[1] < p[1]) {
+        return false; // Direction is +Y, intersection is -Y
+    } else if (q[1] < 0 && r[1] > p[1]) {
+        return false; // Direction is -Y, intersection is +Y
+    }
+    return true;
+}
+
+/**
+ * Figure out if a checked point is in the axis-aligned bounding box defined
+ * by an origin point and direction.
+ * 
+ * @param p Origin point we're comparing against.
+ * @param q Origin direction.  Note that the length of (p, q) is irrelevant,
+ *          only the direction.
+ * @param r Point we are checking.
+ */
+export function pointInDirection3(p: vec3, q: vec3, r: vec3): boolean {
+    if (q[0] > 0 && r[0] < p[0]) {
+        return false; // Direction is +X, intersection is -X
+    } else if (q[0] < 0 && r[0] > p[0]) {
+        return false; // Direction is -X, intersection is +X
+    }
+    if (q[1] > 0 && r[1] < p[1]) {
+        return false; // Direction is +Y, intersection is -Y
+    } else if (q[1] < 0 && r[1] > p[1]) {
+        return false; // Direction is -Y, intersection is +Y
+    }
+    if (q[2] > 0 && r[2] < p[2]) {
+        return false; // Direction is +Z, intersection is -Z
+    } else if (q[2] < 0 && r[2] > p[2]) {
+        return false; // Direction is -Z, intersection is +Z
+    }
+    return true;
+}
+
+/**
  * Check if point is inside rectangle.
  * 
  * The two points on the rectangle can be passed using any orientation.
