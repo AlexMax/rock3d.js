@@ -16,9 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { glMatrix, vec2 } from 'gl-matrix';
 import React from 'react';
-import * as rock3d from 'rock3d';
+import { Atlas, r3d } from 'rock3d';
 
 import { MutLevel } from '../mutlevel';
 import { textureLoader } from '../util';
@@ -35,59 +34,24 @@ const ATLAS_SIZE = 512;
 
 export interface Props {
     /**
+     * Camera that looks at the level.
+     */
+    camera: r3d.Camera.Camera;
+
+    /**
      * Level data coming from outside.
      */
     level: MutLevel;
 };
 
-interface State {
-    /**
-     * Position that the canvas is "looking at".
-     */
-    camera: rock3d.r3d.Camera.Camera;
-
-    /**
-     * Current mutated level data we're looking at.
-     */
-    level: MutLevel;
-
-    /**
-     * Current mouse position inside the canvas.
-     */
-    mousePos: vec2 | null;
-}
-
-export class FPCanvas extends React.Component<Props, State> {
+export class FPCanvas extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    renderer?: rock3d.r3d.Render.RenderContext;
+    renderer?: r3d.Render.RenderContext;
 
     constructor(props: Props) {
         super(props);
         this.canvas = React.createRef();
-        this.onMouseMove = this.onMouseMove.bind(this);
-
-        this.state = {
-            camera: new rock3d.r3d.Camera.Camera(),
-            level: props.level, // FIXME: Needs a deep copy.
-            mousePos: null,
-        }
-
-        this.state.camera.pos[0] = 0;
-        this.state.camera.pos[1] = 0;
-        this.state.camera.pos[2] = 48;
-        this.state.camera.yaw = glMatrix.toRadian(0);
-    }
-
-    onMouseMove(event: React.MouseEvent) {
-        const canvas = this.canvas.current;
-        if (canvas === null) {
-            throw new Error('Canvas is inaccessible');
-        }
-        const rect = canvas.getBoundingClientRect();
-        this.setState({
-            mousePos: vec2.fromValues(event.clientX - rect.left, event.clientY - rect.top)
-        });
     }
 
     async componentDidMount() {
@@ -97,10 +61,7 @@ export class FPCanvas extends React.Component<Props, State> {
         }
 
         // Initialize a view on the given canvas
-        this.renderer = new rock3d.r3d.Render.RenderContext(canvas);
-
-        // Set the canvas internal width and height to the actual width
-        // and height of the canvas itself.
+        this.renderer = new r3d.Render.RenderContext(canvas);
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Wait to load all of our textures.
@@ -115,7 +76,7 @@ export class FPCanvas extends React.Component<Props, State> {
         ]);
 
         // Load our textures into the atlas.
-        const atlas = new rock3d.Atlas.Atlas(ATLAS_SIZE);
+        const atlas = new Atlas.Atlas(ATLAS_SIZE);
         for (let i = 0;i < textures.length;i++) {
             const { name, img } = textures[i];
             atlas.add(name, img);
@@ -125,14 +86,14 @@ export class FPCanvas extends React.Component<Props, State> {
         this.renderer.world.bakeAtlas(atlas);
 
         // Draw our map
-        const level = this.state.level;
+        const level = this.props.level;
         for (let i = 0;i < level.polygons.length;i++) {
             this.renderer.world.addPolygon(level.polygons, i);
         }
-        this.renderer.render(this.state.camera);
+        this.renderer.render(this.props.camera);
     }
 
-    shouldComponentUpdate(_: Props, nextState: State): boolean {
+    shouldComponentUpdate(nextProps: Props): boolean {
         const canvas = this.canvas.current;
         if (canvas === null) {
             throw new Error('Canvas is inaccessible');
@@ -145,13 +106,12 @@ export class FPCanvas extends React.Component<Props, State> {
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Draw our map.
-        this.renderer.render(this.state.camera);
+        this.renderer.render(nextProps.camera);
 
         return false; // never re-render the DOM node with React
     }
 
     render() {
-        return <canvas className="mode-canvas" ref={this.canvas}
-            onMouseMove={this.onMouseMove}/>;
+        return <canvas className="mode-canvas" ref={this.canvas}/>;
     }
 }
