@@ -8,9 +8,9 @@
         "strict": true,
         "target": "es2015",
     },
-    // We include this here because otherwise we end up with a needless 'src'
-    // directory in our 'dist' folder.
-    "exclude": [
-        "**/__tests__"
+    // Ensure that we don't have a needless 'src' in the output and that
+    // webpack watch doesn't rebuild on changes outside 'src'.
+    "include": [
+        "src/**/*"
     ]
 }
