@@ -46,10 +46,14 @@ export class VisualView extends React.Component<Props, State> {
         this.moveBackward = this.moveBackward.bind(this);
         this.strafeLeft = this.strafeLeft.bind(this);
         this.strafeRight = this.strafeRight.bind(this);
-        this.lookUp = this.lookUp.bind(this);
-        this.lookDown = this.lookDown.bind(this);
-        this.lookLeft = this.lookLeft.bind(this);
-        this.lookRight = this.lookRight.bind(this);
+        this.floatUp = this.floatUp.bind(this);
+        this.floatDown = this.floatDown.bind(this);
+        this.rollCW = this.rollCW.bind(this);
+        this.rollCCW = this.rollCCW.bind(this);
+        this.pitchUp = this.pitchUp.bind(this);
+        this.pitchDown = this.pitchDown.bind(this);
+        this.yawLeft = this.yawLeft.bind(this);
+        this.yawRight = this.yawRight.bind(this);
 
         let camera = r3d.Camera.create(0, 0, 48);
         this.state = {
@@ -59,49 +63,73 @@ export class VisualView extends React.Component<Props, State> {
 
     moveForward() {
         this.setState({ camera: r3d.Camera.moveRelative(
-            this.state.camera, 0, 64, 0
+            this.state.camera, 64, 0, 0
         )});
     }
 
     moveBackward() {
         this.setState({ camera: r3d.Camera.moveRelative(
-            this.state.camera, 0, -64, 0
+            this.state.camera, -64, 0, 0
         )});
     }
 
     strafeLeft() {
         this.setState({ camera: r3d.Camera.moveRelative(
-            this.state.camera, -64, 0, 0
+            this.state.camera, 0, 64, 0
         )});
     }
 
     strafeRight() {
         this.setState({ camera: r3d.Camera.moveRelative(
-            this.state.camera, 64, 0, 0
+            this.state.camera, 0, -64, 0
         )});
     }
 
-    lookUp() {
+    floatUp() {
+        this.setState({ camera: r3d.Camera.moveRelative(
+            this.state.camera, 0, 0, 64
+        )});
+    }
+
+    floatDown() {
+        this.setState({ camera: r3d.Camera.moveRelative(
+            this.state.camera, 0, 0, -64
+        )});
+    }
+
+    rollCW() {
         this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, 15, 0, 0
         )});
     }
 
-    lookDown() {
+    rollCCW() {
         this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, -15, 0, 0
         )});
     }
 
-    lookLeft() {
+    pitchDown() {
         this.setState({ camera: r3d.Camera.rotateEuler(
-            this.state.camera, 0, 0, -15
+            this.state.camera, 0, 15, 0
         )});
     }
 
-    lookRight() {
+    pitchUp() {
+        this.setState({ camera: r3d.Camera.rotateEuler(
+            this.state.camera, 0, -15, 0
+        )});
+    }
+
+    yawLeft() {
         this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, 0, 0, 15
+        )});
+    }
+
+    yawRight() {
+        this.setState({ camera: r3d.Camera.rotateEuler(
+            this.state.camera, 0, 0, -15
         )});
     }
 
@@ -111,8 +139,10 @@ export class VisualView extends React.Component<Props, State> {
             <StatusBar/>
             <VisualInput moveForward={this.moveForward} moveBackward={this.moveBackward}
                 strafeLeft={this.strafeLeft} strafeRight={this.strafeRight}
-                lookUp={this.lookUp} lookDown={this.lookDown}
-                lookLeft={this.lookLeft} lookRight={this.lookRight}/>
+                floatUp={this.floatUp} floatDown={this.floatDown}
+                rollCW={this.rollCW} rollCCW={this.rollCCW}
+                pitchUp={this.pitchUp} pitchDown={this.pitchDown}
+                yawLeft={this.yawLeft} yawRight={this.yawRight}/>
         </>;
     }
 };

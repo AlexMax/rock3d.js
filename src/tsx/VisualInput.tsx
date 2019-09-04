@@ -23,10 +23,14 @@ export interface Props {
     moveBackward: () => void;
     strafeLeft: () => void;
     strafeRight: () => void;
-    lookUp: () => void;
-    lookDown: () => void;
-    lookLeft: () => void;
-    lookRight: () => void;
+    floatUp: () => void;
+    floatDown: () => void;
+    rollCW: () => void;
+    rollCCW: () => void;
+    pitchUp: () => void;
+    pitchDown: () => void;
+    yawLeft: () => void;
+    yawRight: () => void;
 }
 
 /**
@@ -41,14 +45,18 @@ export class VisualInput extends React.Component<Props> {
 
     onGlobalKeydown(evt: KeyboardEvent) {
         switch (evt.key) {
-        case 'w': case 'ArrowUp': this.props.moveForward(); break;
-        case 's': case 'ArrowDown': this.props.moveBackward(); break;
+        case 'w': this.props.moveForward(); break;
+        case 's': this.props.moveBackward(); break;
         case 'a': this.props.strafeLeft(); break;
         case 'd': this.props.strafeRight(); break;
-        case 'PageUp': this.props.lookUp(); break;
-        case 'PageDown': this.props.lookDown(); break;
-        case 'ArrowLeft': this.props.lookLeft(); break;
-        case 'ArrowRight': this.props.lookRight(); break;
+        case 'q': this.props.rollCCW(); break;
+        case 'e': this.props.rollCW(); break;
+        case 'PageUp': this.props.floatUp(); break;
+        case 'PageDown': this.props.floatDown(); break;
+        case 'ArrowUp': this.props.pitchUp(); break;
+        case 'ArrowDown': this.props.pitchDown(); break;
+        case 'ArrowLeft': this.props.yawLeft(); break;
+        case 'ArrowRight': this.props.yawRight(); break;
         }
     }
 
