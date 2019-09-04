@@ -7,6 +7,7 @@ An in-browser map editor for the [rock3d.js][1] rendering engine.
 Building
 --------
 ```
+$ npm link rock3d
 $ npm run-script build
 ```
 
