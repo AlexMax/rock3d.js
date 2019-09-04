@@ -8,7 +8,7 @@
 
 import { mat4, quat, vec3 } from "gl-matrix";
 
-import { toEuler } from '../math';
+import { constrain, toEuler } from '../math';
 
 export interface Camera {
     pos: vec3,
@@ -16,8 +16,7 @@ export interface Camera {
 }
 
 const unitOrigin = vec3.fromValues(0, 0, 0);
-const unitForward = vec3.fromValues(0, 1, 0);
-const unitRight = vec3.fromValues(1, 0, 0);
+const unitForward = vec3.fromValues(1, 0, 0);
 const unitUp = vec3.fromValues(0, 0, 1);
 
 /**
@@ -55,15 +54,15 @@ export function moveRelative(camera: Camera, x: number, y: number, z: number): C
  * direction.
  * 
  * @param camera Camera to modify.
- * @param x Amount to pitch by.
- * @param y Amount to roll by.
+ * @param x Amount to roll by.
+ * @param y Amount to pitch by.
  * @param z Amount to yaw by.
  */
 export function rotateEuler(camera: Camera, x: number, y: number, z: number): Camera {
     const euler = toEuler(vec3.create(), camera.dir);
     euler[0] += x;
-    euler[1] += y;
-    euler[2] -= z;
+    euler[1] = constrain(euler[1] + y, -89.999, 89.999);
+    euler[2] += z;
     const dir = quat.fromEuler(quat.create(), euler[0], euler[1], euler[2]);
     return {
         pos: camera.pos,
@@ -76,12 +75,12 @@ export function rotateEuler(camera: Camera, x: number, y: number, z: number): Ca
  * direction.
  * 
  * @param camera Camera to modify.
- * @param x Amount to pitch by.
- * @param y Amount to roll by.
+ * @param x Amount to roll by.
+ * @param y Amount to pitch by.
  * @param z Amount to yaw by.
  */
 export function rotateRelative(camera: Camera, x: number, y: number, z: number): Camera {
-    const dir = quat.fromEuler(quat.create(), x, y, -z);
+    const dir = quat.fromEuler(quat.create(), x, y, z);
     quat.multiply(dir, camera.dir, dir);
     return {
         pos: camera.pos,

@@ -20,7 +20,7 @@ import debug_texture_frag from './shader/debug_texture.frag';
 
 const ATLAS_SIZE = 512;
 
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 /**
  * Turn a WebGL GLenum into a string, for debugging purposes.

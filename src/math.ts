@@ -9,6 +9,17 @@
 import { quat, vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
+ * Constrain a number between two bounds.
+ * 
+ * @param x Number to constrain.
+ * @param min Minimum bound.
+ * @param max Maximum bound.
+ */
+export function constrain(x: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, x));
+}
+
+/**
  * Compute the point, if any, where two lines intersect.
  * 
  * @param out Output vector.
@@ -207,12 +218,9 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
 /**
  * Convert quaternion to euler angles.
  *
- * FIXME: This has gimbal lock along the wrong axis.
- * 
  * @param p Quaternion to convert.
  */
 export function toEuler(out: vec3, p: quat): vec3 {
-    const outRad = [0, 0, 0];
     const xY = 2 * (p[3] * p[0] + p[1] * p[2]);
     const xX = 1 - 2 * (p[0] * p[0] + p[1] * p[1]);
     const xRad = Math.atan2(xY, xX);
