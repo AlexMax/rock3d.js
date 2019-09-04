@@ -6,9 +6,51 @@
  * source distribution.
  */
 
-import { vec2, vec3 } from 'gl-matrix';
+import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { intersectLines, pointInCircle, pointInCube, pointInRect } from '../src/math';
+import {
+    intersectLines, pointInCircle, pointInCube, pointInRect, toEuler
+} from '../src/math';
+
+declare global {
+    namespace jest {
+        interface Matchers<R> {
+            toEqualVec2(expected: [number, number]): R
+            toEqualVec3(expected: [number, number, number]): R
+        }
+    }
+}
+
+expect.extend({
+    toEqualVec2(actual: vec2, expected: [number, number]) {
+        const expect = vec2.fromValues(expected[0], expected[1]);
+        if (vec2.equals(actual, expect)) {
+            return {
+                message: () => { return 'vec2 is equal'; },
+                pass: true,
+            };
+        } else {
+            return {
+                message: () => { return 'vec2 is not equal'; },
+                pass: false,
+           };
+        }
+    },
+    toEqualVec3(actual: vec3, expected: [number, number, number]) {
+        const expect = vec3.fromValues(expected[0], expected[1], expected[2]);
+        if (vec3.equals(actual, expect)) {
+            return {
+                message: () => `vec3 is ${actual}`,
+                pass: true,
+            };
+        } else {
+            return {
+                message: () => `vec3 is ${actual}`,
+                pass: false,
+           };
+        }
+    }
+});
 
 describe('intersectLines', () => {
     test('Lines intersect', () => {
@@ -19,7 +61,7 @@ describe('intersectLines', () => {
 
         const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
-        expect(Array.prototype.slice.call(actual)).toEqual([4, 2]);
+        expect(actual).toEqualVec2([4, 2]);
     });
 
     test('Lines intersect (negative Y-axis)', () => {
@@ -30,7 +72,7 @@ describe('intersectLines', () => {
 
         const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
-        expect(Array.prototype.slice.call(actual)).toEqual([4, -2]);
+        expect(actual).toEqualVec2([4, -2]);
     });
 
     test('Lines intersect (Horizontal and Vertical)', () => {
@@ -41,7 +83,7 @@ describe('intersectLines', () => {
 
         const actual = intersectLines(vec2.create(), p, q, r, s);
         expect(actual).not.toBeNull();
-        expect(Array.prototype.slice.call(actual)).toEqual([1, 1]);
+        expect(actual).toEqualVec2([1, 1]);
     });
 
     test('Lines do not intersect, they are parallel (X axis)', () => {
@@ -185,5 +227,31 @@ describe('pointInRect', () => {
 
         const actual = pointInRect(p, q, r);
         expect(actual).toBeFalsy();
+    });
+});
+
+describe('toEuler', () => {
+    test('Roundtrip Euler conversion of (0, 0, 0)', () => {
+        const p = quat.fromEuler(quat.create(), 0, 0, 0);
+        const actual = toEuler(vec3.create(), p);
+        expect(actual).toEqualVec3([0, 0, 0]);
+    });
+
+    test('Roundtrip Euler conversion of (15, 30, 45)', () => {
+        const p = quat.fromEuler(quat.create(), 15, 30, 45);
+        const actual = toEuler(vec3.create(), p);
+        expect(actual).toEqualVec3([15, 30, 45]);
+    });
+
+    test('Roundtrip Euler conversion of (15, 100, 45), checking Y-axis truncation', () => {
+        const p = quat.fromEuler(quat.create(), 15, 100, 45);
+        const actual = toEuler(vec3.create(), p);
+        expect(actual[1]).toBeLessThan(90);
+    });
+
+    test('Roundtrip Euler conversion of (15, -100, 45), checking Y-axis truncation', () => {
+        const p = quat.fromEuler(quat.create(), 15, -100, 45);
+        const actual = toEuler(vec3.create(), p);
+        expect(actual[1]).toBeGreaterThan(-90);
     });
 });

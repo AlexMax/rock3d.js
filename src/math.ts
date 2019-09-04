@@ -6,7 +6,7 @@
  * source distribution.
  */
 
-import { vec2, vec3, vec4 } from 'gl-matrix';
+import { quat, vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
  * Compute the point, if any, where two lines intersect.
@@ -202,6 +202,40 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
         return false;
     }
     return true;
+}
+
+/**
+ * Convert quaternion to euler angles.
+ *
+ * FIXME: This has gimbal lock along the wrong axis.
+ * 
+ * @param p Quaternion to convert.
+ */
+export function toEuler(out: vec3, p: quat): vec3 {
+    const outRad = [0, 0, 0];
+    const xY = 2 * (p[3] * p[0] + p[1] * p[2]);
+    const xX = 1 - 2 * (p[0] * p[0] + p[1] * p[1]);
+    const xRad = Math.atan2(xY, xX);
+
+    const yX = 2 * (p[3] * p[1] - p[2] * p[0]);
+    if (yX >= 1) {
+        var yRad = Math.PI / 2; // Clamp at 90 degrees.
+    } else if (yX <= -1) {
+        var yRad = -(Math.PI / 2); // Clamp at -90 degrees.
+    } else {
+        var yRad = Math.asin(yX);
+    }
+
+    const zY = 2 * (p[3] * p[2] + p[0] * p[1]);
+    const zX = 1 - 2 * (p[1] * p[1] + p[2] * p[2]);
+    const zRad = Math.atan2(zY, zX);
+
+    // Convert to degrees.
+    out[0] = xRad * (180 / Math.PI);
+    out[1] = yRad * (180 / Math.PI);
+    out[2] = zRad * (180 / Math.PI);
+
+    return out;
 }
 
 /**
