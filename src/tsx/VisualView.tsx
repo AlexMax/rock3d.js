@@ -82,25 +82,25 @@ export class VisualView extends React.Component<Props, State> {
     }
 
     lookUp() {
-        this.setState({ camera: r3d.Camera.rotateRelative(
+        this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, 15, 0, 0
         )});
     }
 
     lookDown() {
-        this.setState({ camera: r3d.Camera.rotateRelative(
+        this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, -15, 0, 0
         )});
     }
 
     lookLeft() {
-        this.setState({ camera: r3d.Camera.rotateRelative(
+        this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, 0, 0, -15
         )});
     }
 
     lookRight() {
-        this.setState({ camera: r3d.Camera.rotateRelative(
+        this.setState({ camera: r3d.Camera.rotateEuler(
             this.state.camera, 0, 0, 15
         )});
     }

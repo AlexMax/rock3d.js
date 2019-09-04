@@ -40,7 +40,6 @@ export class VisualInput extends React.Component<Props> {
     }
 
     onGlobalKeydown(evt: KeyboardEvent) {
-        console.log(evt.key);
         switch (evt.key) {
         case 'w': case 'ArrowUp': this.props.moveForward(); break;
         case 's': case 'ArrowDown': this.props.moveBackward(); break;
