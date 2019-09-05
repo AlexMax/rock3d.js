@@ -74,8 +74,44 @@ function isPolygonData(data: PolygonData): data is PolygonData {
     return true;
 }
 
+export interface LocationData {
+    type: string,
+    position: number[],
+    rotation: number[],
+}
+
+function isLocationData(data: LocationData): data is LocationData {
+    if (typeof data.type !== 'string') {
+        throw new Error('location type is not a string');
+    }
+    if (!Array.isArray(data.position)) {
+        throw new Error('location position is not an Array');
+    }
+    if (data.position.length !== 3) {
+        throw new Error('location position does not look like a position');
+    }
+    if (typeof data.position[0] !== 'number' &&
+        typeof data.position[1] !== 'number' &&
+        typeof data.position[2] !== 'number') {
+        throw new Error('location position does not consist of three numbers');
+    }
+    if (!Array.isArray(data.rotation)) {
+        throw new Error('location rotation is not an Array');
+    }
+    if (data.rotation.length !== 3) {
+        throw new Error('location rotation does not look like a rotation');
+    }
+    if (typeof data.rotation[0] !== 'number' &&
+        typeof data.rotation[1] !== 'number' &&
+        typeof data.rotation[2] !== 'number') {
+        throw new Error('location rotation does not consist of three numbers');
+    }
+    return true;
+}
+
 export interface LevelData {
     polygons: PolygonData[];
+    locations: LocationData[];
 };
 
 export function isLevelData(data: LevelData): data is LevelData {
@@ -87,6 +123,17 @@ export function isLevelData(data: LevelData): data is LevelData {
     }
     for (let i = 0;i < data.polygons.length;i++) {
         if (!isPolygonData(data.polygons[i])) {
+            return false;
+        }
+    }
+    if (!Array.isArray(data.locations)) {
+        throw new Error('mapData locations is not an Array');
+    }
+    if (data.locations.length < 1) {
+        throw new Error('mapData locations does not have at least one location');
+    }
+    for (let i = 0;i < data.locations.length;i++) {
+        if (!isLocationData(data.locations[i])) {
             return false;
         }
     }

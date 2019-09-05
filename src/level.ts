@@ -7,10 +7,11 @@
  */
 
 import earcut from "earcut";
-import { vec2, vec3, vec4 } from "gl-matrix";
+import { vec2, vec3, vec4, quat } from "gl-matrix";
 
-import { LevelData, PolygonData, SideData } from "./leveldata";
-import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
+import { Entity } from './entity';
+import { LevelData, LocationData, PolygonData, SideData } from "./leveldata";
+import { intersectPlane, pointInCube, pointInDirection3, toPlane, toEuler } from './math';
 
 interface Side {
     vertex: vec2;
@@ -75,11 +76,33 @@ export function cacheFlats(poly: Polygon): void {
 
 export class Level {
     polygons: Polygon[];
+    entities: Entity[];
 
     constructor(levelData: LevelData) {
+        // Polygons are unpacked directly.
         this.polygons = levelData.polygons.map((data) => {
             return toPolygon(data);
         });
+
+        // Locations can do many things to the level.
+        this.entities = [];
+        levelData.locations.forEach((location) => {
+            this.unpackLocation(location);
+        });
+    }
+
+    unpackLocation(location: LocationData) {
+        switch (location.type) {
+        case 'player':
+            const entity: Entity = {
+                pos: vec3.fromValues(location.position[0], location.position[1],
+                    location.position[2]),
+                rot: quat.fromEuler(quat.create(), location.rotation[0],
+                    location.rotation[1], location.rotation[2]),
+            };
+            this.entities.push(entity);
+            break;
+        }
     }
 }
 
