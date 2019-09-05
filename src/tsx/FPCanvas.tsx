@@ -30,6 +30,12 @@ import RROCK18 from '../asset/RROCK18.png';
 import STARTAN3 from '../asset/STARTAN3.png';
 import STEP3 from '../asset/STEP3.png';
 
+import PLAYA1 from '../asset/PLAYA1.png';
+import PLAYA2A8 from '../asset/PLAYA2A8.png';
+import PLAYA3A7 from '../asset/PLAYA3A7.png';
+import PLAYA4A6 from '../asset/PLAYA4A6.png';
+import PLAYA5 from '../asset/PLAYA5.png';
+
 const ATLAS_SIZE = 512;
 
 export interface Props {
@@ -76,20 +82,45 @@ export class FPCanvas extends React.Component<Props> {
         ]);
 
         // Load our textures into the atlas.
-        const atlas = new Atlas.Atlas(ATLAS_SIZE);
+        const texAtlas = new Atlas.Atlas(ATLAS_SIZE);
         for (let i = 0;i < textures.length;i++) {
             const { name, img } = textures[i];
-            atlas.add(name, img);
+            texAtlas.add(name, img);
         }
 
         // Persist the atlas to the GPU.
-        this.renderer.world.bakeAtlas(atlas);
+        this.renderer.world.bakeTextureAtlas(texAtlas);
+
+        // Wait to load all of our sprites.
+        const sprites = await Promise.all([
+            textureLoader('PLAYA1', PLAYA1),
+            textureLoader('PLAYA2A8', PLAYA2A8),
+            textureLoader('PLAYA3A7', PLAYA3A7),
+            textureLoader('PLAYA4A6', PLAYA4A6),
+            textureLoader('PLAYA5', PLAYA5),
+        ]);
+
+        // Load our textures into the atlas.
+        const spriteAtlas = new Atlas.Atlas(ATLAS_SIZE);
+        for (let i = 0;i < sprites.length;i++) {
+            const { name, img } = sprites[i];
+            spriteAtlas.add(name, img);
+        }
+
+        // Persist the atlas to the GPU.
+        this.renderer.sprite.bakeSpriteAtlas(spriteAtlas);
 
         // Draw our map
         const level = this.props.level;
         for (let i = 0;i < level.polygons.length;i++) {
             this.renderer.world.addPolygon(level.polygons, i);
         }
+
+        // Draw all entities.
+        for (let i = 0;i < level.entities.length;i++) {
+            this.renderer.world.addEntity(level.entities, i);
+        }
+
         this.renderer.render(this.props.camera);
     }
 
