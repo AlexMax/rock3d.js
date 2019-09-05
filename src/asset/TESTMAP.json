@@ -139,5 +139,10 @@
             "vertex": [64, 512],
             "backPoly": 3
         }]
+    }],
+    "locations": [{
+        "type": "player",
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 90]
     }]
 }
