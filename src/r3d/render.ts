@@ -8,7 +8,6 @@
 
 import { Camera } from './camera';
 import { DebugTextureContext } from './debug_texture';
-import { SpriteContext } from './sprite';
 import { WorldContext } from './world';
 
 const DEBUG: boolean = true;
@@ -18,7 +17,6 @@ export class RenderContext {
     gl: WebGLRenderingContext;
 
     world: WorldContext;
-    sprite: SpriteContext;
     debugTexture?: DebugTextureContext;
 
     constructor(canvas: HTMLCanvasElement) {
@@ -38,7 +36,6 @@ export class RenderContext {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         this.world = new WorldContext(this);
-        this.sprite = new SpriteContext(this);
         if (DEBUG === true) {
             this.debugTexture = new DebugTextureContext(this);
         }
@@ -67,9 +64,8 @@ export class RenderContext {
 
     render(cam: Camera): void {
         this.world.render(cam);
-        //this.sprite.render(cam);
-        if (this.debugTexture !== undefined && this.sprite.spriteAtlas !== undefined) {
-            this.debugTexture.render(this.sprite.spriteTexAtlas);
+        if (this.debugTexture !== undefined && this.world.spriteAtlas !== undefined) {
+            this.debugTexture.render(this.world.spriteTexAtlas);
         }
     }
 }

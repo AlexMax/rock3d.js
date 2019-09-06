@@ -74,6 +74,9 @@ export class WorldContext {
     world_lAtlasInfo: GLuint;
     world_lTexCoord: GLuint;
 
+    spriteAtlas?: Atlas;
+    spriteTexAtlas: WebGLTexture;
+
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
@@ -127,11 +130,11 @@ export class WorldContext {
         gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
 
         // Set up the texture atlas texture
-        const worldTextAtlas = gl.createTexture();
-        if (worldTextAtlas === null) {
+        const worldTexAtlas = gl.createTexture();
+        if (worldTexAtlas === null) {
             throw new Error('Could not create texture atlas object');
         }
-        this.worldTexAtlas = worldTextAtlas;
+        this.worldTexAtlas = worldTexAtlas;
         gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -145,18 +148,55 @@ export class WorldContext {
         if (textureLoc === null) {
             throw new Error('uTexture uniform location could not be found');
         }
-        gl.uniform1i(textureLoc, 0);
+        gl.uniform1i(textureLoc, 0); // TEXTURE0
 
         // Upload a blank hot pink texture to the atlas.
-        const blankAtlasTex = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
-        for (let i = 0;i < blankAtlasTex.byteLength;i+=4) {
-            blankAtlasTex[i] = 255;
-            blankAtlasTex[i + 1] = 0;
-            blankAtlasTex[i + 2] = 255;
-            blankAtlasTex[i + 3] = 255;
+        const blankTextureAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
+        for (let i = 0;i < blankTextureAtlas.byteLength;i+=4) {
+            blankTextureAtlas[i] = 255;
+            blankTextureAtlas[i + 1] = 0;
+            blankTextureAtlas[i + 2] = 255;
+            blankTextureAtlas[i + 3] = 255;
         }
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, blankAtlasTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0,
+            gl.RGBA, gl.UNSIGNED_BYTE, blankTextureAtlas);
+
+        // Unbind texture so we don't accidentally mess with it.
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        // Set up the sprite atlas texture
+        const spriteTexAtlas = gl.createTexture();
+        if (spriteTexAtlas === null) {
+            throw new Error('Could not create texture atlas object');
+        }
+        this.spriteTexAtlas = spriteTexAtlas;
+        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        // Assign the texture atlas to the world program
+        gl.useProgram(this.worldProg);
+        const atlasLoc = gl.getUniformLocation(this.worldProg, "uTexture");
+        if (atlasLoc === null) {
+            throw new Error('uTexture uniform location could not be found');
+        }
+        gl.uniform1i(atlasLoc, 0); // TEXTURE0
+
+        // Upload a blank hot pink texture to the atlas.
+        const blankSpriteAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
+        for (let i = 0;i < blankSpriteAtlas.byteLength;i+=4) {
+            blankSpriteAtlas[i] = 255;
+            blankSpriteAtlas[i + 1] = 0;
+            blankSpriteAtlas[i + 2] = 255;
+            blankSpriteAtlas[i + 3] = 0;
+        }
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0,
+            gl.RGBA, gl.UNSIGNED_BYTE, blankSpriteAtlas);
 
         // Unbind texture so we don't accidentally mess with it.
         gl.bindTexture(gl.TEXTURE_2D, null);
@@ -319,7 +359,19 @@ export class WorldContext {
 
     addEntity(entities: Entity[], index: number): void {
         const entity = entities[index];
-        console.log(entity);
+
+        if (this.spriteAtlas === undefined) {
+            throw new Error('Texture Atlas is empty');
+        }
+
+        // Find the texture of the wall in the atlas
+        const texEntry = this.spriteAtlas.find('PLAYA1');
+        const ua1 = texEntry.xPos / this.spriteAtlas.length;
+        const va1 = texEntry.yPos / this.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
+
+        console.log(ua1, va1, ua2, va2);
     }
 
     /**
@@ -352,6 +404,26 @@ export class WorldContext {
             // Actual texture.
             gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
 
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        });
+    }
+
+    /**
+     * Persist the sprite atlas onto the GPU using the current render context.
+     * 
+     * @param sprites Sprite atlas to bake.
+     */
+    bakeSpriteAtlas(sprites: Atlas): void {
+        // Copy the texture atlas into the render context
+        this.spriteAtlas = sprites;
+
+        // Get the texture atlas onto the GPU
+        sprites.persist((data, x, y) => {
+            const gl = this.parent.gl;
+
+            // Actual sprite.
+            gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
             gl.bindTexture(gl.TEXTURE_2D, null);
         });
     }
