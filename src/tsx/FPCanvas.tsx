@@ -108,7 +108,7 @@ export class FPCanvas extends React.Component<Props> {
         }
 
         // Persist the atlas to the GPU.
-        this.renderer.sprite.bakeSpriteAtlas(spriteAtlas);
+        this.renderer.world.bakeSpriteAtlas(spriteAtlas);
 
         // Draw our map
         const level = this.props.level;
