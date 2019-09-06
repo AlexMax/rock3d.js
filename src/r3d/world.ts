@@ -76,6 +76,10 @@ export class WorldContext {
 
     spriteAtlas?: Atlas;
     spriteTexAtlas: WebGLTexture;
+    spriteVerts: ArrayBuffer;
+    spriteVertCount: number;
+    spriteInds: Uint16Array;
+    spriteIndCount: number;
 
     constructor(parent: RenderContext) {
         this.parent = parent;
@@ -88,20 +92,25 @@ export class WorldContext {
         this.worldIndCount = 0;
         this.worldProject = mat4.create();
 
+        this.spriteVerts = new ArrayBuffer(32768);
+        this.spriteVertCount = 0;
+        this.spriteInds = new Uint16Array(1024);
+        this.spriteIndCount = 0;
+
         // 3D shader program, used for rendering walls, floors and ceilings.
         const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
         const fs = compileShader(gl, gl.FRAGMENT_SHADER, world_frag);
 
         this.worldProg = linkShaderProgram(gl, [vs, fs]);
 
-        // We need a vertex buffer...
+        // We need vertex buffers...
         const vbo = gl.createBuffer();
         if (vbo === null) {
             throw new Error('Could not allocate worldVBO');
         }
         this.worldVBO = vbo;
 
-        // ...and an index buffer.
+        // ...and index buffers...
         const ebo = gl.createBuffer();
         if (ebo === null) {
             throw new Error('Could not allocate worldEBO');
@@ -359,19 +368,52 @@ export class WorldContext {
 
     addEntity(entities: Entity[], index: number): void {
         const entity = entities[index];
+        const tex = 'PLAYA1';
+        const one = vec2.fromValues(0, 0);
+        const two = vec2.fromValues(0, 64);
+        const z1 = 0; // Floor height
+        const z2 = 64; // Ceiling height
 
         if (this.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Find the texture of the wall in the atlas
-        const texEntry = this.spriteAtlas.find('PLAYA1');
-        const ua1 = texEntry.xPos / this.spriteAtlas.length;
-        const va1 = texEntry.yPos / this.spriteAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
+        let texEntry = this.spriteAtlas.find(tex);
 
-        console.log(ua1, va1, ua2, va2);
+        let ua1 = texEntry.xPos / this.spriteAtlas.length;
+        let va1 = texEntry.yPos / this.spriteAtlas.length;
+        let ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
+        let va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
+
+        let hDist = vec2.length(vec2.sub(vec2.create(), one, two));
+        let vDist = z2 - z1;
+
+        let ut1 = 0;
+        let vt1 = 0;
+        let ut2 = hDist / texEntry.texture.width;
+        let vt2 = vDist / texEntry.texture.height;
+
+        // Draw a sprite into the vertex and index buffers.
+        //
+        // Assuming you want to face the square head-on, xyz1 is the lower-left
+        // coordinate and xyz2 is the upper-right coordinate.
+        const vCount = this.spriteVertCount;
+        setVertex(this.spriteVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
+        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
+        setVertex(this.spriteVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
+        setVertex(this.spriteVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+
+        const iCount = this.spriteIndCount;
+        this.spriteInds[iCount] = vCount;
+        this.spriteInds[iCount + 1] = vCount + 1;
+        this.spriteInds[iCount + 2] = vCount + 2;
+        this.spriteInds[iCount + 3] = vCount + 2;
+        this.spriteInds[iCount + 4] = vCount + 3;
+        this.spriteInds[iCount + 5] = vCount + 0;
+
+        this.spriteVertCount += 4;
+        this.spriteIndCount += 6;
     }
 
     /**
@@ -451,20 +493,12 @@ export class WorldContext {
         }
         gl.uniformMatrix4fv(viewLoc, false, view);
 
-        // Bind the proper texture unit for our atlas.
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
-
-        // Load our data.
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
-        gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.worldInds, gl.STATIC_DRAW);
-
         // Length of a single vertex.
         const vertexLen = vertexBytes(1);
 
         // Set up our attributes.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
         gl.enableVertexAttribArray(this.world_lPos);
         gl.vertexAttribPointer(this.world_lPos, 3, gl.FLOAT, false, vertexLen, 0);
         gl.enableVertexAttribArray(this.world_lAtlasInfo);
@@ -472,8 +506,27 @@ export class WorldContext {
         gl.enableVertexAttribArray(this.world_lTexCoord);
         gl.vertexAttribPointer(this.world_lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
 
-        // Draw everything.
+        // Bind the world atlas texture.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+
+        // Load our world data.
+        gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.worldInds, gl.STATIC_DRAW);
+
+        // Draw the world.
         gl.drawElements(gl.TRIANGLES, this.worldIndCount, gl.UNSIGNED_SHORT, 0);
+
+        // Bind the sprite atlas texture.
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
+
+        // Load our sprite data.
+        gl.bufferData(gl.ARRAY_BUFFER, this.spriteVerts, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.spriteInds, gl.STATIC_DRAW);
+
+        // Draw the sprites.
+        gl.drawElements(gl.TRIANGLES, this.spriteIndCount, gl.UNSIGNED_SHORT, 0);
 
         // Cleanup.
         gl.disableVertexAttribArray(this.world_lPos);
