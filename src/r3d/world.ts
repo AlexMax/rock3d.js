@@ -157,6 +157,9 @@ export class WorldContext {
         }
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, blankAtlasTex);
+
+        // Unbind texture so we don't accidentally mess with it.
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     /**
@@ -332,7 +335,7 @@ export class WorldContext {
         textures.persist((data, x, y) => {
             const gl = this.parent.gl;
 
-            // FIXME: This is probably incredibly slow, but it works.
+            gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
 
             // Corner pixels.
             gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
@@ -348,6 +351,8 @@ export class WorldContext {
 
             // Actual texture.
             gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+
+            gl.bindTexture(gl.TEXTURE_2D, null);
         });
     }
 
@@ -404,5 +409,6 @@ export class WorldContext {
         gl.disableVertexAttribArray(this.world_lTexCoord);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 }

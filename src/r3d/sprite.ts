@@ -107,16 +107,19 @@ export class SpriteContext {
         }
         gl.uniform1i(textureLoc, 0);
 
-        // Upload a blank hot pink texture to the atlas.
+        // Upload a blank hot pink transparent texture to the atlas.
         const blankAtlasTex = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
         for (let i = 0;i < blankAtlasTex.byteLength;i+=4) {
             blankAtlasTex[i] = 255;
             blankAtlasTex[i + 1] = 0;
             blankAtlasTex[i + 2] = 255;
-            blankAtlasTex[i + 3] = 255;
+            blankAtlasTex[i + 3] = 0;
         }
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, blankAtlasTex);
+
+        // Unbind texture so we don't accidentally mess with it.
+        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     /**
@@ -133,7 +136,9 @@ export class SpriteContext {
             const gl = this.parent.gl;
 
             // Actual sprite.
+            gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            gl.bindTexture(gl.TEXTURE_2D, null);
         });
     }
 }

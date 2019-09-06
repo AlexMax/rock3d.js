@@ -14,5 +14,5 @@ varying vec2 fTex;
 
 void main() {
     vec4 color = texture2D(uTexture, fTex);
-    gl_FragColor = vec4(color.xyz, 0.5);
+    gl_FragColor = vec4(color.xyz, color.w * 0.5);
 }
