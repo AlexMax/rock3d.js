@@ -6,7 +6,7 @@
  * source distribution.
  */
 
-import { glMatrix, mat4, vec2 } from 'gl-matrix';
+import { glMatrix, mat4, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
 import { Entity } from '../entity';
@@ -366,11 +366,9 @@ export class WorldContext {
             polygon.ceilHeight, polygon.ceilTex);
     }
 
-    addEntity(entities: Entity[], index: number): void {
+    addEntity(entities: Entity[], index: number, cam: Camera): void {
         const entity = entities[index];
         const tex = 'PLAYA1';
-        const one = vec2.fromValues(0, 0);
-        const two = vec2.fromValues(0, 64);
         const z1 = 0; // Floor height
         const z2 = 64; // Ceiling height
 
@@ -378,21 +376,56 @@ export class WorldContext {
             throw new Error('Texture Atlas is empty');
         }
 
+        // Billboard our sprite positions towards the camera.
+        const view = getViewMatrix(cam);
+        const worldRight = vec3.fromValues(view[0], view[4], view[8]);
+        const worldUp = vec3.fromValues(view[1], view[5], view[9]);
+        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
+
+        const spriteWidth = 41;
+        const spriteHeight = 56;
+
+        const lowerLeft = vec3.fromValues(-0.5, -0.5, 0);
+        const upperRight = vec3.fromValues(0.5, 0.5, 0);
+
+        const oneRight = vec3.copy(vec3.create(), worldRight);
+        vec3.scale(oneRight, oneRight, lowerLeft[0]);
+        vec3.scale(oneRight, oneRight, spriteWidth);
+        const oneUp = vec3.copy(vec3.create(), worldUp);
+        vec3.scale(oneUp, oneUp, lowerLeft[1]);
+        vec3.scale(oneUp, oneUp, spriteHeight);
+        const one3 = vec3.copy(vec3.create(), spriteCenter);
+        vec3.add(one3, one3, oneRight);
+        vec3.add(one3, one3, oneUp);
+
+        const twoRight = vec3.copy(vec3.create(), worldRight);
+        vec3.scale(twoRight, twoRight, upperRight[0]);
+        vec3.scale(twoRight, twoRight, spriteWidth);
+        const twoUp = vec3.copy(vec3.create(), worldUp);
+        vec3.scale(twoUp, twoUp, upperRight[1]);
+        vec3.scale(twoUp, twoUp, spriteHeight);
+        const two3 = vec3.copy(vec3.create(), spriteCenter);
+        vec3.add(two3, two3, twoRight);
+        vec3.add(two3, two3, twoUp);
+
+        const one = vec2.fromValues(one3[0], one3[1]);
+        const two = vec2.fromValues(two3[0], two3[1]);
+
         // Find the texture of the wall in the atlas
-        let texEntry = this.spriteAtlas.find(tex);
+        const texEntry = this.spriteAtlas.find(tex);
 
-        let ua1 = texEntry.xPos / this.spriteAtlas.length;
-        let va1 = texEntry.yPos / this.spriteAtlas.length;
-        let ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
-        let va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
+        const ua1 = texEntry.xPos / this.spriteAtlas.length;
+        const va1 = texEntry.yPos / this.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
 
-        let hDist = vec2.length(vec2.sub(vec2.create(), one, two));
-        let vDist = z2 - z1;
+        const hDist = vec2.length(vec2.sub(vec2.create(), one, two));
+        const vDist = z2 - z1;
 
-        let ut1 = 0;
-        let vt1 = 0;
-        let ut2 = hDist / texEntry.texture.width;
-        let vt2 = vDist / texEntry.texture.height;
+        const ut1 = 0;
+        const vt1 = 0;
+        const ut2 = hDist / texEntry.texture.width;
+        const vt2 = vDist / texEntry.texture.height;
 
         // Draw a sprite into the vertex and index buffers.
         //
@@ -414,6 +447,22 @@ export class WorldContext {
 
         this.spriteVertCount += 4;
         this.spriteIndCount += 6;
+    }
+
+    /**
+     * Clear the world vertexes.
+     */
+    clearWorld(): void {
+        this.worldVertCount = 0;
+        this.worldIndCount = 0;
+    }
+
+    /**
+     * Clear the sprite vertexes.
+     */
+    clearSprites(): void {
+        this.spriteVertCount = 0;
+        this.spriteIndCount = 0;
     }
 
     /**
