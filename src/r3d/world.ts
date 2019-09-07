@@ -366,11 +366,17 @@ export class WorldContext {
             polygon.ceilHeight, polygon.ceilTex);
     }
 
-    addEntity(entities: Entity[], index: number, cam: Camera): void {
-        const entity = entities[index];
+    /**
+     * Add an entity to the set of things to render.
+     * 
+     * Entities are represented as sprites that are billboarded towards
+     * the camera.
+     * 
+     * @param entity Entity to render.
+     * @param cam Camera to billboard relative to.
+     */
+    addEntity(entity: Entity, cam: Camera): void {
         const tex = 'PLAYA1';
-        const z1 = 0; // Floor height
-        const z2 = 64; // Ceiling height
 
         if (this.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
@@ -391,8 +397,13 @@ export class WorldContext {
 
         // Billboard our sprite positions towards the camera.
         const view = getViewMatrix(cam);
-        const worldRight = vec3.fromValues(view[0], view[4], view[8]);
-        const worldUp = vec3.fromValues(view[1], view[5], view[9]);
+        const viewInv = mat4.invert(mat4.create(), view);
+        if (viewInv === null) {
+            throw new Error('viewInv is null');
+        }
+
+        const worldRight = vec3.fromValues(viewInv[0], viewInv[1], viewInv[2]);
+        const worldUp = vec3.fromValues(viewInv[4], viewInv[5], viewInv[6]);
         const spriteCenter = vec3.copy(vec3.create(), entity.pos);
 
         const lowerLeft = vec3.fromValues(-0.5, -0.5, 0);
@@ -418,8 +429,9 @@ export class WorldContext {
         vec3.add(two, two, twoRight);
         vec3.add(two, two, twoUp);
 
-        console.log('one', oneRight, oneUp, one);
-        console.log('two', twoRight, twoUp, two);
+        console.log('world', worldRight.toString(), worldUp.toString());
+        console.log('one', one.toString());
+        console.log('two', two.toString());
 
         // Draw a sprite into the vertex and index buffers.
         //
