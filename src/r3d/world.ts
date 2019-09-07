@@ -376,41 +376,6 @@ export class WorldContext {
             throw new Error('Texture Atlas is empty');
         }
 
-        // Billboard our sprite positions towards the camera.
-        const view = getViewMatrix(cam);
-        const worldRight = vec3.fromValues(view[0], view[4], view[8]);
-        const worldUp = vec3.fromValues(view[1], view[5], view[9]);
-        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
-
-        const spriteWidth = 41;
-        const spriteHeight = 56;
-
-        const lowerLeft = vec3.fromValues(-0.5, -0.5, 0);
-        const upperRight = vec3.fromValues(0.5, 0.5, 0);
-
-        const oneRight = vec3.copy(vec3.create(), worldRight);
-        vec3.scale(oneRight, oneRight, lowerLeft[0]);
-        vec3.scale(oneRight, oneRight, spriteWidth);
-        const oneUp = vec3.copy(vec3.create(), worldUp);
-        vec3.scale(oneUp, oneUp, lowerLeft[1]);
-        vec3.scale(oneUp, oneUp, spriteHeight);
-        const one3 = vec3.copy(vec3.create(), spriteCenter);
-        vec3.add(one3, one3, oneRight);
-        vec3.add(one3, one3, oneUp);
-
-        const twoRight = vec3.copy(vec3.create(), worldRight);
-        vec3.scale(twoRight, twoRight, upperRight[0]);
-        vec3.scale(twoRight, twoRight, spriteWidth);
-        const twoUp = vec3.copy(vec3.create(), worldUp);
-        vec3.scale(twoUp, twoUp, upperRight[1]);
-        vec3.scale(twoUp, twoUp, spriteHeight);
-        const two3 = vec3.copy(vec3.create(), spriteCenter);
-        vec3.add(two3, two3, twoRight);
-        vec3.add(two3, two3, twoUp);
-
-        const one = vec2.fromValues(one3[0], one3[1]);
-        const two = vec2.fromValues(two3[0], two3[1]);
-
         // Find the texture of the wall in the atlas
         const texEntry = this.spriteAtlas.find(tex);
 
@@ -419,23 +384,52 @@ export class WorldContext {
         const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
         const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
 
-        const hDist = vec2.length(vec2.sub(vec2.create(), one, two));
-        const vDist = z2 - z1;
-
         const ut1 = 0;
         const vt1 = 0;
-        const ut2 = hDist / texEntry.texture.width;
-        const vt2 = vDist / texEntry.texture.height;
+        const ut2 = 1;
+        const vt2 = 1;
+
+        // Billboard our sprite positions towards the camera.
+        const view = getViewMatrix(cam);
+        const worldRight = vec3.fromValues(view[0], view[4], view[8]);
+        const worldUp = vec3.fromValues(view[1], view[5], view[9]);
+        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
+
+        const lowerLeft = vec3.fromValues(-0.5, -0.5, 0);
+        const upperRight = vec3.fromValues(0.5, 0.5, 0);
+
+        const oneRight = vec3.copy(vec3.create(), worldRight);
+        vec3.scale(oneRight, oneRight, lowerLeft[0]);
+        vec3.scale(oneRight, oneRight, texEntry.texture.width);
+        const oneUp = vec3.copy(vec3.create(), worldUp);
+        vec3.scale(oneUp, oneUp, lowerLeft[1]);
+        vec3.scale(oneUp, oneUp, texEntry.texture.height);
+        const one = vec3.copy(vec3.create(), spriteCenter);
+        vec3.add(one, one, oneRight);
+        vec3.add(one, one, oneUp);
+
+        const twoRight = vec3.copy(vec3.create(), worldRight);
+        vec3.scale(twoRight, twoRight, upperRight[0]);
+        vec3.scale(twoRight, twoRight, texEntry.texture.width);
+        const twoUp = vec3.copy(vec3.create(), worldUp);
+        vec3.scale(twoUp, twoUp, upperRight[1]);
+        vec3.scale(twoUp, twoUp, texEntry.texture.height);
+        const two = vec3.copy(vec3.create(), spriteCenter);
+        vec3.add(two, two, twoRight);
+        vec3.add(two, two, twoUp);
+
+        console.log('one', oneRight, oneUp, one);
+        console.log('two', twoRight, twoUp, two);
 
         // Draw a sprite into the vertex and index buffers.
         //
         // Assuming you want to face the square head-on, xyz1 is the lower-left
         // coordinate and xyz2 is the upper-right coordinate.
         const vCount = this.spriteVertCount;
-        setVertex(this.spriteVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
-        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
-        setVertex(this.spriteVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
-        setVertex(this.spriteVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+        setVertex(this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
+        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
+        setVertex(this.spriteVerts, vCount + 2, two[0], two[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
+        setVertex(this.spriteVerts, vCount + 3, one[0], one[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
 
         const iCount = this.spriteIndCount;
         this.spriteInds[iCount] = vCount;
