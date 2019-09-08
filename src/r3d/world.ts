@@ -27,7 +27,7 @@ const ATLAS_SIZE = 512;
  * @param count Number of vertexes to measure.
  */
 function vertexBytes(count: number) {
-    return count * 36;
+    return count * 40;
 }
 
 /**
@@ -42,7 +42,7 @@ function vertexBytes(count: number) {
  */
 function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
     z: number, uAtOrigin: number, vAtOrigin: number, uAtLen: number,
-    vAtLen: number, uTex: number, vTex: number): ArrayBuffer
+    vAtLen: number, uTex: number, vTex: number, bright: number): ArrayBuffer
 {
     const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
     view.setFloat32(0, x, true);
@@ -54,6 +54,7 @@ function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
     view.setFloat32(24, vAtLen, true);
     view.setFloat32(28, uTex, true);
     view.setFloat32(32, vTex, true);
+    view.setFloat32(36, bright, true);
 
     return buffer;
 }
@@ -102,6 +103,7 @@ export class WorldContext {
     world_lPos: GLuint;
     world_lAtlasInfo: GLuint;
     world_lTexCoord: GLuint;
+    world_lBright: GLuint;
 
     spriteAtlas?: Atlas;
     spriteTexAtlas: WebGLTexture;
@@ -163,6 +165,11 @@ export class WorldContext {
         this.world_lTexCoord = gl.getAttribLocation(this.worldProg, 'lTexCoord');
         if (this.world_lTexCoord === -1) {
             throw new Error('Could not find lTexCoord in world program');
+        }
+        // Brightness modifier.
+        this.world_lBright = gl.getAttribLocation(this.worldProg, 'lBright');
+        if (this.world_lBright === -1) {
+            throw new Error('Could not find lBright in world program');
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
@@ -273,7 +280,7 @@ export class WorldContext {
      * @param z2 Ceiling height.
      * @param tex Texture name.
      */
-    addWall(one: vec2, two: vec2, z1: number, z2: number, tex: string): void {
+    addWall(one: vec2, two: vec2, z1: number, z2: number, tex: string, bright: number): void {
         if (this.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
@@ -294,15 +301,17 @@ export class WorldContext {
         let ut2 = hDist / texEntry.texture.width;
         let vt2 = vDist / texEntry.texture.height;
 
+        const tBright = bright / 256;
+
         // Draw a wall into the vertex and index buffers.
         //
         // Assuming you want to face the square head-on, xyz1 is the lower-left
         // coordinate and xyz2 is the upper-right coordinate.
         const vCount = this.worldVertCount;
-        setVertex(this.worldVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
-        setVertex(this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
-        setVertex(this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
-        setVertex(this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+        setVertex(this.worldVerts, vCount, one[0], one[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2, tBright);
+        setVertex(this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2, tBright);
+        setVertex(this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1, tBright);
+        setVertex(this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1, tBright);
 
         const iCount = this.worldIndCount;
         this.worldInds[iCount] = vCount;
@@ -324,7 +333,7 @@ export class WorldContext {
      * @param z Z-level to add the tessellation to.
      * @param tex Texture name.
      */
-    addFlatTessellation(verts: number[], inds: number[], z: number, tex: string): void {
+    addFlatTessellation(verts: number[], inds: number[], z: number, tex: string, bright: number): void {
         if (this.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
@@ -336,6 +345,8 @@ export class WorldContext {
         let ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
         let va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
 
+        const tBright = bright / 256;
+
         // Draw the triangle into the buffers.
         const vCountStart = this.worldVertCount;
         for (let i = 0;i < verts.length - 1;i += 2) {
@@ -344,7 +355,7 @@ export class WorldContext {
             let vt = -(verts[i+1] / texEntry.texture.height);
 
             setVertex(this.worldVerts, vCount, verts[i], verts[i+1], z,
-                ua1, va1, ua2 - ua1, va2 - va1, ut, vt);
+                ua1, va1, ua2 - ua1, va2 - va1, ut, vt, tBright);
             this.worldVertCount += 1;
         }
 
@@ -373,14 +384,14 @@ export class WorldContext {
             if (typeof side.backPoly === 'number') {
                 const backPoly = polygons[side.backPoly];
                 if (polygon.ceilHeight > backPoly.ceilHeight && side.upperTex !== null ) {
-                    this.addWall(side.vertex, nextVert, backPoly.ceilHeight, polygon.ceilHeight, side.upperTex);
+                    this.addWall(side.vertex, nextVert, backPoly.ceilHeight, polygon.ceilHeight, side.upperTex, polygon.brightness);
                 }
                 if (polygon.floorHeight < backPoly.floorHeight && side.lowerTex !== null ) {
-                    this.addWall(side.vertex, nextVert, polygon.floorHeight, backPoly.floorHeight, side.lowerTex);
+                    this.addWall(side.vertex, nextVert, polygon.floorHeight, backPoly.floorHeight, side.lowerTex, polygon.brightness);
                 }
             } else {
                 if (side.middleTex !== null) {
-                    this.addWall(side.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, side.middleTex);
+                    this.addWall(side.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, side.middleTex, polygon.brightness);
                 }
             }
         }
@@ -390,9 +401,9 @@ export class WorldContext {
             cacheFlats(polygon);
         }
         this.addFlatTessellation(polygon.cacheVerts, polygon.floorCacheInds,
-            polygon.floorHeight, polygon.floorTex);
+            polygon.floorHeight, polygon.floorTex, polygon.brightness);
         this.addFlatTessellation(polygon.cacheVerts, polygon.ceilCacheInds,
-            polygon.ceilHeight, polygon.ceilTex);
+            polygon.ceilHeight, polygon.ceilTex, polygon.brightness);
     }
 
     /**
@@ -423,6 +434,8 @@ export class WorldContext {
         const vt1 = 0;
         const ut2 = 1;
         const vt2 = 1;
+
+        const tBright = 1.0;
 
         const spriteCenter = vec3.copy(vec3.create(), entity.pos);
 
@@ -470,10 +483,10 @@ export class WorldContext {
 
         // Draw a sprite into the vertex and index buffers.
         const vCount = this.spriteVertCount;
-        setVertex(this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
-        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
-        setVertex(this.spriteVerts, vCount + 2, three[0], three[1], three[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
-        setVertex(this.spriteVerts, vCount + 3, four[0], four[1], four[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+        setVertex(this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2, tBright);
+        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2, tBright);
+        setVertex(this.spriteVerts, vCount + 2, three[0], three[1], three[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1, tBright);
+        setVertex(this.spriteVerts, vCount + 3, four[0], four[1], four[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1, tBright);
 
         const iCount = this.spriteIndCount;
         this.spriteInds[iCount] = vCount;
@@ -592,6 +605,8 @@ export class WorldContext {
         gl.vertexAttribPointer(this.world_lAtlasInfo, 4, gl.FLOAT, false, vertexLen, 12);
         gl.enableVertexAttribArray(this.world_lTexCoord);
         gl.vertexAttribPointer(this.world_lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
+        gl.enableVertexAttribArray(this.world_lBright);
+        gl.vertexAttribPointer(this.world_lBright, 1, gl.FLOAT, false, vertexLen, 36);
 
         // Bind the world atlas texture.
         gl.activeTexture(gl.TEXTURE0);
@@ -619,6 +634,7 @@ export class WorldContext {
         gl.disableVertexAttribArray(this.world_lPos);
         gl.disableVertexAttribArray(this.world_lAtlasInfo);
         gl.disableVertexAttribArray(this.world_lTexCoord);
+        gl.disableVertexAttribArray(this.world_lBright);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, null);

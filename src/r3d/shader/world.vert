@@ -12,12 +12,15 @@ uniform mat4 uProjection;
 attribute vec3 lPos;
 attribute vec4 lAtlasInfo;
 attribute vec2 lTexCoord;
+attribute float lBright;
 
 varying vec4 fAtlasInfo;
 varying vec2 fTexCoord;
+varying float fBright;
 
 void main() {
     fAtlasInfo = lAtlasInfo;
+    fBright = lBright;
 
     gl_Position = uProjection * uView * vec4(lPos, 1.0);
 

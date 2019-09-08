@@ -45,6 +45,7 @@ export interface PolygonData {
     floorHeight: number;
     ceilTex: string;
     floorTex: string;
+    brightness: number;
 }
 
 function isPolygonData(data: PolygonData): data is PolygonData {
@@ -70,6 +71,9 @@ function isPolygonData(data: PolygonData): data is PolygonData {
     }
     if (typeof data.floorTex !== 'string') {
         throw new Error('polygon floorTex is not a string');
+    }
+    if (typeof data.brightness !== 'number') {
+        throw new Error('polygon brightness is not a number');
     }
     return true;
 }
