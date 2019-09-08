@@ -1,5 +1,6 @@
 {
     "polygons": [{
+        "brightness": 128,
         "ceilHeight": 128,
         "floorHeight": 0,
         "ceilTex": "RROCK18",
@@ -35,6 +36,7 @@
             "middleTex": "STARTAN3"
         }]
     }, {
+        "brightness": 144,
         "ceilHeight": 128,
         "floorHeight": 8,
         "ceilTex": "RROCK18",
@@ -61,6 +63,7 @@
             "backPoly": 0
         }]
     }, {
+        "brightness": 160,
         "ceilHeight": 128,
         "floorHeight": 16,
         "ceilTex": "RROCK18",
@@ -87,6 +90,7 @@
             "backPoly": 1
         }]
     }, {
+        "brightness": 176,
         "ceilHeight": 128,
         "floorHeight": 24,
         "ceilTex": "RROCK18",
@@ -104,6 +108,7 @@
             "backPoly": 2
         }]
     }, {
+        "brightness": 192,
         "ceilHeight": 96,
         "floorHeight": 32,
         "ceilTex": "FLAT2",
