@@ -57,6 +57,34 @@ function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
     return buffer;
 }
 
+/**
+ * Billboard a single vertex of a sprite.
+ * 
+ * @param out Out vector.
+ * @param spriteCenter Center of sprite.
+ * @param offset Vertex of the sprite to billboard, in terms of the X, Y
+ *               offset from the center.  0.0 is no offset, 1.0 is the
+ *               entire width/height of the sprite.
+ * @param right Right vector in world coordinates.
+ * @param up Up vector in world coordinates.
+ * @param width Width of sprite.
+ * @param height Height of sprite.
+ */
+function billboardVertex(out: vec3, spriteCenter: vec3, offset: vec2,
+    right: vec3, up: vec3, width: number, height: number)
+{
+    const calcRight = vec3.copy(vec3.create(), right);
+    vec3.scale(calcRight, calcRight, offset[0]);
+    vec3.scale(calcRight, calcRight, width);
+    const calcUp = vec3.copy(vec3.create(), up);
+    vec3.scale(calcUp, calcUp, offset[1]);
+    vec3.scale(calcUp, calcUp, height);
+    vec3.copy(out, spriteCenter);
+    vec3.add(out, out, calcRight);
+    vec3.add(out, out, calcUp);
+    return out;
+}
+
 export class WorldContext {
     parent: RenderContext; // Reference to parent
 
@@ -367,34 +395,6 @@ export class WorldContext {
     }
 
     /**
-     * Billboard a single vertex of a sprite.
-     * 
-     * @param out Out vector.
-     * @param spriteCenter Center of sprite.
-     * @param offset Vertex of the sprite to billboard, in terms of the X, Y
-     *               offset from the center.  0.0 is no offset, 1.0 is the
-     *               entire width/height of the sprite.
-     * @param right Right vector in world coordinates.
-     * @param up Up vector in world coordinates.
-     * @param width Width of sprite.
-     * @param height Height of sprite.
-     */
-    private static billboard(out: vec3, spriteCenter: vec3, offset: vec2,
-        right: vec3, up: vec3, width: number, height: number)
-    {
-        const calcRight = vec3.copy(vec3.create(), right);
-        vec3.scale(calcRight, calcRight, offset[0]);
-        vec3.scale(calcRight, calcRight, width);
-        const calcUp = vec3.copy(vec3.create(), up);
-        vec3.scale(calcUp, calcUp, offset[1]);
-        vec3.scale(calcUp, calcUp, height);
-        vec3.copy(out, spriteCenter);
-        vec3.add(out, out, calcRight);
-        vec3.add(out, out, calcUp);
-        return out;
-    }
-
-    /**
      * Add an entity to the set of things to render.
      * 
      * Entities are represented as sprites that are billboarded towards
@@ -441,13 +441,13 @@ export class WorldContext {
         const upperLeft = vec2.fromValues(-0.5, 0.5);
 
         // Calculation to transform the four vertexes.
-        const one = WorldContext.billboard(vec3.create(), spriteCenter, lowerLeft,
+        const one = billboardVertex(vec3.create(), spriteCenter, lowerLeft,
             worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const two = WorldContext.billboard(vec3.create(), spriteCenter, lowerRight,
+        const two = billboardVertex(vec3.create(), spriteCenter, lowerRight,
             worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const three = WorldContext.billboard(vec3.create(), spriteCenter, upperRight,
+        const three = billboardVertex(vec3.create(), spriteCenter, upperRight,
             worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const four = WorldContext.billboard(vec3.create(), spriteCenter, upperLeft,
+        const four = billboardVertex(vec3.create(), spriteCenter, upperLeft,
             worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
 
         // Draw a sprite into the vertex and index buffers.
