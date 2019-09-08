@@ -37,7 +37,7 @@ export interface Polygon {
     floorHeight: number;
     ceilTex: string;
     floorTex: string;
-    brightness: number;
+    brightness: vec3;
     cacheVerts: number[];
     floorCacheInds: number[];
     ceilCacheInds: number[];
@@ -52,7 +52,8 @@ function toPolygon(data: PolygonData): Polygon {
         sides: data.sides.map((data) => {
             return toSide(data);
         }),
-        brightness: data.brightness,
+        brightness: vec3.fromValues(data.brightness[0], data.brightness[1],
+            data.brightness[2]),
         cacheVerts: [],
         floorCacheInds: [],
         ceilCacheInds: [],

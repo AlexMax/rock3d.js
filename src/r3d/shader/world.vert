@@ -12,11 +12,11 @@ uniform mat4 uProjection;
 attribute vec3 lPos;
 attribute vec4 lAtlasInfo;
 attribute vec2 lTexCoord;
-attribute float lBright;
+attribute vec3 lBright;
 
 varying vec4 fAtlasInfo;
 varying vec2 fTexCoord;
-varying float fBright;
+varying vec3 fBright;
 
 void main() {
     fAtlasInfo = lAtlasInfo;

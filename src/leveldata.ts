@@ -45,7 +45,7 @@ export interface PolygonData {
     floorHeight: number;
     ceilTex: string;
     floorTex: string;
-    brightness: number;
+    brightness: number[];
 }
 
 function isPolygonData(data: PolygonData): data is PolygonData {
@@ -72,8 +72,16 @@ function isPolygonData(data: PolygonData): data is PolygonData {
     if (typeof data.floorTex !== 'string') {
         throw new Error('polygon floorTex is not a string');
     }
-    if (typeof data.brightness !== 'number') {
-        throw new Error('polygon brightness is not a number');
+    if (!Array.isArray(data.brightness)) {
+        throw new Error('polygon brightness is not an Array');
+    }
+    if (data.brightness.length !== 3) {
+        throw new Error('polygon brightness does not look like a vertex');
+    }
+    if (typeof data.brightness[0] !== 'number' &&
+        typeof data.brightness[1] !== 'number' &&
+        typeof data.brightness[2] !== 'number') {
+        throw new Error('polygon brightness does not consist of two numbers');
     }
     return true;
 }

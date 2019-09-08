@@ -12,7 +12,7 @@ uniform sampler2D uTexture;
 
 varying vec4 fAtlasInfo;
 varying vec2 fTexCoord;
-varying float fBright;
+varying vec3 fBright;
 
 float zNear = 1.0;
 float zFar = 10000.0;
@@ -37,8 +37,8 @@ void main() {
     texCord.y = wrap(fTexCoord.y, vAtOrigin, vAtLen);
 
     vec4 color = texture2D(uTexture, texCord);
-    color.x *= fBright;
-    color.y *= fBright;
-    color.z *= fBright;
+    color.x *= fBright.x;
+    color.y *= fBright.y;
+    color.z *= fBright.z;
     gl_FragColor = color;
 }
