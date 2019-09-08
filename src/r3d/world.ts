@@ -367,6 +367,34 @@ export class WorldContext {
     }
 
     /**
+     * Billboard a single vertex of a sprite.
+     * 
+     * @param out Out vector.
+     * @param spriteCenter Center of sprite.
+     * @param offset Vertex of the sprite to billboard, in terms of the X, Y
+     *               offset from the center.  0.0 is no offset, 1.0 is the
+     *               entire width/height of the sprite.
+     * @param right Right vector in world coordinates.
+     * @param up Up vector in world coordinates.
+     * @param width Width of sprite.
+     * @param height Height of sprite.
+     */
+    private static billboard(out: vec3, spriteCenter: vec3, offset: vec2,
+        right: vec3, up: vec3, width: number, height: number)
+    {
+        const calcRight = vec3.copy(vec3.create(), right);
+        vec3.scale(calcRight, calcRight, offset[0]);
+        vec3.scale(calcRight, calcRight, width);
+        const calcUp = vec3.copy(vec3.create(), up);
+        vec3.scale(calcUp, calcUp, offset[1]);
+        vec3.scale(calcUp, calcUp, height);
+        vec3.copy(out, spriteCenter);
+        vec3.add(out, out, calcRight);
+        vec3.add(out, out, calcUp);
+        return out;
+    }
+
+    /**
      * Add an entity to the set of things to render.
      * 
      * Entities are represented as sprites that are billboarded towards
@@ -406,42 +434,28 @@ export class WorldContext {
         const worldUp = vec3.fromValues(viewInv[4], viewInv[5], viewInv[6]);
         const spriteCenter = vec3.copy(vec3.create(), entity.pos);
 
-        const lowerLeft = vec3.fromValues(-0.5, -0.5, 0);
-        const upperRight = vec3.fromValues(0.5, 0.5, 0);
+        // Four vertexes of the sprite.
+        const lowerLeft = vec2.fromValues(-0.5, -0.5);
+        const lowerRight = vec2.fromValues(0.5, -0.5);
+        const upperRight = vec2.fromValues(0.5, 0.5);
+        const upperLeft = vec2.fromValues(-0.5, 0.5);
 
-        const oneRight = vec3.copy(vec3.create(), worldRight);
-        vec3.scale(oneRight, oneRight, lowerLeft[0]);
-        vec3.scale(oneRight, oneRight, texEntry.texture.width);
-        const oneUp = vec3.copy(vec3.create(), worldUp);
-        vec3.scale(oneUp, oneUp, lowerLeft[1]);
-        vec3.scale(oneUp, oneUp, texEntry.texture.height);
-        const one = vec3.copy(vec3.create(), spriteCenter);
-        vec3.add(one, one, oneRight);
-        vec3.add(one, one, oneUp);
-
-        const twoRight = vec3.copy(vec3.create(), worldRight);
-        vec3.scale(twoRight, twoRight, upperRight[0]);
-        vec3.scale(twoRight, twoRight, texEntry.texture.width);
-        const twoUp = vec3.copy(vec3.create(), worldUp);
-        vec3.scale(twoUp, twoUp, upperRight[1]);
-        vec3.scale(twoUp, twoUp, texEntry.texture.height);
-        const two = vec3.copy(vec3.create(), spriteCenter);
-        vec3.add(two, two, twoRight);
-        vec3.add(two, two, twoUp);
-
-        console.log('world', worldRight.toString(), worldUp.toString());
-        console.log('one', one.toString());
-        console.log('two', two.toString());
+        // Calculation to transform the four vertexes.
+        const one = WorldContext.billboard(vec3.create(), spriteCenter, lowerLeft,
+            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
+        const two = WorldContext.billboard(vec3.create(), spriteCenter, lowerRight,
+            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
+        const three = WorldContext.billboard(vec3.create(), spriteCenter, upperRight,
+            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
+        const four = WorldContext.billboard(vec3.create(), spriteCenter, upperLeft,
+            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
 
         // Draw a sprite into the vertex and index buffers.
-        //
-        // Assuming you want to face the square head-on, xyz1 is the lower-left
-        // coordinate and xyz2 is the upper-right coordinate.
         const vCount = this.spriteVertCount;
         setVertex(this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt2);
-        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], one[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
-        setVertex(this.spriteVerts, vCount + 2, two[0], two[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
-        setVertex(this.spriteVerts, vCount + 3, one[0], one[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
+        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], two[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt2);
+        setVertex(this.spriteVerts, vCount + 2, three[0], three[1], three[2], ua1, va1, ua2 - ua1, va2 - va1, ut2, vt1);
+        setVertex(this.spriteVerts, vCount + 3, four[0], four[1], four[2], ua1, va1, ua2 - ua1, va2 - va1, ut1, vt1);
 
         const iCount = this.spriteIndCount;
         this.spriteInds[iCount] = vCount;
