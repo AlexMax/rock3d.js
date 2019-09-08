@@ -6,14 +6,15 @@
  * source distribution.
  */
 
-import { glMatrix, mat4, vec2, vec3 } from 'gl-matrix';
+import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
+import { Camera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { cacheFlats, Polygon } from '../level';
-import { Camera, getViewMatrix } from './camera';
-import { compileShader, linkShaderProgram } from './shader';
+import { toEuler } from '../math';
 import { RenderContext } from './render';
+import { compileShader, linkShaderProgram } from './shader';
 
 import world_vert from './shader/world.vert';
 import world_frag from './shader/world.frag';
@@ -403,7 +404,7 @@ export class WorldContext {
      * @param entity Entity to render.
      * @param cam Camera to billboard relative to.
      */
-    addEntity(entity: Entity, cam: Camera): void {
+    addEntity(entity: Entity, cam: Camera, standing: boolean = true): void {
         const tex = 'PLAYA1';
 
         if (this.spriteAtlas === undefined) {
@@ -423,8 +424,26 @@ export class WorldContext {
         const ut2 = 1;
         const vt2 = 1;
 
+        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
+
+        // Figure out where our camera is.
+        if (standing) {
+            // Sprite center is attached to the floor.
+            spriteCenter[2] += Math.ceil(texEntry.texture.height / 2);
+
+            // Only billboard yaw axis.
+            const euler = toEuler(vec3.create(), cam.dir);
+            const newDir = quat.fromEuler(quat.create(), 0, 0, euler[2]);
+            var view = getViewMatrix({
+                pos: cam.pos,
+                dir: newDir,
+            });
+        } else {
+            // Billboard all axes.
+            var view = getViewMatrix(cam);
+        }
+
         // Billboard our sprite positions towards the camera.
-        const view = getViewMatrix(cam);
         const viewInv = mat4.invert(mat4.create(), view);
         if (viewInv === null) {
             throw new Error('viewInv is null');
@@ -432,7 +451,6 @@ export class WorldContext {
 
         const worldRight = vec3.fromValues(viewInv[0], viewInv[1], viewInv[2]);
         const worldUp = vec3.fromValues(viewInv[4], viewInv[5], viewInv[6]);
-        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
 
         // Four vertexes of the sprite.
         const lowerLeft = vec2.fromValues(-0.5, -0.5);
