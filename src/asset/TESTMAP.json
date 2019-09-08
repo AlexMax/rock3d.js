@@ -124,7 +124,7 @@
             "middleTex": "STARTAN3"
         }, {
             "vertex": [192, 896],
-            "middleTex": "STARTAN3"
+            "backPoly": 5
         }, {
             "vertex": [320, 896],
             "middleTex": "STARTAN3"
@@ -143,6 +143,45 @@
         }, {
             "vertex": [64, 512],
             "backPoly": 3
+        }]
+    }, {
+        "brightness": [224, 224, 224],
+        "ceilHeight": 160,
+        "floorHeight": 24,
+        "ceilTex": "F_SKY1",
+        "floorTex": "GRASS1",
+        "sides": [{
+            "vertex": [320, 896],
+            "upperTex": "BROWN96",
+            "lowerTex": "BROWN96",
+            "backPoly": 4
+        }, {
+            "vertex": [192, 896],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [64, 896],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [-64, 1024],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [-64, 1472],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [64, 1600],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [448, 1600],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [576, 1472],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [576, 1024],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [448, 896],
+            "middleTex": "BROWN96"
         }]
     }],
     "locations": [{
