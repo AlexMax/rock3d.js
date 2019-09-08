@@ -1,6 +1,6 @@
 {
     "polygons": [{
-        "brightness": 128,
+        "brightness": [128, 128, 128],
         "ceilHeight": 128,
         "floorHeight": 0,
         "ceilTex": "RROCK18",
@@ -36,7 +36,7 @@
             "middleTex": "STARTAN3"
         }]
     }, {
-        "brightness": 144,
+        "brightness": [128, 128, 144],
         "ceilHeight": 128,
         "floorHeight": 8,
         "ceilTex": "RROCK18",
@@ -63,7 +63,7 @@
             "backPoly": 0
         }]
     }, {
-        "brightness": 160,
+        "brightness": [128, 128, 160],
         "ceilHeight": 128,
         "floorHeight": 16,
         "ceilTex": "RROCK18",
@@ -90,7 +90,7 @@
             "backPoly": 1
         }]
     }, {
-        "brightness": 176,
+        "brightness": [128, 128, 176],
         "ceilHeight": 128,
         "floorHeight": 24,
         "ceilTex": "RROCK18",
@@ -108,7 +108,7 @@
             "backPoly": 2
         }]
     }, {
-        "brightness": 192,
+        "brightness": [128, 128, 192],
         "ceilHeight": 96,
         "floorHeight": 32,
         "ceilTex": "FLAT2",
