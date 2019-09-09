@@ -186,7 +186,13 @@
     }],
     "locations": [{
         "type": "player",
+        "polygon": 0,
         "position": [64, 64, 0],
+        "rotation": [0, 0, 90]
+    }, {
+        "type": "player",
+        "polygon": 4,
+        "position": [0, 704, 32],
         "rotation": [0, 0, 90]
     }]
 }
