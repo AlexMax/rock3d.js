@@ -10,8 +10,7 @@ import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
 import { Camera, getViewMatrix } from './camera';
-import { Entity } from '../entity';
-import { cacheFlats, Polygon } from '../level';
+import { cacheFlats, Entity, Polygon } from '../level';
 import { toEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
@@ -427,8 +426,9 @@ export class WorldContext {
      * 
      * @param entity Entity to render.
      * @param cam Camera to billboard relative to.
+     * @param polygons Polygons to use when looking up entity positions.
      */
-    addEntity(entity: Entity, cam: Camera, standing: boolean = true): void {
+    addEntity(entity: Entity, cam: Camera, polygons: Polygon[]): void {
         const tex = 'PLAYA1';
 
         if (this.spriteAtlas === undefined) {
@@ -448,14 +448,16 @@ export class WorldContext {
         const ut2 = 1;
         const vt2 = 1;
 
-        const rBright = 1.0;
-        const gBright = 1.0;
-        const bBright = 1.0;
+        // Figure out the brightness of the surrounding polygon.
+        const polygon = polygons[entity.poly];
+        const rBright = polygon.brightness[0] / 256;
+        const gBright = polygon.brightness[1] / 256;
+        const bBright = polygon.brightness[2] / 256;
 
         const spriteCenter = vec3.copy(vec3.create(), entity.pos);
 
         // Figure out where our camera is.
-        if (standing) {
+        if (entity.config.grounded) {
             // Sprite center is attached to the floor.
             spriteCenter[2] += Math.ceil(texEntry.texture.height / 2);
 

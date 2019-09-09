@@ -88,6 +88,7 @@ function isPolygonData(data: PolygonData): data is PolygonData {
 
 export interface LocationData {
     type: string,
+    polygon: number,
     position: number[],
     rotation: number[],
 }
@@ -95,6 +96,9 @@ export interface LocationData {
 function isLocationData(data: LocationData): data is LocationData {
     if (typeof data.type !== 'string') {
         throw new Error('location type is not a string');
+    }
+    if (typeof data.polygon !== 'number') {
+        throw new Error('location polygon is not a number');
     }
     if (!Array.isArray(data.position)) {
         throw new Error('location position is not an Array');

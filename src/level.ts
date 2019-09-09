@@ -9,9 +9,8 @@
 import earcut from "earcut";
 import { vec2, vec3, vec4, quat } from "gl-matrix";
 
-import { Entity } from './entity';
 import { LevelData, LocationData, PolygonData, SideData } from "./leveldata";
-import { intersectPlane, pointInCube, pointInDirection3, toPlane, toEuler } from './math';
+import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
 
 interface Side {
     vertex: vec2;
@@ -77,6 +76,40 @@ export function cacheFlats(poly: Polygon): void {
     poly.ceilCacheInds = poly.floorCacheInds.slice().reverse();
 }
 
+export interface EntityConfig {
+    type: string,
+    grounded: boolean,
+};
+
+function toConfig(config: string): EntityConfig {
+    switch(config) {
+    case 'player':
+        return {
+            type: config,
+            grounded: true,
+        };
+    default:
+        throw new Error(`Unknown entity type ${config}`);
+    }
+}
+
+export interface Entity {
+    config: EntityConfig,
+    poly: number,
+    pos: vec3,
+    rot: quat,
+};
+
+function toEntity(data: LocationData): Entity {
+    return {
+        config: toConfig(data.type),
+        poly: data.polygon,
+        pos: vec3.fromValues(data.position[0], data.position[1], data.position[2]),
+        rot: quat.fromEuler(quat.create(),
+            data.rotation[0], data.rotation[1], data.rotation[2]),
+    };
+}
+
 export class Level {
     polygons: Polygon[];
     entities: Entity[];
@@ -97,12 +130,7 @@ export class Level {
     unpackLocation(location: LocationData) {
         switch (location.type) {
         case 'player':
-            const entity: Entity = {
-                pos: vec3.fromValues(location.position[0], location.position[1],
-                    location.position[2]),
-                rot: quat.fromEuler(quat.create(), location.rotation[0],
-                    location.rotation[1], location.rotation[2]),
-            };
+            const entity = toEntity(location);
             this.entities.push(entity);
             break;
         }
