@@ -116,9 +116,13 @@ export class FPCanvas extends React.Component<Props> {
         // Persist the atlas to the GPU.
         this.renderer.world.bakeSpriteAtlas(spriteAtlas);
 
-        // Draw our map
+        // Figure out what polygons we should draw from this viewpoint.
         const level = this.props.level;
-        for (let i = 0;i < level.polygons.length;i++) {
+        const polys = r3d.Camera.visiblePolygons(this.props.camera,
+            this.renderer.world.worldProject, level);
+
+        // Draw our map
+        for (let i = 0;i < polys.length;i++) {
             this.renderer.world.addPolygon(level.polygons, i);
         }
 
@@ -142,9 +146,19 @@ export class FPCanvas extends React.Component<Props> {
         // Possibly resize.
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
-        // Redraw all our entities with the new camera position.
+        // Recalculate polygon visibility.
+        const level = nextProps.level;
+        const polys = r3d.Camera.visiblePolygons(nextProps.camera,
+            this.renderer.world.worldProject, level);
+
+        // Redraw our map.
+        this.renderer.world.clearWorld();
+        for (let i = 0;i < polys.length;i++) {
+            this.renderer.world.addPolygon(level.polygons, i);
+        }
+
+        // Redraw all our entities.
         this.renderer.world.clearSprites();
-        const level = this.props.level;
         for (let i = 0;i < level.entities.length;i++) {
             this.renderer.world.addEntity(level.entities[i], nextProps.camera, level.polygons);
         }
