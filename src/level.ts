@@ -137,13 +137,14 @@ export class Level {
     }
 }
 
-type ShouldFloodFn = (level: Level, checkPoly: number, sourcePoly: number, side: number) => boolean;
+type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
+    sourcePoly: number | null, sourceSide: number | null) => boolean;
 
-function floodRecursive(level: Level, current: number,
-    shouldFlood: ShouldFloodFn, flooded: Set<number>)
+function floodRecursive(level: Level, checkPoly: number, lastPoly: number | null,
+    lastSide: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>)
 {
-    flooded.add(current);
-    const poly = level.polygons[current];
+    flooded.add(checkPoly);
+    const poly = level.polygons[checkPoly];
     for (let i = 0;i < poly.sides.length;i++) {
         const side = poly.sides[i];
         if (side.backPoly === null) {
@@ -154,12 +155,12 @@ function floodRecursive(level: Level, current: number,
             // We've already looked at this polygon.
             continue;
         }
-        if (shouldFlood(level, side.backPoly, current, i) === false) {
+        if (shouldFlood(level, checkPoly, i, lastPoly, lastSide) === false) {
             // We shouldn't flood this polygon.
             continue;
         }
         // Flood into this polygon.
-        floodRecursive(level, side.backPoly, shouldFlood, flooded);
+        floodRecursive(level, side.backPoly, checkPoly, i, shouldFlood, flooded);
     }
 }
 
@@ -173,7 +174,7 @@ function floodRecursive(level: Level, current: number,
  */
 export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): Set<number> {
     const flooded: Set<number> = new Set();
-    floodRecursive(level, start, shouldFlood, flooded);
+    floodRecursive(level, start, null, null, shouldFlood, flooded);
     return flooded;
 }
 

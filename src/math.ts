@@ -216,6 +216,57 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
 }
 
 /**
+ * Check if rectangle is partly overlapping another rectangle.
+ *
+ * @param p Origin point of rectangle.
+ * @param q Opposite point of rectangle.
+ * @param r Origin point of other rectangle.
+ * @param s Opposite point of other rectangle.
+ */
+export function rectOverlap(p: vec2, q: vec2, r: vec2, s: vec2): boolean {
+    if (p[0] < q[0]) {
+        var aMinX = p[0];
+        var aMaxX = q[0];
+    } else {
+        var aMaxX = p[0];
+        var aMinX = q[0];
+    }
+
+    if (p[1] < q[1]) {
+        var aMinY = p[1];
+        var aMaxY = q[1];
+    } else {
+        var aMaxY = p[1];
+        var aMinY = q[1];
+    }
+
+    if (r[0] < s[0]) {
+        var bMinX = r[0];
+        var bMaxX = s[0];
+    } else {
+        var bMaxX = r[0];
+        var bMinX = s[0];
+    }
+
+    if (r[1] < s[1]) {
+        var bMinY = r[1];
+        var bMaxY = s[1];
+    } else {
+        var bMaxY = r[1];
+        var bMinY = s[1];
+    }
+
+    if (aMinX >= bMaxX || aMaxX <= bMinX) {
+        return false;
+    }
+    if (aMinY >= bMaxY || aMaxY <= bMinY) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Convert quaternion to euler angles.
  *
  * @param p Quaternion to convert.

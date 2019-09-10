@@ -26,7 +26,7 @@ beforeAll(() => {
 test('Flood-fill that always succeeds', () => {
     expect(flood(testLevel, 0, () => {
         return true;
-    })).toEqual(new Set([0, 1, 2, 3, 4]));
+    })).toEqual(new Set([0, 1, 2, 3, 4, 5]));
 });
 
 test('Flood-fill that always fails', () => {

@@ -6,9 +6,10 @@
  * source distribution.
  */
 
-import { mat4, quat, vec3 } from "gl-matrix";
+import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
-import { constrain, toEuler } from '../math';
+import { constrain, rectOverlap, toEuler } from '../math';
+import { flood, Level } from '../level';
 
 export interface Camera {
     pos: vec3,
@@ -100,4 +101,88 @@ export function getViewMatrix(camera: Camera) {
     mat4.multiply(cameraMat, cameraMat, cameraRot);
     mat4.multiply(cameraMat, cameraMat, cameraTrans);
     return cameraMat;
+}
+
+interface BoundingBox {
+    origin: vec2,
+    opposite: vec2,
+}
+
+function sideToBoundingBox(viewMat: mat4, level: Level, poly: number, side: number) {
+    const source = level.polygons[poly]
+    const first = source.sides[side].vertex;
+    const second = source.sides[(side + 1) % source.sides.length].vertex;
+
+    const verts: vec3[] = [
+        vec3.fromValues(first[0], first[1], source.floorHeight),
+        vec3.fromValues(second[0], second[1], source.floorHeight),
+        vec3.fromValues(first[0], first[1], source.ceilHeight),
+        vec3.fromValues(second[0], second[1], source.ceilHeight),
+    ];
+
+    // World to Clip space, which is also NDC because w is 1.
+    for (let i = 0;i < verts.length;i++) {
+        vec3.transformMat4(verts[i], verts[i], viewMat);
+    }
+
+    // Create a bounding box with the minimum and maximum values.
+    return {
+        origin: vec2.fromValues(
+            Math.min(verts[0][0], verts[1][0], verts[2][0], verts[3][0]),
+            Math.min(verts[0][1], verts[1][1], verts[2][1], verts[3][1])),
+        opposite: vec2.fromValues(
+            Math.max(verts[0][0], verts[1][0], verts[2][0], verts[3][0]),
+            Math.max(verts[0][1], verts[1][1], verts[2][1], verts[3][1])),
+    }
+}
+
+/**
+ * Determine which polygons are visible from the current camera position.
+ * 
+ * @param camera Camera to check visibility from.
+ * @param project Projection matrix to flatten coordinates.
+ * @param level Level to check.
+ */
+export function visiblePolygons(camera: Camera, project: mat4, level: Level): number[] {
+    console.log('VISIBILITY BEGIN!');
+    const viewMat = getViewMatrix(camera);
+    const polyHash: Map<string, BoundingBox> = new Map();
+
+    mat4.multiply(viewMat, project, viewMat);
+
+    const visible = flood(level, 0, (level, checkPoly, checkSide, sourcePoly, sourceSide) => {
+        const checkHash = checkPoly + '_' + checkSide;
+
+        if (sourcePoly === null) {
+            // Create a bounding box from this current side.
+            polyHash.set(checkHash, sideToBoundingBox(viewMat, level,
+                checkPoly, checkSide));
+
+            // We always draw the polygon we're in.
+            return true;
+        }
+
+        // Compare the source with our checked bounding box.
+        const sourceHash = sourcePoly + '_' + sourceSide;
+        const sourceBox = polyHash.get(sourceHash);
+        if (sourceBox === undefined) {
+            throw new Error('Source polygon/side is missing.');
+        }
+        const checkBox = sideToBoundingBox(viewMat, level, checkPoly, checkSide);
+
+        // Save our checked box in the hash.
+        polyHash.set(checkHash, checkBox);
+
+        console.log('source', sourceHash, sourceBox);
+        console.log('check', checkHash, checkBox);
+        console.log('overlap?',
+                    rectOverlap(sourceBox.origin, sourceBox.opposite,
+                                checkBox.origin, checkBox.opposite));
+
+        // Visibility depends on if bounding boxes for these sides overlap.
+        return rectOverlap(sourceBox.origin, sourceBox.opposite,
+                           checkBox.origin, checkBox.opposite);
+    });
+
+    return Array.from(visible);
 }
