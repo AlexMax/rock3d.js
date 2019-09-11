@@ -116,13 +116,15 @@ export class FPCanvas extends React.Component<Props> {
         // Persist the atlas to the GPU.
         this.renderer.world.bakeSpriteAtlas(spriteAtlas);
 
+        const perf = performance.now();
+
         // Figure out what polygons we should draw from this viewpoint.
         const level = this.props.level;
-        const polys = r3d.Camera.visiblePolygons(this.props.camera,
-            this.renderer.world.worldProject, level);
+        // const polys = r3d.Camera.visiblePolygons(this.props.camera,
+        //     this.renderer.world.worldProject, level);
 
         // Draw our map
-        for (let i = 0;i < polys.length;i++) {
+        for (let i = 0;i < level.polygons.length;i++) {
             this.renderer.world.addPolygon(level.polygons, i);
         }
 
@@ -132,6 +134,8 @@ export class FPCanvas extends React.Component<Props> {
         }
 
         this.renderer.render(this.props.camera);
+
+        console.log('frame time: ', performance.now() - perf);
     }
 
     shouldComponentUpdate(nextProps: Props): boolean {
@@ -146,14 +150,16 @@ export class FPCanvas extends React.Component<Props> {
         // Possibly resize.
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
+        const perf = performance.now();
+
         // Recalculate polygon visibility.
         const level = nextProps.level;
-        const polys = r3d.Camera.visiblePolygons(nextProps.camera,
-            this.renderer.world.worldProject, level);
+        // const polys = r3d.Camera.visiblePolygons(nextProps.camera,
+        //     this.renderer.world.worldProject, level);
 
         // Redraw our map.
         this.renderer.world.clearWorld();
-        for (let i = 0;i < polys.length;i++) {
+        for (let i = 0;i < level.polygons.length;i++) {
             this.renderer.world.addPolygon(level.polygons, i);
         }
 
@@ -165,6 +171,8 @@ export class FPCanvas extends React.Component<Props> {
 
         // Draw our map.
         this.renderer.render(nextProps.camera);
+
+        console.log('frame time: ', performance.now() - perf);
 
         return false; // never re-render the DOM node with React
     }
