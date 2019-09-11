@@ -193,6 +193,6 @@
         "type": "player",
         "polygon": 4,
         "position": [0, 704, 32],
-        "rotation": [0, 0, 90]
+        "rotation": [0, 0, 270]
     }]
 }
