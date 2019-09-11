@@ -89,6 +89,19 @@ function billboardVertex(out: vec3, spriteCenter: vec3, offset: vec2,
     return out;
 }
 
+/**
+ * Return a sprite rotation index from 1 to 8 given a camera and sprite
+ * angle.
+ *
+ * @param camAngle World angle of camera.
+ * @param sprAngle World angle of sprite.
+ */
+function spriteRot(camAngle: number, sprAngle: number): number {
+    camAngle += 180; sprAngle += 180;
+    const angle = ((sprAngle + 202.5 - camAngle) + 360) % 360;
+    return Math.floor(angle / 45) + 1;
+}
+
 export class WorldContext {
     parent: RenderContext; // Reference to parent
 
@@ -429,10 +442,39 @@ export class WorldContext {
      * @param polygons Polygons to use when looking up entity positions.
      */
     addEntity(entity: Entity, cam: Camera, polygons: Polygon[]): void {
-        const tex = 'PLAYA1';
-
         if (this.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
+        }
+
+        // Determine which sprite to use.
+        const camAngle = toEuler(vec3.create(), cam.dir);
+        const entAngle = toEuler(vec3.create(), entity.rot);
+        const sprIndex = spriteRot(camAngle[2], entAngle[2]);
+        var flipped = false;
+        switch (sprIndex) {
+        case 1:
+            var tex = 'PLAYA1';
+            break;
+        case 2:
+            flipped = true;
+        case 8:
+            var tex = 'PLAYA2A8';
+            break;
+        case 3:
+            flipped = true;
+        case 7:
+            var tex = 'PLAYA3A7';
+            break;
+        case 4:
+            flipped = true;
+        case 6:
+            var tex = 'PLAYA4A6';
+            break;
+        case 5:
+            var tex = 'PLAYA5';
+            break;
+        default:
+            throw new Error(`Unknown rotation index ${sprIndex}`);
         }
 
         // Find the texture of the wall in the atlas
@@ -443,9 +485,15 @@ export class WorldContext {
         const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
         const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
 
-        const ut1 = 0;
+        if (flipped) {
+            var ut2 = 0;
+            var ut1 = 1;
+        } else {
+            var ut1 = 0;
+            var ut2 = 1;
+        }
+
         const vt1 = 0;
-        const ut2 = 1;
         const vt2 = 1;
 
         // Figure out the brightness of the surrounding polygon.
