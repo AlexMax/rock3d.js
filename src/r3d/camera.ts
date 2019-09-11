@@ -144,7 +144,6 @@ function sideToBoundingBox(viewMat: mat4, level: Level, poly: number, side: numb
  * @param level Level to check.
  */
 export function visiblePolygons(camera: Camera, project: mat4, level: Level): number[] {
-    console.log('VISIBILITY BEGIN!');
     const viewMat = getViewMatrix(camera);
     const polyHash: Map<string, BoundingBox> = new Map();
 
@@ -172,12 +171,6 @@ export function visiblePolygons(camera: Camera, project: mat4, level: Level): nu
 
         // Save our checked box in the hash.
         polyHash.set(checkHash, checkBox);
-
-        console.log('source', sourceHash, sourceBox);
-        console.log('check', checkHash, checkBox);
-        console.log('overlap?',
-                    rectOverlap(sourceBox.origin, sourceBox.opposite,
-                                checkBox.origin, checkBox.opposite));
 
         // Visibility depends on if bounding boxes for these sides overlap.
         return rectOverlap(sourceBox.origin, sourceBox.opposite,
