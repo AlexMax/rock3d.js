@@ -164,13 +164,13 @@ export class RenderContext {
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'white';
         data.polygons.forEach((polygon) => {
-            for (let i = 0;i < polygon.sides.length;i++) {
-                const side = polygon.sides[i];
-                const nextVert = polygon.sides[(i + 1) % polygon.sides.length].vertex;
+            for (let i = 0;i < polygon.edges.length;i++) {
+                const edge = polygon.edges[i];
+                const nextVert = polygon.edges[(i + 1) % polygon.edges.length].vertex;
 
                 if (i === 0) {
                     let v = vec2.create();
-                    vec2.transformMat3(v, side.vertex, cameraMat);
+                    vec2.transformMat3(v, edge.vertex, cameraMat);
                     vec2.transformMat3(v, v, this.canvasProject);
                     ctx.moveTo(crisp(v[0]), crisp(v[1]));
                 }

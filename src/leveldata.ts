@@ -6,7 +6,7 @@
  * source distribution.
  */
 
-export interface SideData {
+export interface EdgeData {
     vertex: number[];
     upperTex?: string;
     middleTex?: string;
@@ -14,33 +14,33 @@ export interface SideData {
     backPoly?: number;
 }
 
-function isSideData(data: SideData): data is SideData {
+function isEdgeData(data: EdgeData): data is EdgeData {
     if (!Array.isArray(data.vertex)) {
-        throw new Error('side vertex is not an Array');
+        throw new Error('edge vertex is not an Array');
     }
     if (data.vertex.length !== 2) {
-        throw new Error('side vertex does not look like a vertex');
+        throw new Error('edge vertex does not look like a vertex');
     }
     if (typeof data.vertex[0] !== 'number' && typeof data.vertex[1] !== 'number') {
-        throw new Error('side vertex does not consist of two numbers');
+        throw new Error('edge vertex does not consist of two numbers');
     }
     if ('upperTex' in data && typeof data.upperTex !== 'string') {
-        throw new Error('side upperTex is not a string');
+        throw new Error('edge upperTex is not a string');
     }
     if ('middleTex' in data && typeof data.middleTex !== 'string') {
-        throw new Error('side middleTex is not a string');
+        throw new Error('edge middleTex is not a string');
     }
     if ('lowerTex' in data && typeof data.lowerTex !== 'string') {
-        throw new Error('side lowerTex is not a string');
+        throw new Error('edge lowerTex is not a string');
     }
     if ('backPoly' in data && typeof data.backPoly !== 'number') {
-        throw new Error('side backPoly is not a number');
+        throw new Error('edge backPoly is not a number');
     }
     return true;
 }
 
 export interface PolygonData {
-    sides: SideData[];
+    edges: EdgeData[];
     ceilHeight: number;
     floorHeight: number;
     ceilTex: string;
@@ -49,14 +49,14 @@ export interface PolygonData {
 }
 
 function isPolygonData(data: PolygonData): data is PolygonData {
-    if (!Array.isArray(data.sides)) {
-        throw new Error('polygon sides is not an Array');
+    if (!Array.isArray(data.edges)) {
+        throw new Error('polygon edges is not an Array');
     }
-    if (data.sides.length < 3) {
-        throw new Error('polygon sides does not have at least three sides');
+    if (data.edges.length < 3) {
+        throw new Error('polygon edges does not have at least three edges');
     }
-    for (let i = 0;i < data.sides.length;i++) {
-        if (!isSideData(data.sides[i])) {
+    for (let i = 0;i < data.edges.length;i++) {
+        if (!isEdgeData(data.edges[i])) {
             return false;
         }
     }

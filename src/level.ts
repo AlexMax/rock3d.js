@@ -9,19 +9,19 @@
 import earcut from "earcut";
 import { vec2, vec3, vec4, quat } from "gl-matrix";
 
-import { LevelData, LocationData, PolygonData, SideData } from "./leveldata";
+import { LevelData, LocationData, PolygonData, EdgeData } from "./leveldata";
 import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
 
-interface Side {
+interface Edge {
     /**
-     * First vertex of the side.  Second vertex is in the next side.
+     * First vertex of the edge.  Second vertex is in the next edge.
      */
     vertex: vec2;
 
     /**
      * Upper texture.
      * 
-     * Used on sides with a backside to texture the wall above the "portal".
+     * Used on edge with a backside to texture the wall above the "portal".
      */
     upperTex: string | null;
 
@@ -49,16 +49,16 @@ interface Side {
     backPoly: number | null;
 
     /**
-     * Side ID of the side in the backPoly that matches up with this side.
+     * ID of the edge in the backPoly that matches up with this edge.
      * 
      * This ID is calculated at runtime and is used by various functions
-     * like hitscan routines that need to know which Side is on the opposite
-     * side of this Side.
+     * like hitscan routines that need to know which Edge is on the opposite
+     * side of this Edge.
      */
-    backSideCache?: number | null;
+    backEdgeCache?: number | null;
 }
 
-function toSide(data: SideData): Side {
+function toEdge(data: EdgeData): Edge {
     return {
         vertex: vec2.fromValues(data.vertex[0], data.vertex[1]),
         upperTex: (typeof data.upperTex === 'string') ? data.upperTex : null,
@@ -69,7 +69,7 @@ function toSide(data: SideData): Side {
 }
 
 export interface Polygon {
-    sides: Side[];
+    edges: Edge[];
     ceilHeight: number;
     floorHeight: number;
     ceilTex: string;
@@ -86,8 +86,8 @@ function toPolygon(data: PolygonData): Polygon {
         floorHeight: data.floorHeight,
         ceilTex: data.ceilTex,
         floorTex: data.floorTex,
-        sides: data.sides.map((data) => {
-            return toSide(data);
+        edges: data.edges.map((data) => {
+            return toEdge(data);
         }),
         brightness: vec3.fromValues(data.brightness[0], data.brightness[1],
             data.brightness[2]),
@@ -104,8 +104,8 @@ function toPolygon(data: PolygonData): Polygon {
  */
 export function cacheFlats(poly: Polygon): void {
     const verts: number[] = [];
-    for (let i = 0;i < poly.sides.length;i++) {
-        const vert = poly.sides[i].vertex;
+    for (let i = 0;i < poly.edges.length;i++) {
+        const vert = poly.edges[i].vertex;
         verts.push(vert[0]);
         verts.push(vert[1]);
     }
@@ -158,26 +158,26 @@ export class Level {
             return toPolygon(data);
         });
 
-        // Cache backPoly side.
+        // Cache backPoly edge.
         for (const poly of this.polygons) {
-            for (let i = 0;i < poly.sides.length;i++) {
-                const backIndex = poly.sides[i].backPoly;
+            for (let i = 0;i < poly.edges.length;i++) {
+                const backIndex = poly.edges[i].backPoly;
                 if (backIndex === null) {
                     continue
                 }
 
                 // Front vertexes.
-                const frontOne = poly.sides[i].vertex;
-                const frontTwo = poly.sides[(i + 1) % poly.sides.length].vertex;
+                const frontOne = poly.edges[i].vertex;
+                const frontTwo = poly.edges[(i + 1) % poly.edges.length].vertex;
 
-                // Find matching side in backPoly.
+                // Find matching edge in backPoly.
                 const backPoly = this.polygons[backIndex];
-                for (let j = 0;j < backPoly.sides.length;j++) {
-                    const backOne = backPoly.sides[j].vertex;
-                    const backTwo = backPoly.sides[(j + 1) % backPoly.sides.length].vertex;
+                for (let j = 0;j < backPoly.edges.length;j++) {
+                    const backOne = backPoly.edges[j].vertex;
+                    const backTwo = backPoly.edges[(j + 1) % backPoly.edges.length].vertex;
 
                     if (vec2.equals(frontOne, backTwo) && vec2.equals(frontTwo, backOne)) {
-                        poly.sides[i].backSideCache = j;
+                        poly.edges[i].backEdgeCache = j;
                         break;
                     }
                 }
@@ -205,26 +205,26 @@ type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
     sourcePoly: number | null, sourceSide: number | null) => boolean;
 
 function floodRecursive(level: Level, checkPoly: number, lastPoly: number | null,
-    lastSide: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>)
+    lastEdge: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>)
 {
     flooded.add(checkPoly);
     const poly = level.polygons[checkPoly];
-    for (let i = 0;i < poly.sides.length;i++) {
-        const side = poly.sides[i];
-        if (side.backPoly === null) {
+    for (let i = 0;i < poly.edges.length;i++) {
+        const edge = poly.edges[i];
+        if (edge.backPoly === null) {
             // There is no polygon to examine.
             continue;
         }
-        if (flooded.has(side.backPoly)) {
+        if (flooded.has(edge.backPoly)) {
             // We've already looked at this polygon.
             continue;
         }
-        if (shouldFlood(level, checkPoly, i, lastPoly, lastSide) === false) {
+        if (shouldFlood(level, checkPoly, i, lastPoly, lastEdge) === false) {
             // We shouldn't flood this polygon.
             continue;
         }
         // Flood into this polygon.
-        floodRecursive(level, side.backPoly, checkPoly, i, shouldFlood, flooded);
+        floodRecursive(level, edge.backPoly, checkPoly, i, shouldFlood, flooded);
     }
 }
 
@@ -314,9 +314,9 @@ export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null 
     let shortestWallDist: number = Infinity;
 
     const wallInter = vec3.create();
-    for (let i = 0;i < poly.sides.length;i++) {
-        const v32 = poly.sides[i].vertex;
-        const v42 = poly.sides[(i + 1) % poly.sides.length].vertex;
+    for (let i = 0;i < poly.edges.length;i++) {
+        const v32 = poly.edges[i].vertex;
+        const v42 = poly.edges[(i + 1) % poly.edges.length].vertex;
         const v3 = vec3.fromValues(v32[0], v32[1], poly.floorHeight);
         const v4 = vec3.fromValues(v42[0], v42[1], poly.ceilHeight);
         const v5 = vec3.fromValues(v42[0], v42[1], poly.floorHeight);
@@ -374,6 +374,6 @@ export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null 
         };
     }
 
-    // Did not hit side of polygon.
+    // Did not hit polygon.
     return null;
 }

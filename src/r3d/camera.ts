@@ -108,10 +108,10 @@ interface BoundingBox {
     opposite: vec2,
 }
 
-function sideToBoundingBox(viewMat: mat4, level: Level, poly: number, side: number) {
+function edgeToBoundingBox(viewMat: mat4, level: Level, poly: number, edge: number) {
     const source = level.polygons[poly]
-    const first = source.sides[side].vertex;
-    const second = source.sides[(side + 1) % source.sides.length].vertex;
+    const first = source.edges[edge].vertex;
+    const second = source.edges[(edge + 1) % source.edges.length].vertex;
 
     const verts: vec3[] = [
         vec3.fromValues(first[0], first[1], source.floorHeight),
@@ -149,30 +149,30 @@ export function visiblePolygons(camera: Camera, project: mat4, level: Level): nu
 
     mat4.multiply(viewMat, project, viewMat);
 
-    const visible = flood(level, 0, (level, checkPoly, checkSide, sourcePoly, sourceSide) => {
-        const checkHash = checkPoly + '_' + checkSide;
+    const visible = flood(level, 0, (level, checkPoly, checkEdge, sourcePoly, sourceEdge) => {
+        const checkHash = checkPoly + '_' + checkEdge;
 
         if (sourcePoly === null) {
-            // Create a bounding box from this current side.
-            polyHash.set(checkHash, sideToBoundingBox(viewMat, level,
-                checkPoly, checkSide));
+            // Create a bounding box from this current edge.
+            polyHash.set(checkHash, edgeToBoundingBox(viewMat, level,
+                checkPoly, checkEdge));
 
             // We always draw the polygon we're in.
             return true;
         }
 
         // Compare the source with our checked bounding box.
-        const sourceHash = sourcePoly + '_' + sourceSide;
+        const sourceHash = sourcePoly + '_' + sourceEdge;
         const sourceBox = polyHash.get(sourceHash);
         if (sourceBox === undefined) {
-            throw new Error('Source polygon/side is missing.');
+            throw new Error('Source polygon/edge is missing.');
         }
-        const checkBox = sideToBoundingBox(viewMat, level, checkPoly, checkSide);
+        const checkBox = edgeToBoundingBox(viewMat, level, checkPoly, checkEdge);
 
         // Save our checked box in the hash.
         polyHash.set(checkHash, checkBox);
 
-        // Visibility depends on if bounding boxes for these sides overlap.
+        // Visibility depends on if bounding boxes for these edges overlap.
         return rectOverlap(sourceBox.origin, sourceBox.opposite,
                            checkBox.origin, checkBox.opposite);
     });

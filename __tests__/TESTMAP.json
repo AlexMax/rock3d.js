@@ -5,7 +5,7 @@
         "floorHeight": 0,
         "ceilTex": "RROCK18",
         "floorTex": "FLOOR4_8",
-        "sides": [{
+        "edges": [{
             "vertex": [-256, 512],
             "middleTex": "STARTAN3"
         }, {
@@ -41,7 +41,7 @@
         "floorHeight": 8,
         "ceilTex": "RROCK18",
         "floorTex": "CEIL5_1",
-        "sides": [{
+        "edges": [{
             "vertex": [-128, 512],
             "middleTex": "STARTAN3"
         }, {
@@ -68,7 +68,7 @@
         "floorHeight": 16,
         "ceilTex": "RROCK18",
         "floorTex": "CEIL5_1",
-        "sides": [{
+        "edges": [{
             "vertex": [-96, 512],
             "middleTex": "STARTAN3"
         }, {
@@ -95,7 +95,7 @@
         "floorHeight": 24,
         "ceilTex": "RROCK18",
         "floorTex": "CEIL5_1",
-        "sides": [{
+        "edges": [{
             "vertex": [-64, 512],
             "upperTex": "STARTAN3",
             "lowerTex": "STEP3",
@@ -113,7 +113,7 @@
         "floorHeight": 32,
         "ceilTex": "FLAT2",
         "floorTex": "FLAT14",
-        "sides": [{
+        "edges": [{
             "vertex": [-64, 512],
             "middleTex": "STARTAN3"
         }, {
@@ -150,7 +150,7 @@
         "floorHeight": 24,
         "ceilTex": "F_SKY1",
         "floorTex": "GRASS1",
-        "sides": [{
+        "edges": [{
             "vertex": [320, 896],
             "upperTex": "BROWN96",
             "lowerTex": "BROWN96",
@@ -193,6 +193,6 @@
         "type": "player",
         "polygon": 4,
         "position": [0, 704, 32],
-        "rotation": [0, 0, 90]
+        "rotation": [0, 0, 270]
     }]
 }
