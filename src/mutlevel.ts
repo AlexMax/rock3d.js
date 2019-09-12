@@ -38,8 +38,8 @@ class VertexCache extends Map<String, VertexPolys> {
         const polys = level.polygons;
         for (let i = 0;i < polys.length;i++) {
             const poly = polys[i];
-            for (let j = 0;j < poly.sides.length;j++) {
-                const side = poly.sides[j];
+            for (let j = 0;j < poly.edges.length;j++) {
+                const side = poly.edges[j];
                 const hash = side.vertex.toString();
                 if (!this.has(hash)) {
                     // Vertex does not exist, create a new entity in the cache.
