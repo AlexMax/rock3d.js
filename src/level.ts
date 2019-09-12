@@ -13,11 +13,49 @@ import { LevelData, LocationData, PolygonData, SideData } from "./leveldata";
 import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
 
 interface Side {
+    /**
+     * First vertex of the side.  Second vertex is in the next side.
+     */
     vertex: vec2;
+
+    /**
+     * Upper texture.
+     * 
+     * Used on sides with a backside to texture the wall above the "portal".
+     */
     upperTex: string | null;
+
+    /**
+     * Middle texture.
+     * 
+     * Used on normal walls with no backside as their primary wall texture
+     * or sides with a backside when you want a texture covering the "portal".
+     */
     middleTex: string | null;
+
+    /**
+     * Upper texture.
+     * 
+     * Used on sides with a backside to texture the wall below the "portal".
+     */
     lowerTex: string | null;
+
+    /**
+     * Polygon ID of the polygon on the opposite side of this side.
+     * 
+     * Used if this side should be a portal to another polygon, or null if
+     * the polygon should just be a wall.
+     */
     backPoly: number | null;
+
+    /**
+     * Side ID of the side in the backPoly that matches up with this side.
+     * 
+     * This ID is calculated at runtime and is used by various functions
+     * like hitscan routines that need to know which Side is on the opposite
+     * side of this Side.
+     */
+    backSideCache?: number | null;
 }
 
 function toSide(data: SideData): Side {
@@ -119,6 +157,32 @@ export class Level {
         this.polygons = levelData.polygons.map((data) => {
             return toPolygon(data);
         });
+
+        // Cache backPoly side.
+        for (const poly of this.polygons) {
+            for (let i = 0;i < poly.sides.length;i++) {
+                const backIndex = poly.sides[i].backPoly;
+                if (backIndex === null) {
+                    continue
+                }
+
+                // Front vertexes.
+                const frontOne = poly.sides[i].vertex;
+                const frontTwo = poly.sides[(i + 1) % poly.sides.length].vertex;
+
+                // Find matching side in backPoly.
+                const backPoly = this.polygons[backIndex];
+                for (let j = 0;j < backPoly.sides.length;j++) {
+                    const backOne = backPoly.sides[j].vertex;
+                    const backTwo = backPoly.sides[(j + 1) % backPoly.sides.length].vertex;
+
+                    if (vec2.equals(frontOne, backTwo) && vec2.equals(frontTwo, backOne)) {
+                        poly.sides[i].backSideCache = j;
+                        break;
+                    }
+                }
+            }
+        }
 
         // Locations can do many things to the level.
         this.entities = [];
