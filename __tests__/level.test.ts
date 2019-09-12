@@ -39,7 +39,7 @@ test('Hitscan Polygon (looking south, hits a flat wall)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, -1, 0);
 
-    const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
+    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Wall);
     expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, -64, 48]);
@@ -49,7 +49,7 @@ test('Hitscan Polygon (looking north, hits the tip of the staircase)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, 0);
 
-    const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
+    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Wall);
     expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 256, 48]);
@@ -59,7 +59,7 @@ test('Hitscan Polygon (looking north, hits the floor)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, -1);
 
-    const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
+    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Floor);
     expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 48, 0]);
@@ -69,7 +69,7 @@ test('Hitscan Polygon (looking north, hits the ceiling)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, 1);
 
-    const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
+    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Ceiling);
     expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 80, 128]);
@@ -79,6 +79,6 @@ test('Hitscan Polygon (outside of the polygon)', () => {
     const startPos = vec3.fromValues(0, -128, 48);
     const startDir = vec3.fromValues(0, -1, 0);
 
-    const actual = hitscanPolygon(testLevel.polygons[0], startPos, startDir);
+    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).toBeNull();
 });

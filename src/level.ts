@@ -258,6 +258,7 @@ export enum HitType {
 export interface Hit {
     type: HitType,
     pos: vec3,
+    polyNum?: number,
     wallNum?: number,
     entityNum?: number,
 }
@@ -266,11 +267,17 @@ export interface Hit {
  * Cast a hitscan ray from a given starting position into the geometry of
  * the level.
  * 
- * @param poly Polygon to cast histcan inside.
+ * @param level Level to cast hitscan inside.
+ * @param polyID Polygon ID of origin.
  * @param pos Ray origin.
  * @param dir Normalized ray direction.
+ * @param ignoreWall Wall of polygon to ignore.
  */
-export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null {
+export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
+    dir: vec3): Hit | null
+{
+    const poly = level.polygons[polyID];
+
     // Some functions require absolute position of startDir.
     const v2 = vec3.add(vec3.create(), pos, dir);
 
@@ -366,10 +373,24 @@ export function hitscanPolygon(poly: Polygon, pos: vec3, dir: vec3): Hit | null 
         };
     }
     if (isFinite(shortestWallDist)) {
+        const backPolyID = poly.edges[(shortestWall as number)].backPoly;
+        const backEdgeID = poly.edges[(shortestWall as number)].backEdgeCache as number;
+        if (backPolyID !== null) {
+            // Check if our hitscan is in-bounds in the next polygon.
+            const backPoly = level.polygons[backPolyID];
+            if ((shortestWallInter as vec3)[2] > backPoly.floorHeight &&
+                (shortestWallInter as vec3)[2] < backPoly.ceilHeight)
+            {
+                // Continue our hitscan into the next polygon.
+                return hitscanPolygon(level, backPolyID, shortestWallInter, dir);
+            }
+        }
+
         // Hit a wall.
         return {
             type: HitType.Wall,
             pos: shortestWallInter as vec3, // is never null
+            polyNum: polyID,
             wallNum: shortestWall as number, // is never null
         };
     }
