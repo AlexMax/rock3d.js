@@ -45,14 +45,15 @@ test('Hitscan Polygon (looking south, hits a flat wall)', () => {
     expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, -64, 48]);
 });
 
-test('Hitscan Polygon (looking north, hits the tip of the staircase)', () => {
+test('Hitscan Polygon (looking north, goes through polys, hits wall)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, 0);
 
     const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Wall);
-    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 256, 48]);
+    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 768, 48]);
+    expect((actual as Hit).polyNum).toEqual(4);
 });
 
 test('Hitscan Polygon (looking north, hits the floor)', () => {

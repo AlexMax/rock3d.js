@@ -56,6 +56,14 @@ interface Edge {
      * side of this Edge.
      */
     backEdgeCache?: number | null;
+
+    /**
+     * Normal vector of Edge.
+     *
+     * Calculated at runtime.  Must be refreshed if current or next vertex
+     * is moved.
+     */
+    normalCache?: vec2;
 }
 
 function toEdge(data: EdgeData): Edge {
@@ -158,17 +166,24 @@ export class Level {
             return toPolygon(data);
         });
 
-        // Cache backPoly edge.
+        // Cache backPoly edge and normal vector.
         for (const poly of this.polygons) {
             for (let i = 0;i < poly.edges.length;i++) {
+                // Front vertexes.
+                const frontOne = poly.edges[i].vertex;
+                const frontTwo = poly.edges[(i + 1) % poly.edges.length].vertex;
+
+                // Cache normal vector
+                poly.edges[i].normalCache = vec2.fromValues(
+                    frontTwo[1] - frontOne[1],
+                    -(frontTwo[0] - frontOne[0])
+                );
+
+                // Check for backPoly
                 const backIndex = poly.edges[i].backPoly;
                 if (backIndex === null) {
                     continue
                 }
-
-                // Front vertexes.
-                const frontOne = poly.edges[i].vertex;
-                const frontTwo = poly.edges[(i + 1) % poly.edges.length].vertex;
 
                 // Find matching edge in backPoly.
                 const backPoly = this.polygons[backIndex];
@@ -271,7 +286,6 @@ export interface Hit {
  * @param polyID Polygon ID of origin.
  * @param pos Ray origin.
  * @param dir Normalized ray direction.
- * @param ignoreWall Wall of polygon to ignore.
  */
 export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
     dir: vec3): Hit | null
@@ -322,6 +336,12 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
 
     const wallInter = vec3.create();
     for (let i = 0;i < poly.edges.length;i++) {
+        // Only consider edges that we can hit the front of.
+        const normal = poly.edges[i].normalCache as vec2;
+        if (vec2.dot([dir[0], dir[1]], normal) >= 0) {
+            continue;
+        }
+
         const v32 = poly.edges[i].vertex;
         const v42 = poly.edges[(i + 1) % poly.edges.length].vertex;
         const v3 = vec3.fromValues(v32[0], v32[1], poly.floorHeight);
@@ -374,7 +394,6 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
     }
     if (isFinite(shortestWallDist)) {
         const backPolyID = poly.edges[(shortestWall as number)].backPoly;
-        const backEdgeID = poly.edges[(shortestWall as number)].backEdgeCache as number;
         if (backPolyID !== null) {
             // Check if our hitscan is in-bounds in the next polygon.
             const backPoly = level.polygons[backPolyID];
