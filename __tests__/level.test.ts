@@ -8,7 +8,9 @@
 
 import { vec3 } from 'gl-matrix';
 
-import { flood, Hit, HitType, hitscanPolygon, Level } from '../src/level';
+import {
+    flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level
+} from '../src/level';
 import { isLevelData } from '../src/leveldata';
 
 import TESTMAP from './TESTMAP.json';
@@ -39,47 +41,50 @@ test('Hitscan Polygon (looking south, hits a flat wall)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, -1, 0);
 
-    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
+    const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
-    expect((actual as Hit).type).toBe(HitType.Wall);
-    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, -64, 48]);
+    expect((actual as Hit).type).toBe(HitType.Edge);
+    expect((actual as HitEdge).position).toEqualVec3([0, -64, 48]);
+    expect((actual as HitEdge).polyNum).toEqual(0);
 });
 
 test('Hitscan Polygon (looking north, goes through polys, hits wall)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, 0);
 
-    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
+    const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
-    expect((actual as Hit).type).toBe(HitType.Wall);
-    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 768, 48]);
-    expect((actual as Hit).polyNum).toEqual(4);
+    expect((actual as Hit).type).toBe(HitType.Edge);
+    expect((actual as HitEdge).position).toEqualVec3([0, 768, 48]);
+    expect((actual as HitEdge).polyNum).toEqual(4);
 });
 
 test('Hitscan Polygon (looking north, hits the floor)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, -1);
 
-    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
+    const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Floor);
-    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 48, 0]);
+    expect((actual as HitFloor).position).toEqualVec3([0, 48, 0]);
+    expect((actual as HitFloor).polyNum).toEqual(0);
 });
 
 test('Hitscan Polygon (looking north, hits the ceiling)', () => {
     const startPos = vec3.fromValues(0, 0, 48);
     const startDir = vec3.fromValues(0, 1, 1);
 
-    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
+    const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).not.toBeNull();
-    expect((actual as Hit).type).toBe(HitType.Ceiling);
-    expect(Array.prototype.slice.call((actual as Hit).pos)).toEqual([0, 80, 128]);
+    expect((actual as HitCeiling).type).toBe(HitType.Ceiling);
+    expect((actual as HitCeiling).position).toEqualVec3([0, 80, 128]);
+    expect((actual as HitCeiling).polyNum).toEqual(0);
 });
 
 test('Hitscan Polygon (outside of the polygon)', () => {
     const startPos = vec3.fromValues(0, -128, 48);
     const startDir = vec3.fromValues(0, -1, 0);
 
-    const actual = hitscanPolygon(testLevel, 0, startPos, startDir);
+    const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).toBeNull();
 });

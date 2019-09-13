@@ -6,8 +6,14 @@ module.exports = {
     transform: {
         "^.+\\.ts$": "ts-jest"
     },
+    setupFilesAfterEnv: [
+        "<rootDir>/__tests__/matchers.ts"
+    ],
+    testMatch: [
+        "**/__tests__/**/*test.[jt]s?(x)"
+    ],
     collectCoverage: true,
     collectCoverageFrom: [
         "**/*.ts",
-    ]
+    ],
 };

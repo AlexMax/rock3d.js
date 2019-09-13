@@ -261,22 +261,53 @@ export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): 
  * Defines possible types of return values from hitscan functions.
  */
 export enum HitType {
-    Wall,
+    Edge,
     Floor,
     Ceiling,
     Entity,
 }
 
 /**
- * Defines possible return values from hitscan functions.
+ * Hit an Edge.
  */
-export interface Hit {
-    type: HitType,
-    pos: vec3,
-    polyNum?: number,
-    wallNum?: number,
-    entityNum?: number,
-}
+export interface HitEdge {
+    type: HitType.Edge,
+    position: vec3,
+    polyNum: number,
+    edgeNum: number,
+};
+
+/**
+ * Hit the floor of a Polygon.
+ */
+export interface HitFloor {
+    type: HitType.Floor,
+    position: vec3,
+    polyNum: number,
+};
+
+/**
+ * Hit the ceiling of a Polygon.
+ */
+export interface HitCeiling {
+    type: HitType.Ceiling,
+    position: vec3,
+    polyNum: number,
+};
+
+/**
+ * Hit an Entity.
+ */
+export interface HitEntity {
+    type: HitType.Entity,
+    position: vec3,
+    entityNum: number,
+};
+
+/**
+ * Possible return values from hitscan function.
+ */
+export type Hit = HitEdge | HitFloor | HitCeiling | HitEntity;
 
 /**
  * Cast a hitscan ray from a given starting position into the geometry of
@@ -284,16 +315,16 @@ export interface Hit {
  * 
  * @param level Level to cast hitscan inside.
  * @param polyID Polygon ID of origin.
- * @param pos Ray origin.
- * @param dir Normalized ray direction.
+ * @param position Ray origin.
+ * @param direction Normalized ray direction.
  */
-export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
-    dir: vec3): Hit | null
+export function hitscan(level: Level, polyID: number, position: vec3,
+    direction: vec3): Hit | null
 {
     const poly = level.polygons[polyID];
 
     // Some functions require absolute position of startDir.
-    const v2 = vec3.add(vec3.create(), pos, dir);
+    const v2 = vec3.add(vec3.create(), position, direction);
 
     // First, test collision with floor.
     const floorPlane = toPlane(vec4.create(),
@@ -301,15 +332,15 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
         vec3.fromValues(1, 1, poly.floorHeight),
         vec3.fromValues(1, 0, poly.floorHeight)
     );
-    const floorInter = intersectPlane(vec3.create(), pos, v2, floorPlane);
+    const floorInter = intersectPlane(vec3.create(), position, v2, floorPlane);
     if (floorInter === null) {
         // Didn't hit.
         var floorDist = Infinity;
-    } else if (!pointInDirection3(pos, dir, floorInter)) {
+    } else if (!pointInDirection3(position, direction, floorInter)) {
         // Wrong direction.
         var floorDist = Infinity;
     } else {
-        var floorDist = vec3.squaredDistance(pos, floorInter);
+        var floorDist = vec3.squaredDistance(position, floorInter);
     }
 
     // Next, test collision with ceiling.
@@ -318,15 +349,15 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
         vec3.fromValues(1, 1, poly.ceilHeight),
         vec3.fromValues(1, 0, poly.ceilHeight)
     );
-    const ceilInter = intersectPlane(vec3.create(), pos, v2, ceilPlane);
+    const ceilInter = intersectPlane(vec3.create(), position, v2, ceilPlane);
     if (ceilInter === null) {
         // Didn't hit.
         var ceilDist = Infinity;
-    } else if (!pointInDirection3(pos, dir, ceilInter)) {
+    } else if (!pointInDirection3(position, direction, ceilInter)) {
         // Wrong direction.
         var ceilDist = Infinity;
     } else {
-        var ceilDist = vec3.squaredDistance(pos, ceilInter);
+        var ceilDist = vec3.squaredDistance(position, ceilInter);
     }
 
     // Finally, test collisions with walls.
@@ -338,7 +369,7 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
     for (let i = 0;i < poly.edges.length;i++) {
         // Only consider edges that we can hit the front of.
         const normal = poly.edges[i].normalCache as vec2;
-        if (vec2.dot([dir[0], dir[1]], normal) >= 0) {
+        if (vec2.dot([direction[0], direction[1]], normal) >= 0) {
             continue;
         }
 
@@ -353,7 +384,7 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
         const plane = toPlane(vec4.create(), v3, v4, v5);
 
         // Check for plane intersection.
-        const didInter = intersectPlane(wallInter, pos, v2, plane);
+        const didInter = intersectPlane(wallInter, position, v2, plane);
         if (didInter === null) {
             // No intersection.
             continue;
@@ -364,13 +395,13 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
             continue;
         }
 
-        if (!pointInDirection3(pos, dir, wallInter)) {
+        if (!pointInDirection3(position, direction, wallInter)) {
             // Fails directional AABB test.
             continue;
         }
 
         // We hit a wall.  But did we hit the closest wall?
-        const wallDist = vec3.squaredDistance(pos, wallInter);
+        const wallDist = vec3.squaredDistance(position, wallInter);
         if (shortestWall === null || wallDist < shortestWallDist) {
             shortestWall = i;
             vec3.copy(shortestWallInter, wallInter);
@@ -382,14 +413,16 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
         // Hit the ceiling.
         return {
             type: HitType.Ceiling,
-            pos: ceilInter as vec3, // is never null
+            position: ceilInter as vec3, // is never null
+            polyNum: polyID,
         };
     }
     if (isFinite(floorDist) && floorDist < shortestWallDist && floorDist < ceilDist) {
         // Hit the floor.
         return {
             type: HitType.Floor,
-            pos: floorInter as vec3, // is never null
+            position: floorInter as vec3, // is never null
+            polyNum: polyID,
         };
     }
     if (isFinite(shortestWallDist)) {
@@ -401,16 +434,16 @@ export function hitscanPolygon(level: Level, polyID: number, pos: vec3,
                 (shortestWallInter as vec3)[2] < backPoly.ceilHeight)
             {
                 // Continue our hitscan into the next polygon.
-                return hitscanPolygon(level, backPolyID, shortestWallInter, dir);
+                return hitscan(level, backPolyID, shortestWallInter, direction);
             }
         }
 
         // Hit a wall.
         return {
-            type: HitType.Wall,
-            pos: shortestWallInter as vec3, // is never null
+            type: HitType.Edge,
+            position: shortestWallInter as vec3, // is never null
             polyNum: polyID,
-            wallNum: shortestWall as number, // is never null
+            edgeNum: shortestWall as number, // is never null
         };
     }
 
