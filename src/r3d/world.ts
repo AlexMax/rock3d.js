@@ -11,7 +11,7 @@ import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 import { Atlas } from '../atlas';
 import { Camera, getViewMatrix } from './camera';
 import { cacheFlats, Entity, Polygon } from '../level';
-import { toEuler } from '../math';
+import { constrain, toEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
 
@@ -317,9 +317,19 @@ export class WorldContext {
         let ut2 = hDist / texEntry.texture.width;
         let vt2 = vDist / texEntry.texture.height;
 
-        const rBright = bright[0] / 256;
-        const gBright = bright[1] / 256;
-        const bBright = bright[2] / 256;
+        // Adjust brightness depending on which direction the wall is going.
+        // Angles that are parallel to the X axis are darker, angles that
+        // are parallel to the Y axis are brighter.  This is known as "fake
+        // contrast".
+        // 
+        // TODO: A triangle wave would probably look more consistent than
+        //       a sinusoid, but this works well enough for now.
+        const angle = Math.atan2(two[1] - one[1], two[0] - one[0]);
+        const fBright = Math.cos(2 * angle) * -16;
+
+        const rBright = constrain((bright[0] + fBright) / 256, 0, 1);
+        const gBright = constrain((bright[1] + fBright) / 256, 0, 1);
+        const bBright = constrain((bright[2] + fBright) / 256, 0, 1);
 
         // Draw a wall into the vertex and index buffers.
         //
