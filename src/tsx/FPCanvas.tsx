@@ -30,6 +30,7 @@ import FLAT2 from '../asset/FLAT2.png';
 import FLOOR4_8 from '../asset/FLOOR4_8.png';
 import GRASS1 from '../asset/GRASS1.png';
 import RROCK18 from '../asset/RROCK18.png';
+import SKY1 from '../asset/SKY1.png';
 import STARTAN3 from '../asset/STARTAN3.png';
 import STEP3 from '../asset/STEP3.png';
 
@@ -83,6 +84,7 @@ export class FPCanvas extends React.Component<Props> {
             textureLoader('FLOOR4_8', FLOOR4_8),
             textureLoader('GRASS1', GRASS1),
             textureLoader('RROCK18', RROCK18),
+            textureLoader('SKY1', SKY1),
             textureLoader('STARTAN3', STARTAN3),
             textureLoader('STEP3', STEP3),
         ]);
@@ -122,6 +124,9 @@ export class FPCanvas extends React.Component<Props> {
         const level = this.props.level;
         // const polys = r3d.Camera.visiblePolygons(this.props.camera,
         //     this.renderer.world.worldProject, level);
+
+        // Create our sky.
+        this.renderer.world.addSky('SKY1');
 
         // Draw our map
         for (let i = 0;i < level.polygons.length;i++) {
