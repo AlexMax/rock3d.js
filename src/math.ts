@@ -267,6 +267,24 @@ export function rectOverlap(p: vec2, q: vec2, r: vec2, s: vec2): boolean {
 }
 
 /**
+ * Convert spherical coordinates to cartesian coordinates.
+ * 
+ * @param out Output vector.
+ * @param radius Radius of sphere.
+ * @param phi Parallel angle in radians.
+ * @param theta Meridian angle in radians.
+ */
+export function sphereToCartesian(out: vec3, radius: number, phi: number,
+    theta: number): vec3
+{
+    const sinPhi = Math.sin(phi);
+    out[0] = radius * sinPhi * Math.cos(theta);
+    out[1] = radius * sinPhi * Math.sin(theta);
+    out[2] = radius * Math.cos(phi);
+    return out;
+}
+
+/**
  * Convert quaternion to euler angles.
  *
  * @param p Quaternion to convert.

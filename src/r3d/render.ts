@@ -10,7 +10,7 @@ import { Camera } from './camera';
 import { DebugTextureContext } from './debug_texture';
 import { WorldContext } from './world';
 
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 export class RenderContext {
     canvas: HTMLCanvasElement;
@@ -64,8 +64,8 @@ export class RenderContext {
 
     render(cam: Camera): void {
         this.world.render(cam);
-        if (this.debugTexture !== undefined && this.world.spriteAtlas !== undefined) {
-            this.debugTexture.render(this.world.spriteTexAtlas);
+        if (this.debugTexture !== undefined && this.world.worldAtlas !== undefined) {
+            this.debugTexture.render(this.world.worldTexAtlas);
         }
     }
 }

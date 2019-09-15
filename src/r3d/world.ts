@@ -9,9 +9,9 @@
 import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
-import { Camera, getViewMatrix } from './camera';
+import { Camera, create as createCamera, getViewMatrix, rotateEuler } from './camera';
 import { cacheFlats, Entity, Polygon } from '../level';
-import { constrain, toEuler } from '../math';
+import { constrain, sphereToCartesian, toEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
 
@@ -127,21 +127,35 @@ export class WorldContext {
     spriteInds: Uint16Array;
     spriteIndCount: number;
 
+    skyVerts: ArrayBuffer;
+    skyVertCount: number;
+    skyInds: Uint16Array;
+    skyIndCount: number;
+
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
 
         // Set up non-JS data.
+
+        // Polygon vertexes and indexes.
         this.worldVerts = new ArrayBuffer(32768);
         this.worldVertCount = 0;
         this.worldInds = new Uint16Array(1024);
         this.worldIndCount = 0;
         this.worldProject = mat4.create();
 
+        // Sprite vertexes and indexes.
         this.spriteVerts = new ArrayBuffer(32768);
         this.spriteVertCount = 0;
         this.spriteInds = new Uint16Array(1024);
         this.spriteIndCount = 0;
+
+        // Sky vertexes and indexes.
+        this.skyVerts = new ArrayBuffer(32768);
+        this.skyVertCount = 0;
+        this.skyInds = new Uint16Array(1024);
+        this.skyIndCount = 0;
 
         // 3D shader program, used for rendering walls, floors and ceilings.
         const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
@@ -367,6 +381,11 @@ export class WorldContext {
      * @param bright Floor or ceiling brightness.
      */
     addFlatTessellation(verts: number[], inds: number[], z: number, tex: string, bright: vec3): void {
+        if (tex === 'F_SKY1') {
+            // Don't draw the sky.
+            return;
+        }
+
         if (this.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
@@ -580,6 +599,85 @@ export class WorldContext {
     }
 
     /**
+     * Add sky sphere.
+     * 
+     * The sky sphere is a basic UV sphere of constant size.
+     */
+    addSky(tex: string): void {
+        if (this.worldAtlas === undefined) {
+            throw new Error('Texture Atlas is empty');
+        }
+
+        // Find the texture of the sky in the atlas
+        const texEntry = this.worldAtlas.find(tex);
+
+        const ua1 = texEntry.xPos / this.worldAtlas.length;
+        const va1 = texEntry.yPos / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+
+        // Number of parallel lines, not counting the two poles. 
+        const parallelsCount = 9;
+
+        // Number of meridians per parallel.
+        const meridiansCount = 16;
+
+        // Radius of circle in world units.
+        const radius = 128;
+
+        // Vertex #1 is at the top of the sphere.
+        let vCount = this.skyVertCount;
+        setVertex(this.skyVerts, vCount, 0, 0, radius,
+            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1);
+        vCount += 1;
+
+        // Vertex #2 is at the bottom of the sphere.
+        setVertex(this.skyVerts, vCount, 0, 0, -radius,
+            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1);
+        vCount += 1;
+
+        // Generate coordinates for all points on the sphere in between the
+        // two poles.
+        for (let i = 0;i < parallelsCount;i++) {
+            const parallel = Math.PI * (i + 1) / (parallelsCount + 1);
+            const vt = (i / (parallelsCount - 1)) * (256 / texEntry.texture.height);
+            for (let j = 0;j <= meridiansCount;j++) {
+                const meridian = 2.0 * Math.PI * j / meridiansCount;
+                const pos = sphereToCartesian(vec3.create(), radius, parallel, meridian);
+                const ut = (j / (meridiansCount)) * (1024 / texEntry.texture.width);
+                setVertex(this.skyVerts, vCount, pos[0], pos[1], pos[2],
+                    ua1, va1, ua2 - ua1, va2 - va1, ut, vt, 1, 1, 1);
+                vCount += 1;
+            }
+        }
+
+        // Generate indexes to draw the sphere from the inside.
+        let iCount = this.skyIndCount;
+
+        // Draw squares between parallels.
+        for (let i = 0;i < parallelsCount - 1;i++) {
+            const thisPIndex = this.skyVertCount + 2 + i * (meridiansCount + 1);
+            const nextPIndex = this.skyVertCount + 2 + ((i + 1) * (meridiansCount + 1));
+            for (let j = 0;j < meridiansCount;j++) {
+                const iOne = thisPIndex + j;
+                const iTwo = thisPIndex + j + 1;
+                const iThree = nextPIndex + j;
+                const iFour = nextPIndex + j + 1;
+                this.skyInds[iCount] = iOne;
+                this.skyInds[iCount + 1] = iTwo;
+                this.skyInds[iCount + 2] = iThree;
+                this.skyInds[iCount + 3] = iThree;
+                this.skyInds[iCount + 4] = iTwo;
+                this.skyInds[iCount + 5] = iFour;
+                iCount += 6;
+            }
+        }
+
+        this.skyVertCount = vCount;
+        this.skyIndCount = iCount;
+    }
+
+    /**
      * Clear the world vertexes.
      */
     clearWorld(): void {
@@ -664,14 +762,6 @@ export class WorldContext {
         // Use the world program.
         gl.useProgram(this.worldProg);
 
-        // Bind our camera data.
-        const view = getViewMatrix(cam);
-        const viewLoc = gl.getUniformLocation(this.worldProg, "uView");
-        if (viewLoc === null) {
-            throw new Error('uView uniform location could not be found');
-        }
-        gl.uniformMatrix4fv(viewLoc, false, view);
-
         // Length of a single vertex.
         const vertexLen = vertexBytes(1);
 
@@ -690,6 +780,31 @@ export class WorldContext {
         // Bind the world atlas texture.
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+
+        // Bind our sky camera data.
+        const skyCam = createCamera(0, 0, 0);
+        skyCam.dir = cam.dir;
+        const skyView = getViewMatrix(skyCam);
+        const viewLoc = gl.getUniformLocation(this.worldProg, "uView");
+        if (viewLoc === null) {
+            throw new Error('uView uniform location could not be found');
+        }
+        gl.uniformMatrix4fv(viewLoc, false, skyView);
+
+        // Load our sky data.
+        gl.bufferData(gl.ARRAY_BUFFER, this.skyVerts, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.skyInds, gl.STATIC_DRAW);
+
+        // Draw the sky.
+        gl.drawElements(gl.TRIANGLES, this.skyIndCount, gl.UNSIGNED_SHORT, 0);
+
+        // Clear the depth buffer - we're always going to draw our world
+        // in front of the sky.
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // Bind our world camera data.
+        const worldView = getViewMatrix(cam);
+        gl.uniformMatrix4fv(viewLoc, false, worldView);
 
         // Load our world data.
         gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
