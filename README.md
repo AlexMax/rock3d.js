@@ -1,5 +1,5 @@
-rocked.js
-=========
+rocked
+======
 An in-browser map editor for the [rock3d.js][1] rendering engine.
 
 [1]: https://github.com/AlexMax/rock3d.js
