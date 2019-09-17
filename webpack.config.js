@@ -1,13 +1,17 @@
 const path = require('path');
 
 module.exports = {
-    entry: './src/index.ts',
+    entry: './src/editor/index.ts',
     mode: "production",
     module: {
         rules: [{
             exclude: /node_modules/,
-            test: /\.ts$/,
-            use: 'ts-loader?configFile=tsconfig.webpack.json'
+            test: /\.tsx?$/,
+            use: 'ts-loader'
+        }, {
+            exclude: /node_modules/,
+            test: /\.png$/,
+            use: 'file-loader'
         }, {
             exclude: /node_modules/,
             test: /\.(frag|vert)$/,
@@ -16,11 +20,10 @@ module.exports = {
     },
     output: {
         filename: 'index.js',
-        library: 'rock3d',
-        libraryTarget: 'umd',
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'public/dist'),
+        publicPath: '/dist/'
     },
     resolve: {
-        extensions: ['.ts'],
+        extensions: ['.js', '.ts', '.jsx', '.tsx']
     }
 };

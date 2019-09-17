@@ -2,11 +2,12 @@
     "compilerOptions": {
         "declaration": true,
         "esModuleInterop": true,
+        "jsx": "react",
         "moduleResolution": "node",
         "outDir": "dist",
         "resolveJsonModule": true,
         "sourceMap": true,
         "strict": true,
-        "target": "es2015",
+        "target": "es2015"
     }
 }
