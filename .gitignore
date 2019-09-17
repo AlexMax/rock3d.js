@@ -2,5 +2,6 @@
 /caddy
 /caddy.exe
 /coverage
+/dist
 /node_modules
 /public/dist
