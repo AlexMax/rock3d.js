@@ -16,7 +16,6 @@ $ npm run-script build
 
 License
 -------
-This library is licensed under the [zlib](https://opensource.org/licenses/Zlib)
-license.  If you are unfamiliar with it, it is a permissive license in the
-same vein as the popular MIT license, except it does not oblige users of the
-library to include a copyright notice or license text.
+This program is licensed under the [GNU Affero General Public License v3.0][1].
+
+[1]: https://www.gnu.org/licenses/agpl-3.0.en.html

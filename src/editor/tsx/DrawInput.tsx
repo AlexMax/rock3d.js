@@ -1,5 +1,5 @@
 /**
- * rocked.js: An editor for the rock3d engine.
+ * rock3d.js: A 3D rendering engine with a retro heart.
  * Copyright (C) 2018-2019  Alex Mayfield <alexmax2742@gmail.com>
  * 
  * This program is free software: you can redistribute it and/or modify
