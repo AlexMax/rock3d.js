@@ -1,0 +1,191 @@
+:root {
+    color: #000000;
+    font: 16px sans-serif;
+    --background-color: #574c8f;
+    --menu-select-color: #9397a5;
+    --window-bg-color: #aeb2c3;
+    --window-border-color: #dcdee5 #5d6069 #5d6069 #dcdee5;
+    --window-inverted-border-color: #5d6069 #dcdee5 #dcdee5 #5d6069;
+    --window-title-bg-color: #b24d7a;
+    --window-title-border-color: #dcadc2 #57253b #57253b #dcadc2;
+    --window-title-color: #ffffff;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+* {
+     /* Don't count padding or borders for any elements */
+    box-sizing: border-box;
+}
+
+body {
+    /* Get rid of border */
+   margin: 0;
+    /* Get rid of scrollbar */
+   overflow: hidden;
+}
+
+/* #region *** HTML ELEMENTS ***/
+
+button {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
+}
+
+button:active {
+    border-color: var(--window-inverted-border-color);
+}
+
+/* #endregion */
+
+/* #region *** MAIN LAYOUT ***/
+
+html, body, #rocked, .root, .mode, .mode-canvas {
+    height: 100%;
+    width: 100%;
+}
+
+.root, .mode {
+    display: flex;
+    flex-direction: column;
+}
+
+/* The mode container */
+.mode {
+    background-color: var(--background-color);
+
+     /* Ensure that resizing the window covers up the content */
+    overflow: hidden;
+}
+
+/* The main canvas used for a mode */
+.mode-canvas {
+    cursor: crosshair;
+
+    /* Ensure that resizing the window doesn't push anything out of view */
+    overflow: hidden;
+}
+
+/* #endregion */
+
+/* #region *** MENU ***/
+
+/* Main navigation */
+.menu-bar {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
+    cursor: default;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+/* Only dropdown menus */
+.menu-dropdown {
+    border: 1px solid;
+    border-color: var(--window-border-color);
+    background-color: var(--window-bg-color);
+    cursor: default;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+
+    /* Anchor to the parent list item, if any. */
+    left: 0;
+}
+
+.menu-item {
+    line-height: 1.5em;
+    list-style-type: none;
+    padding: 0 0.5em 0 0.5em;
+    white-space: nowrap;
+
+    /* Anchor submenus */
+    position: relative;
+}
+
+/* Position submenus of submenus to the right */
+.menu-dropdown .menu-item .menu-dropdown {
+    top: -1px;
+    left: calc(100%);
+}
+
+.menu-item:hover {
+    background-color: var(--menu-select-color);
+}
+
+/* #endregion */
+
+/* #region *** STATUS BAR ***/
+
+.status-bar {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
+    display: flex;
+}
+
+.status-bar > div {
+    padding: 0 0.5em 0 0.5em;
+}
+
+/* Push status bar elements that follow this to the right. */
+.status-bar > div.status-bar-push {
+    margin-left: auto;
+}
+
+/* #endregion */
+
+/* #region *** TITLE BAR ***/
+
+.title-bar {
+    background-color: var(--window-title-bg-color);
+    border-color: var(--window-title-border-color);
+    border-style: solid;
+    border-width: 1px;
+    color: var(--window-title-color);
+    text-align: center;
+}
+
+/* #endregion */
+
+/* #region *** TOOLBAR ***/
+
+.toolbar {
+    position: absolute;
+
+    /* Don't wrap text on edge of screen. */
+    white-space: nowrap;
+}
+
+.toolbar .toolbar-button {
+    background-color: var(--window-bg-color);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--window-border-color);
+}
+
+/* #endregion */
+
+/* #region *** WINDOW ***/
+
+.window {
+    position: absolute;
+
+    /* Don't wrap text on edge of screen. */
+    white-space: nowrap;
+}
+
+.window .window-content {
+    background-color: var(--window-bg-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
+}
+
+/* #endregion */

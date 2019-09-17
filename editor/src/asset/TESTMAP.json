@@ -1,0 +1,198 @@
+{
+    "polygons": [{
+        "brightness": [128, 128, 128],
+        "ceilHeight": 128,
+        "floorHeight": 0,
+        "ceilTex": "RROCK18",
+        "floorTex": "FLOOR4_8",
+        "edges": [{
+            "vertex": [-256, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-128, 512],
+            "lowerTex": "STEP3",
+            "backPoly": 1
+        }, {
+            "vertex": [0, 256],
+            "lowerTex": "STEP3",
+            "backPoly": 1
+        }, {
+            "vertex": [128, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [256, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [256, 64],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [256, -64],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-256, -64],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-256, 64],
+            "middleTex": "STARTAN3"
+        }]
+    }, {
+        "brightness": [128, 128, 144],
+        "ceilHeight": 128,
+        "floorHeight": 8,
+        "ceilTex": "RROCK18",
+        "floorTex": "CEIL5_1",
+        "edges": [{
+            "vertex": [-128, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-96, 512],
+            "lowerTex": "STEP3",
+            "backPoly": 2
+        }, {
+            "vertex": [0, 320],
+            "lowerTex": "STEP3",
+            "backPoly": 2
+        }, {
+            "vertex": [96, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [128, 512],
+            "backPoly": 0
+        }, {
+            "vertex": [0, 256],
+            "backPoly": 0
+        }]
+    }, {
+        "brightness": [128, 128, 160],
+        "ceilHeight": 128,
+        "floorHeight": 16,
+        "ceilTex": "RROCK18",
+        "floorTex": "CEIL5_1",
+        "edges": [{
+            "vertex": [-96, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-64, 512],
+            "lowerTex": "STEP3",
+            "backPoly": 3
+        }, {
+            "vertex": [0, 384],
+            "lowerTex": "STEP3",
+            "backPoly": 3
+        }, {
+            "vertex": [64, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [96, 512],
+            "backPoly": 1
+        }, {
+            "vertex": [0, 320],
+            "backPoly": 1
+        }]
+    }, {
+        "brightness": [128, 128, 176],
+        "ceilHeight": 128,
+        "floorHeight": 24,
+        "ceilTex": "RROCK18",
+        "floorTex": "CEIL5_1",
+        "edges": [{
+            "vertex": [-64, 512],
+            "upperTex": "STARTAN3",
+            "lowerTex": "STEP3",
+            "backPoly": 4
+        }, {
+            "vertex": [64, 512],
+            "backPoly": 2
+        }, {
+            "vertex": [0, 384],
+            "backPoly": 2
+        }]
+    }, {
+        "brightness": [128, 128, 192],
+        "ceilHeight": 96,
+        "floorHeight": 32,
+        "ceilTex": "FLAT2",
+        "floorTex": "FLAT14",
+        "edges": [{
+            "vertex": [-64, 512],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [-64, 768],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [192, 768],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [192, 896],
+            "backPoly": 5
+        }, {
+            "vertex": [320, 896],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [320, 768],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [448, 768],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [448, 640],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [64, 640],
+            "middleTex": "STARTAN3"
+        }, {
+            "vertex": [64, 512],
+            "backPoly": 3
+        }]
+    }, {
+        "brightness": [224, 224, 224],
+        "ceilHeight": 160,
+        "floorHeight": 24,
+        "ceilTex": "F_SKY1",
+        "floorTex": "GRASS1",
+        "edges": [{
+            "vertex": [320, 896],
+            "upperTex": "BROWN96",
+            "lowerTex": "BROWN96",
+            "backPoly": 4
+        }, {
+            "vertex": [192, 896],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [64, 896],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [-64, 1024],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [-64, 1472],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [64, 1600],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [448, 1600],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [576, 1472],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [576, 1024],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [448, 896],
+            "middleTex": "BROWN96"
+        }]
+    }],
+    "locations": [{
+        "type": "player",
+        "polygon": 0,
+        "position": [64, 64, 0],
+        "rotation": [0, 0, 90]
+    }, {
+        "type": "player",
+        "polygon": 4,
+        "position": [0, 704, 32],
+        "rotation": [0, 0, 270]
+    }]
+}
