@@ -1,10 +1,9 @@
 {
     "compilerOptions": {
-        "declaration": true,
         "esModuleInterop": true,
         "jsx": "react",
         "moduleResolution": "node",
-        "outDir": "dist",
+        "outDir": "public/dist",
         "resolveJsonModule": true,
         "sourceMap": true,
         "strict": true,
