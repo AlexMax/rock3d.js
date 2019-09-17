@@ -17,7 +17,9 @@
  */
 
 import { vec2 } from 'gl-matrix';
-import { Level, LevelData } from 'rock3d';
+
+import { Level } from '../level';
+import { LevelData } from '../leveldata';
 
 interface VertexPolys {
     /**
@@ -33,7 +35,7 @@ interface VertexPolys {
 
 class VertexCache extends Map<String, VertexPolys> {
 
-    constructor(level: Level.Level) {
+    constructor(level: Level) {
         super();
         const polys = level.polygons;
         for (let i = 0;i < polys.length;i++) {
@@ -72,11 +74,11 @@ class VertexCache extends Map<String, VertexPolys> {
  * A MutLevel is a Level that has additional fields specifically needed by
  * the editor that are irrelevant for actually playing the game.
  */
-export class MutLevel extends Level.Level {
+export class MutLevel extends Level {
 
     vertexCache: VertexCache;
 
-    constructor(levelData: LevelData.LevelData) {
+    constructor(levelData: LevelData) {
         super(levelData);
         this.vertexCache = new VertexCache(this);
     }

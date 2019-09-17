@@ -17,8 +17,11 @@
  */
 
 import React from 'react';
-import { r3d } from 'rock3d';
 
+import {
+    Camera, create as cameraCreate, moveRelative as cameraMoveRelative,
+    rotateEuler as cameraRotateEuler
+} from '../../r3d/camera';
 import { FPCanvas } from './FPCanvas';
 import { MutLevel } from '../mutlevel';
 import { StatusBar } from './ui/StatusBar';
@@ -35,7 +38,7 @@ export interface State {
     /**
      * Current camera position.
      */
-    camera: r3d.Camera.Camera;
+    camera: Camera;
 }
 
 export class VisualView extends React.Component<Props, State> {
@@ -55,80 +58,80 @@ export class VisualView extends React.Component<Props, State> {
         this.yawLeft = this.yawLeft.bind(this);
         this.yawRight = this.yawRight.bind(this);
 
-        let camera = r3d.Camera.create(0, 0, 48);
+        let camera = cameraCreate(0, 0, 48);
         this.state = {
             camera: camera,
         };
     }
 
     moveForward() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, 64, 0, 0
         )});
     }
 
     moveBackward() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, -64, 0, 0
         )});
     }
 
     strafeLeft() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, 0, 64, 0
         )});
     }
 
     strafeRight() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, 0, -64, 0
         )});
     }
 
     floatUp() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, 0, 0, 64
         )});
     }
 
     floatDown() {
-        this.setState({ camera: r3d.Camera.moveRelative(
+        this.setState({ camera: cameraMoveRelative(
             this.state.camera, 0, 0, -64
         )});
     }
 
     rollCW() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, 15, 0, 0
         )});
     }
 
     rollCCW() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, -15, 0, 0
         )});
     }
 
     pitchDown() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, 0, 15, 0
         )});
     }
 
     pitchUp() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, 0, -15, 0
         )});
     }
 
     yawLeft() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, 0, 0, 15
         )});
     }
 
     yawRight() {
-        this.setState({ camera: r3d.Camera.rotateEuler(
+        this.setState({ camera: cameraRotateEuler(
             this.state.camera, 0, 0, -15
         )});
     }

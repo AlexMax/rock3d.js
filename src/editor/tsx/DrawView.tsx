@@ -18,8 +18,10 @@
 
 import { vec2 } from 'gl-matrix';
 import React from 'react';
-import { r2d } from 'rock3d';
 
+import {
+    Camera, create as cameraCreate, pan as cameraPan, zoom as cameraZoom
+} from '../../r2d/camera';
 import { DrawInput } from './DrawInput';
 import { MutLevel } from '../mutlevel';
 import { StatusBar } from './ui/StatusBar';
@@ -35,7 +37,7 @@ interface State {
     /**
      * Current camera position.
      */
-    camera: r2d.Camera.Camera;
+    camera: Camera;
 
     /**
      * Lines that we are using for a draw command.
@@ -69,7 +71,7 @@ export class DrawView extends React.Component<Props, State> {
         this.levelClick = this.levelClick.bind(this);
 
         this.state = {
-            camera: r2d.Camera.create(),
+            camera: cameraCreate(),
             drawLines: [],
             gridSize: 32,
             levelPos: null,
@@ -77,27 +79,27 @@ export class DrawView extends React.Component<Props, State> {
     }
 
     panUp() {
-        this.setState({ camera: r2d.Camera.pan(this.state.camera, 0, 64) });
+        this.setState({ camera: cameraPan(this.state.camera, 0, 64) });
     }
 
     panDown() {
-        this.setState({ camera: r2d.Camera.pan(this.state.camera, 0, -64) });
+        this.setState({ camera: cameraPan(this.state.camera, 0, -64) });
     }
 
     panLeft() {
-        this.setState({ camera: r2d.Camera.pan(this.state.camera, -64, 0) });
+        this.setState({ camera: cameraPan(this.state.camera, -64, 0) });
     }
 
     panRight() {
-        this.setState({ camera: r2d.Camera.pan(this.state.camera, 64, 0) });
+        this.setState({ camera: cameraPan(this.state.camera, 64, 0) });
     }
 
     zoomIn() {
-        this.setState({ camera: r2d.Camera.zoom(this.state.camera, 2) });
+        this.setState({ camera: cameraZoom(this.state.camera, 2) });
     }
 
     zoomOut() {
-        this.setState({ camera: r2d.Camera.zoom(this.state.camera, 0.5) });
+        this.setState({ camera: cameraZoom(this.state.camera, 0.5) });
     }
 
     gridIn() {

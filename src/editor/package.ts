@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import package_json from '../package.json';
+import package_json from '../../package.json';
 
 const name = package_json.name;
 const repository_url = package_json.repository.url;

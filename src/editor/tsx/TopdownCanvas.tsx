@@ -18,15 +18,16 @@
 
 import { vec2 } from 'gl-matrix';
 import React from 'react';
-import { r2d } from 'rock3d';
 
+import { Camera } from '../../r2d/camera';
 import { MutLevel } from '../mutlevel';
+import { RenderContext } from '../../r2d/render';
 
 export interface Props {
     /**
      * Camera that looks at level data.
      */
-    camera: r2d.Camera.Camera;
+    camera: Camera;
 
     /**
      * Extra lines that are currently being drawn.
@@ -62,7 +63,7 @@ const styles = {
 export class TopdownCanvas extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    renderer?: r2d.Render.RenderContext;
+    renderer?: RenderContext;
 
     constructor(props: Props) {
         super(props);
@@ -112,7 +113,7 @@ export class TopdownCanvas extends React.Component<Props> {
         }
 
         // Initialize a new renderer.
-        this.renderer = new r2d.Render.RenderContext(canvas);
+        this.renderer = new RenderContext(canvas);
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Render our initial view.

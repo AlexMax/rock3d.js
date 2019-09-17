@@ -17,15 +17,15 @@
  */
 
 import React from 'react';
-import { LevelData } from 'rock3d';
 
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
+import { isLevelData } from '../../leveldata';
 import { MutLevel } from '../mutlevel';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 
-import TESTMAP from '../asset/TESTMAP.json';
+import TESTMAP from '../../../asset/TESTMAP.json';
 
 export enum Mode {
     DrawView,
@@ -61,7 +61,7 @@ export class Root extends React.Component<{}, State> {
     }
 
     openFile() {
-        if (!LevelData.isLevelData(TESTMAP)) {
+        if (!isLevelData(TESTMAP)) {
             throw new Error('Map data is not valid');
         }
 

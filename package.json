@@ -8,6 +8,9 @@
         "name": "Alex Mayfield",
         "email": "alexmax2742@gmail.com"
     },
+    "repository": {
+        "url": "https://github.com/AlexMax/rock3d.js.git"
+    },
     "scripts": {
         "build": "webpack",
         "build-watch": "webpack --mode=development --watch",

@@ -17,28 +17,30 @@
  */
 
 import React from 'react';
-import { Atlas, r3d } from 'rock3d';
 
+import { Atlas } from '../../atlas';
+import { Camera } from '../../r3d/camera';
 import { MutLevel } from '../mutlevel';
+import { RenderContext } from '../../r3d/render';
 import { textureLoader } from '../util';
 
-import BROWN96 from '../asset/BROWN96.png';
-import CEIL5_1 from '../asset/CEIL5_1.png';
-import F_SKY1 from '../asset/F_SKY1.png';
-import FLAT14 from '../asset/FLAT14.png';
-import FLAT2 from '../asset/FLAT2.png';
-import FLOOR4_8 from '../asset/FLOOR4_8.png';
-import GRASS1 from '../asset/GRASS1.png';
-import RROCK18 from '../asset/RROCK18.png';
-import SKY1 from '../asset/SKY1.png';
-import STARTAN3 from '../asset/STARTAN3.png';
-import STEP3 from '../asset/STEP3.png';
+import BROWN96 from '../../../asset/BROWN96.png';
+import CEIL5_1 from '../../../asset/CEIL5_1.png';
+import F_SKY1 from '../../../asset/F_SKY1.png';
+import FLAT14 from '../../../asset/FLAT14.png';
+import FLAT2 from '../../../asset/FLAT2.png';
+import FLOOR4_8 from '../../../asset/FLOOR4_8.png';
+import GRASS1 from '../../../asset/GRASS1.png';
+import RROCK18 from '../../../asset/RROCK18.png';
+import SKY1 from '../../../asset/SKY1.png';
+import STARTAN3 from '../../../asset/STARTAN3.png';
+import STEP3 from '../../../asset/STEP3.png';
 
-import PLAYA1 from '../asset/PLAYA1.png';
-import PLAYA2A8 from '../asset/PLAYA2A8.png';
-import PLAYA3A7 from '../asset/PLAYA3A7.png';
-import PLAYA4A6 from '../asset/PLAYA4A6.png';
-import PLAYA5 from '../asset/PLAYA5.png';
+import PLAYA1 from '../../../asset/PLAYA1.png';
+import PLAYA2A8 from '../../../asset/PLAYA2A8.png';
+import PLAYA3A7 from '../../../asset/PLAYA3A7.png';
+import PLAYA4A6 from '../../../asset/PLAYA4A6.png';
+import PLAYA5 from '../../../asset/PLAYA5.png';
 
 const ATLAS_SIZE = 512;
 
@@ -46,7 +48,7 @@ export interface Props {
     /**
      * Camera that looks at the level.
      */
-    camera: r3d.Camera.Camera;
+    camera: Camera;
 
     /**
      * Level data coming from outside.
@@ -57,7 +59,7 @@ export interface Props {
 export class FPCanvas extends React.Component<Props> {
 
     canvas: React.RefObject<HTMLCanvasElement>;
-    renderer?: r3d.Render.RenderContext;
+    renderer?: RenderContext;
 
     constructor(props: Props) {
         super(props);
@@ -71,7 +73,7 @@ export class FPCanvas extends React.Component<Props> {
         }
 
         // Initialize a view on the given canvas
-        this.renderer = new r3d.Render.RenderContext(canvas);
+        this.renderer = new RenderContext(canvas);
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Wait to load all of our textures.
@@ -90,7 +92,7 @@ export class FPCanvas extends React.Component<Props> {
         ]);
 
         // Load our textures into the atlas.
-        const texAtlas = new Atlas.Atlas(ATLAS_SIZE);
+        const texAtlas = new Atlas(ATLAS_SIZE);
         for (let i = 0;i < textures.length;i++) {
             const { name, img } = textures[i];
             texAtlas.add(name, img);
@@ -109,7 +111,7 @@ export class FPCanvas extends React.Component<Props> {
         ]);
 
         // Load our textures into the atlas.
-        const spriteAtlas = new Atlas.Atlas(ATLAS_SIZE);
+        const spriteAtlas = new Atlas(ATLAS_SIZE);
         for (let i = 0;i < sprites.length;i++) {
             const { name, img } = sprites[i];
             spriteAtlas.add(name, img);
