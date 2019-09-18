@@ -16,16 +16,70 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Server } from 'ws';
+import { performance } from 'perf_hooks';
+import WebSocket, { Server as WSServer } from 'ws';
 
-const server = new Server({
-    perMessageDeflate: false,
-    port: 11210
-});
+import { ClientMessage, ServerMessage, unpackClient, packServer } from '../proto';
 
-server.on('connection', (con) => {
-    console.log('connection:', con);
-    con.on('message', (message) => {
-        console.log('got message:', message);
-    });
-});
+class Connection {
+    id: number; // Connection ID.
+    wsc: WebSocket; // Websocket connection.
+    init: boolean; // True if connection is ready to participate on server.
+    lastTime: number; // Time of last message.
+    buffer: ClientMessage[]; // Message backlog.
+
+    constructor(id: number, wsc: WebSocket) {
+        this.id = id;
+        this.wsc = wsc;
+        this.init = false;
+        this.lastTime = -Infinity;
+        this.buffer = [];
+
+        this.wsc.on('message', (data) => {
+            this.lastTime = performance.now();
+            const msg = unpackClient(data.toString());
+            this.buffer.push(msg);
+
+            console.log(msg);
+        });
+    }
+
+    read(): ClientMessage | null {
+        const msg = this.buffer.shift();
+        if (msg === undefined) {
+            return null;
+        }
+        return msg;
+    }
+
+    send(msg: ServerMessage): void {
+        const data = packServer(msg);
+        this.wsc.send(data);
+    }
+}
+
+class Server {
+    nextID: number; // Next connection ID.
+    connections: Map<number, Connection>; // Connections.
+    socket: WSServer; // Websocket server.
+
+    constructor() {
+        this.nextID = 1;
+        this.connections = new Map();
+        this.socket = new WSServer({
+            perMessageDeflate: false,
+            port: 11210
+        });
+        this.socket.on('connection', (wsc) => {
+            const id = this.nextID;
+            const conn = new Connection(id, wsc);
+            wsc.on('close', () => {
+                this.connections.delete(id);
+            });
+            this.connections.set(id, conn);
+            this.nextID += 1;
+        });
+    }
+}
+
+const server = new Server();

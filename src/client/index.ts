@@ -16,6 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const hostname = window.location.hostname;
+import { packClient, ClientMessageType, unpackServer } from '../proto';
 
-new WebSocket('ws://' + hostname + ':11210');
+window.addEventListener("load", async () => {
+    const root = document.getElementById('client');
+    if (root === null) {
+        throw new Error('Could not find root element');
+    }
+});
+
+const hostname = window.location.hostname;
+const wsc = new WebSocket('ws://' + hostname + ':11210');
+wsc.addEventListener('open', () => {
+    const hello = packClient({
+        type: ClientMessageType.Hello,
+        name: 'Player'
+    });
+    wsc.send(hello);
+});
+wsc.addEventListener('message', (evt) => {
+    const message = unpackServer(evt.data);
+});
