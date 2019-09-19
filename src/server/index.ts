@@ -20,6 +20,7 @@ import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
 import { ClientMessage, ServerMessage, unpackClient, packServer } from '../proto';
+import { Timer } from '../timer';
 
 class Connection {
     id: number; // Connection ID.
@@ -35,12 +36,11 @@ class Connection {
         this.lastTime = -Infinity;
         this.buffer = [];
 
+        // All messages get unpacked into our buffer.
         this.wsc.on('message', (data) => {
             this.lastTime = performance.now();
             const msg = unpackClient(data.toString());
             this.buffer.push(msg);
-
-            console.log(msg);
         });
     }
 
@@ -62,6 +62,7 @@ class Server {
     nextID: number; // Next connection ID.
     connections: Map<number, Connection>; // Connections.
     socket: WSServer; // Websocket server.
+    gameTimer: Timer; // Timer for game logic.
 
     constructor() {
         this.nextID = 1;
@@ -70,6 +71,8 @@ class Server {
             perMessageDeflate: false,
             port: 11210
         });
+
+        // Websocket connections create a Connection.
         this.socket.on('connection', (wsc) => {
             const id = this.nextID;
             const conn = new Connection(id, wsc);
@@ -79,6 +82,11 @@ class Server {
             this.connections.set(id, conn);
             this.nextID += 1;
         });
+
+        // Start the timer for the game.
+        this.gameTimer = new Timer((tick) => {
+            console.log('tick', tick);
+        }, performance.now, 32);
     }
 }
 
