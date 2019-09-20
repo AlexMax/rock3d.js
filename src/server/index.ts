@@ -114,7 +114,9 @@ class Server {
 
         // Initialize the timer for the game.
         this.gameTimer = new Timer(() => {
+            const start = performance.now();
             this.sim.tick();
+            console.log(`frame time: ${performance.now() - start}ms`);
         }, performance.now, 32);
     }
 

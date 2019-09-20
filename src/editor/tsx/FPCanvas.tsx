@@ -136,9 +136,11 @@ export class FPCanvas extends React.Component<Props> {
         }
 
         // Draw all entity sprites.
+        /* TODO: Draw locations instead.
         for (let i = 0;i < level.entities.length;i++) {
             this.renderer.world.addEntity(level.entities[i], this.props.camera, level.polygons);
         }
+        */
 
         this.renderer.render(this.props.camera);
 
@@ -171,10 +173,12 @@ export class FPCanvas extends React.Component<Props> {
         }
 
         // Redraw all our entities.
+        /* TODO: Draw locations instead
         this.renderer.world.clearSprites();
         for (let i = 0;i < level.entities.length;i++) {
             this.renderer.world.addEntity(level.entities[i], nextProps.camera, level.polygons);
         }
+        */
 
         // Draw our map.
         this.renderer.render(nextProps.camera);

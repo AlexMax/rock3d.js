@@ -185,14 +185,19 @@
         }]
     }],
     "locations": [{
-        "type": "player",
+        "type": "playerSpawn",
         "polygon": 0,
-        "position": [64, 64, 0],
+        "position": [0, -32, 0],
         "rotation": [0, 0, 90]
     }, {
-        "type": "player",
-        "polygon": 4,
-        "position": [0, 704, 32],
-        "rotation": [0, 0, 270]
+        "type": "playerSpawn",
+        "polygon": 0,
+        "position": [-64, -32, 0],
+        "rotation": [0, 0, 90]
+    }, {
+        "type": "playerSpawn",
+        "polygon": 0,
+        "position": [64, -32, 0],
+        "rotation": [0, 0, 90]
     }]
 }

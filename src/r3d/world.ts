@@ -20,7 +20,8 @@ import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix, rotateEuler } from './camera';
-import { cacheFlats, Entity, Polygon } from '../level';
+import { Entity } from '../entity';
+import { cacheFlats, Polygon } from '../level';
 import { constrain, sphereToCartesian, toEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
@@ -487,7 +488,7 @@ export class WorldContext {
 
         // Determine which sprite to use.
         const camAngle = toEuler(vec3.create(), cam.dir);
-        const entAngle = toEuler(vec3.create(), entity.rot);
+        const entAngle = toEuler(vec3.create(), entity.rotation);
         const sprIndex = spriteRot(camAngle[2], entAngle[2]);
         var flipped = false;
         switch (sprIndex) {
@@ -536,12 +537,12 @@ export class WorldContext {
         const vt2 = 1;
 
         // Figure out the brightness of the surrounding polygon.
-        const polygon = polygons[entity.poly];
+        const polygon = polygons[entity.polygon];
         const rBright = polygon.brightness[0] / 256;
         const gBright = polygon.brightness[1] / 256;
         const bBright = polygon.brightness[2] / 256;
 
-        const spriteCenter = vec3.copy(vec3.create(), entity.pos);
+        const spriteCenter = vec3.copy(vec3.create(), entity.position);
 
         // Figure out where our camera is.
         if (entity.config.grounded) {

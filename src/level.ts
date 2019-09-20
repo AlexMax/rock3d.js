@@ -132,43 +132,27 @@ export function cacheFlats(poly: Polygon): void {
     poly.ceilCacheInds = poly.floorCacheInds.slice().reverse();
 }
 
-export interface EntityConfig {
+export interface Location {
     type: string,
-    grounded: boolean,
+    polygon: number,
+    position: vec3,
+    rotation: quat,
 };
 
-function toConfig(config: string): EntityConfig {
-    switch(config) {
-    case 'player':
-        return {
-            type: config,
-            grounded: true,
-        };
-    default:
-        throw new Error(`Unknown entity type ${config}`);
-    }
-}
-
-export interface Entity {
-    config: EntityConfig,
-    poly: number,
-    pos: vec3,
-    rot: quat,
-};
-
-function toEntity(data: LocationData): Entity {
+function toLocation(data: LocationData): Location {
     return {
-        config: toConfig(data.type),
-        poly: data.polygon,
-        pos: vec3.fromValues(data.position[0], data.position[1], data.position[2]),
-        rot: quat.fromEuler(quat.create(),
-            data.rotation[0], data.rotation[1], data.rotation[2]),
+        type: data.type,
+        polygon: data.polygon,
+        position: vec3.fromValues(data.position[0], data.position[1],
+                                  data.position[2]),
+        rotation: quat.fromEuler(quat.create(), data.rotation[0],
+                                 data.rotation[1], data.rotation[2]),
     };
 }
 
 export class Level {
     polygons: Polygon[];
-    entities: Entity[];
+    locations: Location[];
 
     constructor(levelData: LevelData) {
         // Polygons are unpacked directly.
@@ -209,20 +193,10 @@ export class Level {
             }
         }
 
-        // Locations can do many things to the level.
-        this.entities = [];
-        levelData.locations.forEach((location) => {
-            this.unpackLocation(location);
+        // Locations are unpacked directly.
+        this.locations = levelData.locations.map((data) => {
+            return toLocation(data);
         });
-    }
-
-    unpackLocation(location: LocationData) {
-        switch (location.type) {
-        case 'player':
-            const entity = toEntity(location);
-            this.entities.push(entity);
-            break;
-        }
     }
 }
 
