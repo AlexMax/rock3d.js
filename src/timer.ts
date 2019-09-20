@@ -33,28 +33,64 @@ type MSTime = () => number;
  * If the interval is missed, it attempts to catch up.
  */
 export class Timer {
-    msTimeFn: MSTime; // Function to use to tell time.
-    tickFn: Ticker; // Function to call on a timer.
-    tps: number; // Ticks per second.
-    period: number; // Period of tick in milliseconds.
-    cursor: number; // What time it _should_ be in milliseconds.
-    lastTickID: number; // Last Tick ID, increments by 1 for every tick.
-    timer: ReturnType<typeof setTimeout>; // Current JS timer ID.
 
-    constructor(tickFn: Ticker, msTimeFn: MSTime, tps: number) {
+    /**
+     * Function to use to tell time.
+     */
+    msTimeFn: MSTime;
+
+    /**
+     * Function to call on a timer.
+     */
+    tickFn: Ticker;
+
+    /**
+     * Ticks per second.
+     */
+    tickrate: number; 
+
+    /**
+     * Period of tick in milliseconds.
+     */
+    period: number;
+
+    /**
+     * Last Tick ID, increments by 1 for every tick.
+     */
+    lastTickID: number;
+
+    /**
+     * What time it _should_ be in milliseconds.
+     */
+    cursor?: number;
+
+    /**
+     * Current JS timer ID.
+     */
+    timer?: ReturnType<typeof setTimeout>;
+
+    constructor(tickFn: Ticker, msTimeFn: MSTime, tickrate: number) {
         this.msTimeFn = msTimeFn;
         this.tickFn = tickFn;
-        this.tps = tps;
-        this.period = 1000 / tps;
-        this.cursor = msTimeFn();
+        this.tickrate = tickrate;
+        this.period = 1000 / tickrate;
         this.lastTickID = 0;
         this.tick = this.tick.bind(this);
+    }
 
-        // Run our callback immediately.
+    /**
+     * Start the timer.
+     */
+    start() {
+        this.cursor = this.msTimeFn();
         this.timer = setTimeout(this.tick, 0);
     }
 
-    tick() {
+    private tick() {
+        if (this.cursor === undefined) {
+            throw new Error('Timer was not started');
+        }
+
         // Figure out our target time.
         let target = this.cursor + this.period;
 
@@ -75,7 +111,6 @@ export class Timer {
             var wait = 0;
         }
 
-        console.log(wait);
         this.timer = setTimeout(this.tick, wait);
     }
 }

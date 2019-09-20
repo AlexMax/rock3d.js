@@ -20,7 +20,10 @@ import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
 import { ClientMessage, ServerMessage, unpackClient, packServer } from '../proto';
+import { Simulation } from '../sim';
 import { Timer } from '../timer';
+
+import TESTMAP from '../../asset/TESTMAP.json';
 
 class Connection {
     id: number; // Connection ID.
@@ -58,11 +61,34 @@ class Connection {
     }
 }
 
+/**
+ * The complete server implementation.
+ */
 class Server {
-    nextID: number; // Next connection ID.
-    connections: Map<number, Connection>; // Connections.
-    socket: WSServer; // Websocket server.
-    gameTimer: Timer; // Timer for game logic.
+    /**
+     * Next connection ID.
+     */
+    nextID: number;
+
+    /**
+     * Connections.
+     */
+    connections: Map<number, Connection>;
+
+    /**
+     * Websocket server.
+     */
+    socket: WSServer;
+
+    /**
+     * Timer for game logic.
+     */
+    gameTimer: Timer;
+
+    /**
+     * Serverside game simulation.
+     */
+    sim: Simulation;
 
     constructor() {
         this.nextID = 1;
@@ -83,11 +109,19 @@ class Server {
             this.nextID += 1;
         });
 
-        // Start the timer for the game.
-        this.gameTimer = new Timer((tick) => {
-            console.log('tick', tick);
+        // Load the level.
+        this.sim = new Simulation(TESTMAP, 32);
+
+        // Initialize the timer for the game.
+        this.gameTimer = new Timer(() => {
+            this.sim.tick();
         }, performance.now, 32);
+    }
+
+    run() {
+        this.gameTimer.start();
     }
 }
 
 const server = new Server();
+server.run();
