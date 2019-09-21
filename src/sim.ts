@@ -169,7 +169,10 @@ export class Simulation {
                 }
                 this.players.delete(k);
             }
-       }
+
+            // We're done with the tick, increase our clock.
+            this.clock += 1;
+        }
     }
 
     /**

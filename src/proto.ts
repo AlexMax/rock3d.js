@@ -31,12 +31,12 @@ export enum ClientMessageType {
     Command, // Inputs.
 }
 
-interface ClientHello {
+export interface ClientHello {
     type: ClientMessageType.Hello,
     name: string, // Name of the player
 }
 
-interface ClientCommand {
+export interface ClientCommand {
     type: ClientMessageType.Command,
     clock: number, // Current client game clock
     button: number, // Currently pressed buttons as a bitfield
