@@ -21,6 +21,8 @@
  * It also doubles as a sort of expected protocol of the schema.
  */
 
+import { SerializedSnapshot } from './sim';
+
 /**
  * Possible client messages.
  */
@@ -56,16 +58,17 @@ export const unpackClient = (message: string): ClientMessage => {
 /**
  * Possible server messages.
  */
-enum ServerMessageType {
-    Update,
+export enum ServerMessageType {
+    Snapshot, // A snapshot from the server.
 }
 
-interface ServerUpdate {
-    type: ServerMessageType.Update,
+export interface ServerSnapshot {
+    type: ServerMessageType.Snapshot,
     clock: number, // Current server game clock
+    snapshot: SerializedSnapshot, // Snapshot data.
 }
 
-export type ServerMessage = ServerUpdate;
+export type ServerMessage = ServerSnapshot;
 
 export const packServer = (message: ServerMessage): string => {
     const encoded = JSON.stringify(message);

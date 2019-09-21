@@ -119,3 +119,22 @@ export interface Entity {
      */
     rotation: quat;
 }
+
+export interface SerializedEntity {
+    config: string;
+    polygon: number;
+    position: [number, number, number];
+    rotation: [number, number, number, number];
+}
+
+export const serializeEntity = (entity: Entity): SerializedEntity => {
+    return {
+        config: entity.config.name,
+        polygon: entity.polygon,
+        position: [entity.position[0], entity.position[1], entity.position[2]],
+        rotation: [
+            entity.rotation[0], entity.rotation[1],
+            entity.rotation[2], entity.rotation[3],
+        ],
+    };
+}

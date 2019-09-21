@@ -18,14 +18,33 @@
 
 import { quat, vec3 } from 'gl-matrix';
 
-import { Entity, playerConfig } from './entity';
+import {
+    Entity, playerConfig, serializeEntity, SerializedEntity
+} from './entity';
 import { Level } from './level';
 import { LevelData } from './leveldata';
 
 const SNAPSHOT_MAX = 8;
 
-interface Snapshot {
+export interface Snapshot {
     entities: Map<number, Entity>;
+}
+
+export interface SerializedSnapshot {
+    entities: { [key: number]: SerializedEntity }
+}
+
+/**
+ * Serialize snapshot
+ */
+export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
+    const serEntities: { [key: number]: SerializedEntity } = {};
+    for (let [k, v] of snap.entities) {
+        serEntities[k] = serializeEntity(v);
+    }
+    return {
+        entities: serEntities,
+    };
 }
 
 /**
@@ -42,14 +61,14 @@ const snapCopy = (dst: Snapshot, src: Snapshot) => {
 export class Simulation {
 
     period: number;
-    currentTick: number;
+    clock: number;
     readonly level: Level;
     snapshots: Snapshot[];
     player: number | null;
 
     constructor(data: LevelData, tickrate: number) {
         this.period = 1000 / tickrate;
-        this.currentTick = 0;
+        this.clock = 0;
         this.level = new Level(data);
         this.snapshots = [];
         for (let i = 0;i < SNAPSHOT_MAX;i++) {
@@ -60,8 +79,11 @@ export class Simulation {
         this.player = null;
     }
 
+    /**
+     * Tick the simulation.
+     */
     tick() {
-        const currentIndex = this.currentTick % SNAPSHOT_MAX;
+        const currentIndex = this.clock % SNAPSHOT_MAX;
         const current: Readonly<Snapshot> = this.snapshots[currentIndex];
         const target = this.snapshots[(currentIndex + 1) % SNAPSHOT_MAX];
 
@@ -78,5 +100,22 @@ export class Simulation {
             });
             this.player = 1;
         }
+    }
+
+    /**
+     * Update the simulation with authoritative data for a given tick.
+     */
+    update(clock: number, snap: Snapshot) {
+        if (clock !== this.clock) {
+            throw new Error('Resimulation is not implemented yet');
+        }
+    }
+
+    /**
+     * Return a serialized snapshot of state.
+     */
+    getSnapshot(): Readonly<Snapshot> {
+        const currentIndex = this.clock % SNAPSHOT_MAX;
+        return this.snapshots[currentIndex];
     }
 }

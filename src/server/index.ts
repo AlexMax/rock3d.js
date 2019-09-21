@@ -19,8 +19,11 @@
 import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
-import { ClientMessage, ServerMessage, unpackClient, packServer } from '../proto';
-import { Simulation } from '../sim';
+import {
+    ClientMessage, ServerMessage, ServerMessageType, unpackClient,
+    packServer,
+} from '../proto';
+import { serializeSnapshot, Simulation } from '../sim';
 import { Timer } from '../timer';
 
 import TESTMAP from '../../asset/TESTMAP.json';
@@ -114,14 +117,36 @@ class Server {
 
         // Initialize the timer for the game.
         this.gameTimer = new Timer(() => {
-            const start = performance.now();
+            //const start = performance.now();
+
+            // Do one gametic's worth of simulation.
             this.sim.tick();
-            console.log(`frame time: ${performance.now() - start}ms`);
+
+            // Send latest snapshot to all clients.
+            this.sendAll({
+                type: ServerMessageType.Snapshot,
+                clock: this.sim.clock,
+                snapshot: serializeSnapshot(this.sim.getSnapshot()),
+            });
+
+            //console.log(`frame time: ${performance.now() - start}ms`);
         }, performance.now, 32);
     }
 
+    /**
+     * Start running the game.
+     */
     run() {
         this.gameTimer.start();
+    }
+
+    /**
+     * Send a message to all connected clients.
+     */
+    sendAll(msg: ServerMessage) {
+        for (let conn of this.connections.values()) {
+            conn.send(msg);
+        }
     }
 }
 
