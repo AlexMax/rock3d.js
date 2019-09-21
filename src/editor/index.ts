@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import { Root } from './tsx/Root';
 
 window.addEventListener("load", async () => {
-    const root = document.getElementById('rocked');
+    const root = document.getElementById('editor');
     if (root === null) {
         throw new Error('Could not find root element');
     }
