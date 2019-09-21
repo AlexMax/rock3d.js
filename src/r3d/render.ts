@@ -49,6 +49,9 @@ export class RenderContext {
         if (DEBUG === true) {
             this.debugTexture = new DebugTextureContext(this);
         }
+
+        // Set projection matrix for initial settings.
+        this.world.setProject(90);
     }
 
     /**

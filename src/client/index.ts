@@ -28,14 +28,17 @@ window.addEventListener("load", async () => {
         throw new Error('Could not find root element');
     }
 
-    // Create a 3D renderer inside the element.
+    // Create an element to hold our renderer
     const canvas = document.createElement('canvas');
-    const renderer = new RenderContext(canvas);
-    renderer.resize(800, 600);
+    canvas.width = 640;
+    canvas.height = 480;
     root.appendChild(canvas);
 
+    // Create the 3D renderer.
+    const renderer = new RenderContext(canvas);
+
     // Load our assets.
-    loadAssets(renderer);
+    await loadAssets(renderer);
 
     // Create our connection.
     const client = new Client(renderer);

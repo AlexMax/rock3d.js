@@ -18,7 +18,7 @@
 
 import { handleMessage } from './handler';
 import * as proto from '../proto';
-import { fromEntity as cameraFromEntity } from '../r3d/camera';
+import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import { RenderContext } from '../r3d/render';
 import { Simulation } from '../sim';
 
@@ -107,7 +107,8 @@ export class Client {
         if (this.camEntity !== null) {
             const entity = snapshot.entities.get(this.camEntity);
             if (entity !== undefined) {
-                const cam = cameraFromEntity(entity);
+                const cam = moveRelative(cameraFromEntity(entity),
+                    0, 0, entity.config.cameraZ);
                 const level = this.sim.level;
 
                 // Create our sky.

@@ -53,6 +53,11 @@ interface EntityConfig {
     name: string;
 
     /**
+     * How high off the ground the camera is.
+     */
+    cameraZ: number;
+
+    /**
      * Prefix string that all animations for this entity share.
      */
     spritePrefix: string;
@@ -74,6 +79,7 @@ interface EntityConfig {
  */
 export const playerConfig: EntityConfig = {
     name: 'Player',
+    cameraZ: 48,
     spritePrefix: 'PLAY',
     grounded: true,
     animations: {
