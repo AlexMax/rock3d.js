@@ -107,8 +107,10 @@ class Server {
             const conn = new Connection(id, wsc);
             wsc.on('close', () => {
                 this.connections.delete(id);
+                this.sim.removePlayer(id);
             });
             this.connections.set(id, conn);
+            this.sim.addPlayer(id);
             this.nextID += 1;
         });
 

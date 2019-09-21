@@ -60,11 +60,38 @@ const snapCopy = (dst: Snapshot, src: Snapshot) => {
 
 export class Simulation {
 
+    /**
+     * Period of one tick in milliseconds.
+     */
     period: number;
+
+    /**
+     * Current level time, in ticks.
+     */
     clock: number;
+
+    /**
+     * Original level data.
+     */
     readonly level: Level;
+
+    /**
+     * Circular buffer of snapshots.
+     */
     snapshots: Snapshot[];
-    player: number | null;
+
+    /**
+     * Next Entity ID.
+     */
+    nextEntityID: number;
+
+    /**
+     * Keeps track of which player is tied to which entity.
+     */
+    players: Map<number, {
+        state: 'connecting' | 'disconnecting' | 'ingame',
+        entity: number | null,
+    }>;
 
     constructor(data: LevelData, tickrate: number) {
         this.period = 1000 / tickrate;
@@ -76,7 +103,37 @@ export class Simulation {
                 entities: new Map()
             });
         }
-        this.player = null;
+        this.nextEntityID = 1;
+        this.players = new Map();
+    }
+
+    /**
+     * Add a player to the simulation.
+     * 
+     * Servers know about all players, local clients only know about themselves.
+     */
+    addPlayer(id: number) {
+        if (this.players.has(id)) {
+            throw new Error(`Simulation already knows about player ${id}`);
+        }
+        this.players.set(id, {
+            state: 'connecting', entity: null
+        });
+    }
+
+    /**
+     * Remove a player from the simulation.
+     * 
+     * TODO: We need to figure out how to remove the player's entity next tick.
+     */
+    removePlayer(id: number) {
+        const player = this.players.get(id);
+        if (player === undefined) {
+            throw new Error(`Simulation does not know about player ${id}`);
+        }
+        this.players.set(id, {
+            state: 'disconnecting', entity: player.entity
+        });
     }
 
     /**
@@ -90,16 +147,29 @@ export class Simulation {
         // Copy our current snapshot into our target snapshot.
         snapCopy(target, current);
 
-        // Spawn a player if he doesn't exist.
-        if (this.player === null) {
-            target.entities.set(1, {
-                config: playerConfig,
-                polygon: 0,
-                position: vec3.fromValues(0, 0, 0),
-                rotation: quat.fromEuler(quat.create(), 0, 0, 90),
-            });
-            this.player = 1;
-        }
+        // Handle player connections and disconnections.
+        for (let [k, v] of this.players) {
+            if (v.state === 'connecting')  {
+                // Create a player entity for the new player.
+                target.entities.set(this.nextEntityID, {
+                    config: playerConfig,
+                    polygon: 0,
+                    position: vec3.fromValues(0, 0, 0),
+                    rotation: quat.fromEuler(quat.create(), 0, 0, 90),
+                });
+                this.players.set(k, {
+                    state: 'ingame',
+                    entity: this.nextEntityID,
+                });
+                this.nextEntityID += 1;
+            } else if (v.state === 'disconnecting') {
+                if (v.entity !== null) {
+                    // Delete the player entity for the player.
+                    target.entities.delete(v.entity);
+                }
+                this.players.delete(k);
+            }
+       }
     }
 
     /**
