@@ -28,6 +28,8 @@ const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
 
     console.info({
         msg: "Joined the server",
+        client: clientID,
+        name: msg.name,
     })
 };
 
@@ -58,8 +60,8 @@ export const handleMessage = (server: Server, clientID: number, msg: proto.Clien
             break;
         default:
             console.warn({
-                "msg": "Unknown message",
-                "client": clientID,
+                msg: "Unknown message",
+                client: clientID,
             });
     }
 };

@@ -132,15 +132,27 @@ export class Server {
         });
 
         // Websocket connections create a Connection.
-        this.socket.on('connection', (wsc) => {
+        this.socket.on('connection', (wsc, req) => {
             const clientID = this.nextID;
             const conn = new Connection(clientID, wsc);
             wsc.on('close', () => {
                 this.connections.delete(clientID);
                 this.sim.removePlayer(clientID);
+
+                console.info({
+                    msg: 'Disconnected',
+                    client: clientID,
+                });
             });
             this.connections.set(clientID, conn);
             this.nextID += 1;
+
+            console.info({
+                msg: 'Connected',
+                client: clientID,
+                address: req.socket.remoteAddress,
+                port: req.socket.remotePort,
+            });
         });
 
         // Load the level.
