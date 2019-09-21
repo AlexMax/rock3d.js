@@ -18,6 +18,7 @@
 
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
+import { Entity } from '../entity';
 import { constrain, rectOverlap, toEuler } from '../math';
 import { flood, Level } from '../level';
 
@@ -38,6 +39,16 @@ export function create(x: number, y: number, z: number): Camera {
     return {
         pos: vec3.fromValues(x, y, z),
         dir: dir,
+    };
+}
+
+/**
+ * Create a camera from an entity.
+ */
+export function fromEntity(entity: Entity): Camera {
+    return {
+        pos: vec3.clone(entity.position),
+        dir: quat.clone(entity.rotation),
     };
 }
 

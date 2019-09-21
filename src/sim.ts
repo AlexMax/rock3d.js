@@ -19,7 +19,7 @@
 import { quat, vec3 } from 'gl-matrix';
 
 import {
-    Entity, playerConfig, serializeEntity, SerializedEntity
+    Entity, playerConfig, serializeEntity, SerializedEntity, unserializeEntity
 } from './entity';
 import { Level } from './level';
 import { LevelData } from './leveldata';
@@ -36,6 +36,8 @@ export interface SerializedSnapshot {
 
 /**
  * Serialize snapshot
+ * 
+ * @param snap Snapshot data to serialize.
  */
 export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
     const serEntities: { [key: number]: SerializedEntity } = {};
@@ -44,6 +46,23 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
     }
     return {
         entities: serEntities,
+    };
+}
+
+/**
+ * Unserialize snapshot.
+ * 
+ * @param snap Snapshot data to unserialize.
+ */
+export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
+    const entities: Map<number, Entity> = new Map();
+    for (let key in snap.entities) {
+        const k = Number(key);
+        const v = snap.entities[key];
+        entities.set(k, unserializeEntity(v));
+    }
+    return {
+        entities: entities,
     };
 }
 
@@ -111,12 +130,14 @@ export class Simulation {
      * Add a player to the simulation.
      * 
      * Servers know about all players, local clients only know about themselves.
+     * 
+     * @param clientID Client ID to add.
      */
-    addPlayer(id: number) {
-        if (this.players.has(id)) {
-            throw new Error(`Simulation already knows about player ${id}`);
+    addPlayer(clientID: number) {
+        if (this.players.has(clientID)) {
+            throw new Error(`Simulation already knows about player ${clientID}`);
         }
-        this.players.set(id, {
+        this.players.set(clientID, {
             state: 'connecting', entity: null
         });
     }
@@ -124,16 +145,29 @@ export class Simulation {
     /**
      * Remove a player from the simulation.
      * 
-     * TODO: We need to figure out how to remove the player's entity next tick.
+     * @param clientID Client ID to remove.
      */
-    removePlayer(id: number) {
-        const player = this.players.get(id);
+    removePlayer(clientID: number) {
+        const player = this.players.get(clientID);
         if (player === undefined) {
-            throw new Error(`Simulation does not know about player ${id}`);
+            throw new Error(`Simulation does not know about player ${clientID}`);
         }
-        this.players.set(id, {
+        this.players.set(clientID, {
             state: 'disconnecting', entity: player.entity
         });
+    }
+
+    /**
+     * Get the entity belonging to a particular player.
+     * 
+     * @param clientID Client ID to look up.
+     */
+    getPlayerEntity(clientID: number) {
+        const player = this.players.get(clientID);
+        if (player === undefined) {
+            return null;
+        }
+        return player.entity;
     }
 
     /**
@@ -179,9 +213,11 @@ export class Simulation {
      * Update the simulation with authoritative data for a given tick.
      */
     update(clock: number, snap: Snapshot) {
-        if (clock !== this.clock) {
-            throw new Error('Resimulation is not implemented yet');
-        }
+        // For now, we just assume that all updates are always 100% correct
+        // and just replace our existing data with new data, forcing the
+        // clock forwards at the same time.
+        this.clock = clock;
+        snapCopy(this.snapshots[clock % SNAPSHOT_MAX], snap);
     }
 
     /**

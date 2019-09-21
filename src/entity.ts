@@ -138,3 +138,15 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
         ],
     };
 }
+
+export const unserializeEntity = (entity: SerializedEntity): Entity => {
+    return {
+        config: playerConfig,
+        polygon: entity.polygon,
+        position: vec3.fromValues(
+            entity.position[0], entity.position[1], entity.position[2]),
+        rotation: quat.fromValues(
+            entity.rotation[0], entity.rotation[1],
+            entity.rotation[2], entity.rotation[3])
+    };
+}

@@ -705,6 +705,14 @@ export class WorldContext {
     }
 
     /**
+     * Clear sky vertexes.
+     */
+    clearSky(): void {
+        this.skyVertCount = 0;
+        this.skyIndCount = 0;
+    }
+
+    /**
      * Persist the texture atlas onto the GPU using the current render context.
      * 
      * @param textures Texture atlas to bake.

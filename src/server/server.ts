@@ -20,21 +20,47 @@ import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
 import { handleMessage } from './handler';
-import {
-    ClientMessage, ServerMessage, ServerMessageType, unpackClient,
-    packServer,
-} from '../proto';
+import * as proto from '../proto';
 import { serializeSnapshot, Simulation } from '../sim';
 import { Timer } from '../timer';
 
 import TESTMAP from '../../asset/TESTMAP.json';
 
 class Connection {
-    id: number; // Connection ID.
-    wsc: WebSocket; // Websocket connection.
-    init: boolean; // True if connection is ready to participate on server.
-    lastTime: number; // Time of last message.
-    buffer: ClientMessage[]; // Message backlog.
+    /**
+     * Connection ID.
+     */
+    id: number;
+
+    /**
+     * Websocket connection.
+     */
+    wsc: WebSocket;
+
+    /**
+     * True if the connection is ready to participate on the server.
+     */
+    init: boolean;
+
+    /**
+     * Time of last message.
+     */
+    lastTime: number;
+
+    /**
+     * Client messages.
+     */
+    buffer: proto.ClientMessage[];
+
+    /**
+     * Name of the client.
+     */
+    name: string | null;
+
+    /**
+     * Entity whose eyes this player should be looking through.
+     */
+    cameraEntity: number | null;
 
     constructor(id: number, wsc: WebSocket) {
         this.id = id;
@@ -42,16 +68,18 @@ class Connection {
         this.init = false;
         this.lastTime = -Infinity;
         this.buffer = [];
+        this.name = null;
+        this.cameraEntity = null;
 
         // All messages get unpacked into our buffer.
         this.wsc.on('message', (data) => {
             this.lastTime = performance.now();
-            const msg = unpackClient(data.toString());
+            const msg = proto.unpackClient(data.toString());
             this.buffer.push(msg);
         });
     }
 
-    read(): ClientMessage | null {
+    read(): proto.ClientMessage | null {
         const msg = this.buffer.shift();
         if (msg === undefined) {
             return null;
@@ -59,8 +87,8 @@ class Connection {
         return msg;
     }
 
-    send(msg: ServerMessage): void {
-        const data = packServer(msg);
+    send(msg: proto.ServerMessage): void {
+        const data = proto.packServer(msg);
         this.wsc.send(data);
     }
 }
@@ -105,13 +133,13 @@ export class Server {
 
         // Websocket connections create a Connection.
         this.socket.on('connection', (wsc) => {
-            const id = this.nextID;
-            const conn = new Connection(id, wsc);
+            const clientID = this.nextID;
+            const conn = new Connection(clientID, wsc);
             wsc.on('close', () => {
-                this.connections.delete(id);
-                this.sim.removePlayer(id);
+                this.connections.delete(clientID);
+                this.sim.removePlayer(clientID);
             });
-            this.connections.set(id, conn);
+            this.connections.set(clientID, conn);
             this.nextID += 1;
         });
 
@@ -138,10 +166,22 @@ export class Server {
 
         // Send latest snapshot to all clients.
         this.sendAll({
-            type: ServerMessageType.Snapshot,
+            type: proto.ServerMessageType.Snapshot,
             clock: this.sim.clock,
             snapshot: serializeSnapshot(this.sim.getSnapshot()),
         });
+
+        // Update players about any camera changes.
+        for (let [k, v] of this.connections) {
+            const entityID = this.sim.getPlayerEntity(k);
+            if (entityID !== v.cameraEntity) {
+                v.send({
+                    type: proto.ServerMessageType.Camera,
+                    id: entityID,
+                });
+                (this.connections.get(k) as Connection).cameraEntity = entityID;
+            }
+        }
 
         //console.log(`frame time: ${performance.now() - start}ms`);
     }
@@ -149,7 +189,7 @@ export class Server {
     /**
      * Send a message to all connected clients.
      */
-    private sendAll(msg: ServerMessage) {
+    private sendAll(msg: proto.ServerMessage) {
         for (let conn of this.connections.values()) {
             conn.send(msg);
         }

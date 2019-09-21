@@ -59,16 +59,22 @@ export const unpackClient = (message: string): ClientMessage => {
  * Possible server messages.
  */
 export enum ServerMessageType {
+    Camera, // What a client's camera is attached to.
     Snapshot, // A snapshot from the server.
+}
+
+export interface ServerCamera {
+    type: ServerMessageType.Camera,
+    id: number | null, // Entity ID.
 }
 
 export interface ServerSnapshot {
     type: ServerMessageType.Snapshot,
-    clock: number, // Current server game clock
+    clock: number, // Current server game clock.
     snapshot: SerializedSnapshot, // Snapshot data.
 }
 
-export type ServerMessage = ServerSnapshot;
+export type ServerMessage = ServerCamera | ServerSnapshot;
 
 export const packServer = (message: ServerMessage): string => {
     const encoded = JSON.stringify(message);
