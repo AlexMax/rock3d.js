@@ -16,11 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Axis, Button } from '../command';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import { RenderContext } from '../r3d/render';
 import { Simulation } from '../sim';
+import { Timer } from '../timer';
 
 import TESTMAP from '../../asset/TESTMAP.json';
 
@@ -41,6 +43,11 @@ export class Client {
     buffer: proto.ServerMessage[]; // Message backlog.
 
     /**
+     * Timer for game logic.
+     */
+    gameTimer: Timer;
+
+    /**
      * Clientside (predicted) simulation.
      */
     sim: Simulation;
@@ -56,6 +63,7 @@ export class Client {
     renderer: RenderContext;
 
     constructor(renderer: RenderContext) {
+        this.tick = this.tick.bind(this);
         this.buffer = [];
         this.lastTime = -Infinity;
         this.camEntity = null;
@@ -83,9 +91,13 @@ export class Client {
             });
             this.socket.send(hello);
         });
+
+        // Initialize the timer for the game.
+        const now = performance.now.bind(performance);
+        this.gameTimer = new Timer(this.tick, now, 32);
     }
 
-    read(): proto.ServerMessage | null {
+    private read(): proto.ServerMessage | null {
         const msg = this.buffer.shift();
         if (msg === undefined) {
             return null;
@@ -93,13 +105,25 @@ export class Client {
         return msg;
     }
 
-    tick() {
+    private tick() {
+        //const start = performance.now();
+
         // Service incoming network messages.
         let msg: ReturnType<Client['read']> = null;
         while ((msg = this.read()) !== null) {
             handleMessage(this, msg);
         }
 
+        //console.debug(`frame time: ${performance.now() - start}ms`);
+    }
+
+    /**
+     * Render the most up-to-date snapshot of the game.
+     * 
+     * This is _not_ handled inside the main game loop, it should usually
+     * be called from an endless loop of requestAnimationFrame.
+     */
+    render() {
         // Get our latest snapshot data to render.
         const snapshot = this.sim.getSnapshot();
 
@@ -131,5 +155,26 @@ export class Client {
                 this.renderer.world.render(cam);
             }
         }
+    }
+
+    /**
+     * Set a specific button to a specific state.
+     */
+    buttonState(button: Button, state: boolean) {
+        console.debug('buttonState', button, state);
+    }
+
+    /**
+     * Move an analog axis, like a mouse or a gamepad.
+     */
+    axisMove(axis: Axis, num: number) {
+        console.debug('axisMove', axis, num);
+    }
+
+    /**
+     * Start running the game.
+     */
+    run() {
+        this.gameTimer.start();
     }
 }

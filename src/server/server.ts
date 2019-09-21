@@ -195,7 +195,7 @@ export class Server {
             }
         }
 
-        //console.log(`frame time: ${performance.now() - start}ms`);
+        //console.debug(`frame time: ${performance.now() - start}ms`);
     }
 
     /**

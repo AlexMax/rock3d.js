@@ -17,9 +17,42 @@
  */
 
 import { Client } from './client'; 
+import { Axis, Button } from '../command';
 import { RenderContext } from '../r3d/render';
 
 import { loadAssets } from './loader';
+
+const keyCodeToButton = (keyCode: number) => {
+    switch (keyCode) {
+        case 87: // w
+            return Button.WalkForward;
+        case 83: // d
+            return Button.WalkBackwards;
+        case 65: // a
+            return Button.StrafeLeft;
+        case 68: // d
+            return Button.StrafeRight;
+        case 69: // e
+            return Button.Use;
+        case 32: // Spacebar
+            return Button.Jump;
+    }
+}
+
+const mouseButtonToButton = (button: number) => {
+    switch (button) {
+        case 0: // left mouse button
+            return Button.Attack;
+    }
+}
+
+const scaleYaw = (movement: number) => {
+    return movement;
+}
+
+const scalePitch = (movement: number) => {
+    return movement;
+}
 
 window.addEventListener("load", async () => {
     // Get our client element.
@@ -40,11 +73,54 @@ window.addEventListener("load", async () => {
     // Load our assets.
     await loadAssets(renderer);
 
-    // Create our connection.
+    // Create our client.
     const client = new Client(renderer);
 
+    // Tie input to our client.
+    window.addEventListener('keydown', (evt) => {
+        const button = keyCodeToButton(evt.keyCode);
+        if (button === undefined) {
+            return;
+        }
+        client.buttonState(button, true);
+    });
+    window.addEventListener('keyup', (evt) => {
+        const button = keyCodeToButton(evt.keyCode);
+        if (button === undefined) {
+            return;
+        }
+        client.buttonState(button, false);
+    });
+    window.addEventListener('mousemove', (evt) => {
+        client.axisMove(Axis.Yaw, scaleYaw(evt.movementX));
+        client.axisMove(Axis.Pitch, scalePitch(evt.movementY));
+    });
+    window.addEventListener('mousedown', (evt) => {
+        const button = mouseButtonToButton(evt.button);
+        if (button === undefined) {
+            return;
+        }
+        client.buttonState(button, true);
+    });
+    window.addEventListener('mouseup', (evt) => {
+        const button = mouseButtonToButton(evt.button);
+        if (button === undefined) {
+            return;
+        }
+        client.buttonState(button, false);
+    });
+
+    // Prevent the context menu from popping up
+    document.addEventListener("contextmenu", (evt) => {
+        evt.preventDefault();
+    });
+
+    // Run the client.
+    client.run();
+
+    // Start our rendering loop too.
     const draw = () => {
-        client.tick();
+        client.render();
         window.requestAnimationFrame(draw);
     }
     window.requestAnimationFrame(draw);
