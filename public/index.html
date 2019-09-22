@@ -1,10 +1,46 @@
 <html>
     <head>
-        <title></title>
-        <link rel="stylesheet" type="text/css" href="/main.css">
+        <title>rock3d.js</title>
         <script type="text/javascript" src="/dist/client.js"></script>
     </head>
     <body>
-        <div id="client"></div>
+        <h1>rock3d.js</h1>
+        <h2>What is this?</h2>
+        <p>
+            A 3D game engine with a retro heart.  You can find the github project <a href="https://github.com/AlexMax/rock3d.js">here</a>.
+        </p>
+        <h2>Test Client</h2>
+        <p>
+            You can test the current state of the client <a href="/client.html">here</a>.  Note that this relies on a functioning game server, which may or may not be up and running as of this moment.
+        </p>
+        <h2>Test Editor</h2>
+        <p>
+            You can test the current state of the editor <a href="/editor.html">here</a>.  This editor exists 100% in your browser and has no hidden servers that it relies on, but isn't actually fully functional as an editor right now.
+        </p>
+        <p>
+            You can open the test map by clicking on "File" and then "Open".  Upon opening, you are thrust into the 2D drawing mode, but there is also a 3D visual view available, which can be toggled between using the View menu.  You need a keyboard and mouse to use this editor, as it was designed to be used on a computer.
+        </p>
+        <table>
+            <tr><th colspan="2">Drawing Mode Controls</th></tr>
+            <tr><td>W/Up Arrow</td><td>Pan North</td></tr>
+            <tr><td>S/Down Arrow</td><td>Pan South</td></tr>
+            <tr><td>A/Left Arrow</td><td>Pan West</td></tr>
+            <tr><td>D/Right Arrow</td><td>Pan East</td></tr>
+            <tr><td>[</td><td>Grid Size +</td></tr>
+            <tr><td>]</td><td>Grid Size -</td></tr>
+            <tr><th colspan="2">Visual Mode Controls</th></tr>
+            <tr><td>W</td><td>Walk forwards</td></tr>
+            <tr><td>S</td><td>Walk backwards</td></tr>
+            <tr><td>A</td><td>Strafe Left</td></tr>
+            <tr><td>D</td><td>Strafe Right</td></tr>
+            <tr><td>Page Up</td><td>Page Up</td></tr>
+            <tr><td>Page Down</td><td>Page Down</td></tr>
+            <tr><td>Q</td><td>Roll Counterclockwise</td></tr>
+            <tr><td>E</td><td>Roll Clockwise</td></tr>
+            <tr><td>Up Arrow</td><td>Pitch Up</td></tr>
+            <tr><td>Down Arrow</td><td>Pitch Down</td></tr>
+            <tr><td>Left Arrow</td><td>Yaw Left</td></tr>
+            <tr><td>Right Arrow</td><td>Yaw Right</td></tr>
+        </table>
     </body>
 </html>
