@@ -117,9 +117,9 @@ export interface ServerPing {
     type: ServerMessageType.Ping,
 
     /**
-     * Half round-trip-time, in milliseconds.
+     * Round-trip-time, in milliseconds.
      */
-    ping: number,
+    rtt: number,
 }
 
 export interface ServerSnapshot {

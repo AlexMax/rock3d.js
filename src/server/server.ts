@@ -48,6 +48,16 @@ class Connection {
     lastTime: number;
 
     /**
+     * Starting time of our latest ping attempt.
+     */
+    pingBegin: number | null;
+
+    /**
+     * RTT of last ping/pong.
+     */
+    rtt: number;
+
+    /**
      * Client messages.
      */
     buffer: proto.ClientMessage[];
@@ -67,6 +77,8 @@ class Connection {
         this.wsc = wsc;
         this.init = false;
         this.lastTime = -Infinity;
+        this.pingBegin = null;
+        this.rtt = Infinity;
         this.buffer = [];
         this.name = null;
         this.cameraEntity = null;
@@ -77,8 +89,25 @@ class Connection {
             const msg = proto.unpackClient(data.toString());
             this.buffer.push(msg);
         });
+
+        // When we get a pong response, tell the client about it.
+        this.wsc.on('pong', () => {
+            if (this.pingBegin === null) {
+                // Got a pong without a ping, ignore it.
+                return;
+            }
+            this.rtt = performance.now() - this.pingBegin;
+            this.pingBegin = null;
+            this.send({
+                type: proto.ServerMessageType.Ping,
+                rtt: this.rtt,
+            });
+        });
     }
 
+    /**
+     * Read a message into our connection buffer.
+     */
     read(): proto.ClientMessage | null {
         const msg = this.buffer.shift();
         if (msg === undefined) {
@@ -87,9 +116,28 @@ class Connection {
         return msg;
     }
 
+    /**
+     * Send a message to the client.
+     * 
+     * @param msg Server message to send.
+     */
     send(msg: proto.ServerMessage): void {
         const data = proto.packServer(msg);
         this.wsc.send(data);
+    }
+
+    /**
+     * Ping the client.
+     */
+    ping(): void {
+        if (this.pingBegin !== null) {
+            // Don't ping the client while we're still waiting on our last
+            // ping response.
+            return;
+        }
+
+        this.pingBegin = performance.now();
+        this.wsc.ping();
     }
 }
 
@@ -193,6 +241,11 @@ export class Server {
                 });
                 (this.connections.get(k) as Connection).cameraEntity = entityID;
             }
+        }
+
+        // Ping everybody.
+        for (let conn of this.connections.values()) {
+            conn.ping();
         }
 
         //console.debug(`frame time: ${performance.now() - start}ms`);

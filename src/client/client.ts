@@ -43,6 +43,11 @@ export class Client {
     buffer: proto.ServerMessage[]; // Message backlog.
 
     /**
+     * Round-trip-time to the server.
+     */
+    rtt: number | null;
+
+    /**
      * Timer for game logic.
      */
     gameTimer: Timer;
@@ -79,6 +84,7 @@ export class Client {
 
     constructor(renderer: RenderContext) {
         this.tick = this.tick.bind(this);
+        this.rtt = null;
         this.buffer = [];
         this.lastTime = -Infinity;
         this.camEntity = null;
@@ -133,6 +139,8 @@ export class Client {
             // Don't tick with a closed connection.
             return;
         }
+
+        console.debug('rtt', this.rtt);
 
         //const start = performance.now();
 
