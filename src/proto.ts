@@ -27,30 +27,67 @@ import { SerializedSnapshot } from './sim';
  * Possible client messages.
  */
 export enum ClientMessageType {
-    Hello, // Client just connected, needs full update.
-    Command, // Inputs.
+    /**
+     * Greeting from the client, should be the first thing sent.
+     */
+    Hello,
+
+    /**
+     * Inputs from the client.
+     */
+    Command,
 }
 
 export interface ClientHello {
     type: ClientMessageType.Hello,
-    name: string, // Name of the player
+
+    /**
+     * Name of the player.
+     */
+    name: string,
 }
 
 export interface ClientCommand {
     type: ClientMessageType.Command,
-    clock: number, // Current client game clock.
-    buttons: number, // Currently pressed buttons as a bitfield.
-    yaw: number, // Current yaw.
-    pitch: number, // Current pitch.
+
+    /**
+     * Clientside game clock of the command.
+     */
+    clock: number,
+
+    /**
+     * Currently pressed buttons as a bitfield.
+     */
+    buttons: number,
+
+    /**
+     * Current pitch axis.
+     */
+    pitch: number,
+
+    /**
+     * Current yaw axis.
+     */
+    yaw: number,
 }
 
 export type ClientMessage = ClientHello | ClientCommand;
 
+/**
+ * Serialize a client message into JSON.
+ * 
+ * @param message Message to pack.
+ */
 export const packClient = (message: ClientMessage): string => {
     const encoded = JSON.stringify(message);
     return encoded;
 }
 
+/**
+ * Unserialize a client message into an object.
+ * 
+ * @param message Message to unpack.
+ */
 export const unpackClient = (message: string): ClientMessage => {
     const decoded = JSON.parse(message);
     return decoded;
@@ -60,28 +97,71 @@ export const unpackClient = (message: string): ClientMessage => {
  * Possible server messages.
  */
 export enum ServerMessageType {
-    Camera, // What a client's camera is attached to.
-    Snapshot, // A snapshot from the server.
+    /**
+     * Tell the client how far away they are from the server.
+     */
+    Ping,
+
+    /**
+     * Game data sent from the server.
+     */
+    Snapshot,
+
+    /**
+     * Tell the client which entity their camera should be attached to.
+     */
+    Camera,
 }
 
-export interface ServerCamera {
-    type: ServerMessageType.Camera,
-    id: number | null, // Entity ID.
+export interface ServerPing {
+    type: ServerMessageType.Ping,
+
+    /**
+     * Half round-trip-time, in milliseconds.
+     */
+    ping: number,
 }
 
 export interface ServerSnapshot {
     type: ServerMessageType.Snapshot,
-    clock: number, // Current server game clock.
-    snapshot: SerializedSnapshot, // Snapshot data.
+
+    /**
+     * Serverside game clock of the snapshot.
+     */
+    clock: number,
+
+    /**
+     * Snapshot data.
+     */
+    snapshot: SerializedSnapshot,
 }
 
-export type ServerMessage = ServerCamera | ServerSnapshot;
+export interface ServerCamera {
+    type: ServerMessageType.Camera,
 
+    /**
+     * Entity ID.
+     */
+    id: number | null,
+}
+
+export type ServerMessage = ServerPing | ServerSnapshot | ServerCamera;
+
+/**
+ * Serialize a server message into JSON.
+ * 
+ * @param message Message to pack.
+ */
 export const packServer = (message: ServerMessage): string => {
     const encoded = JSON.stringify(message);
     return encoded;
 };
 
+/**
+ * Unserialize a server message into an object.
+ * 
+ * @param message Message to unpack.
+ */
 export const unpackServer = (message: string): ServerMessage => {
     const decoded = JSON.parse(message);
     return decoded;
