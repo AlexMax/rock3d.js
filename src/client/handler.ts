@@ -26,7 +26,7 @@ const camera = (client: Client, msg: proto.ServerCamera) => {
 
 const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
     const snap = unserializeSnapshot(msg.snapshot);
-    client.sim.update(msg.clock, snap);
+    client.sim.updateSnapshot(msg.clock, snap);
 }
 
 /**

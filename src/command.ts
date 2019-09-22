@@ -23,7 +23,7 @@ export enum Axis {
 
 export enum Button {
     WalkForward,
-    WalkBackwards,
+    WalkBackward,
     StrafeLeft,
     StrafeRight,
     Attack,
@@ -49,4 +49,14 @@ export const setButton = (input: number, set: number): number => {
  */
 export const unsetButton = (input: number, unset: number): number => {
     return input & ~unset;
+}
+
+/**
+ * Check to see if a particular button is pressed.
+ * 
+ * @param input Input bitset.
+ * @param button Button to check.
+ */
+export const checkButton = (input: number, button: number): boolean => {
+    return (input & (1 << button)) > 0 ? true : false;
 }

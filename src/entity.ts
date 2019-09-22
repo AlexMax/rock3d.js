@@ -133,6 +133,11 @@ export interface SerializedEntity {
     rotation: [number, number, number, number];
 }
 
+/**
+ * Convert native entity into JSON-friendly serialized entity.
+ * 
+ * @param entity Native entity to serialize.
+ */
 export const serializeEntity = (entity: Entity): SerializedEntity => {
     return {
         config: entity.config.name,
@@ -145,6 +150,11 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
     };
 }
 
+/**
+ * Convert serialized entity into native entity.
+ * 
+ * @param entity Serialized entity to unserialize.
+ */
 export const unserializeEntity = (entity: SerializedEntity): Entity => {
     return {
         config: playerConfig,
@@ -154,5 +164,26 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
         rotation: quat.fromValues(
             entity.rotation[0], entity.rotation[1],
             entity.rotation[2], entity.rotation[3])
+    };
+}
+
+/**
+ * Return a new entity object that is offset relative to the current entity
+ * position and rotation.
+ * 
+ * @param entity Entity to modify.
+ * @param x Amount to walk forwards or backwards by.
+ * @param y Amount to sidestep left or right by.
+ * @param z Amount to raise or lower by.
+ */
+export const moveRelative = (
+    entity: Readonly<Entity>, x: number, y: number, z: number
+): Entity => {
+    const newPos = vec3.fromValues(x, y, z);
+    vec3.transformQuat(newPos, newPos, entity.rotation);
+    vec3.add(newPos, newPos, entity.position);
+    return {
+        ...entity,
+        position: newPos
     };
 }

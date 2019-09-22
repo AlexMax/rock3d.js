@@ -19,10 +19,12 @@
 import { quat, vec3 } from 'gl-matrix';
 
 import {
-    Entity, playerConfig, serializeEntity, SerializedEntity, unserializeEntity
+    Entity, playerConfig, serializeEntity, SerializedEntity, unserializeEntity, moveRelative
 } from './entity';
 import { Level } from './level';
 import { LevelData } from './leveldata';
+import { ClientCommand } from './proto';
+import { checkButton, Button } from './command';
 
 const SNAPSHOT_MAX = 8;
 
@@ -77,6 +79,14 @@ const snapCopy = (dst: Snapshot, src: Snapshot) => {
     }
 }
 
+/**
+ * A map of client ID's and their command packet for a given tick.
+ */
+type Commands = Map<number, ClientCommand>;
+
+/**
+ * Contains all information that is relevant to the game over time.
+ */
 export class Simulation {
 
     /**
@@ -100,6 +110,11 @@ export class Simulation {
     snapshots: Snapshot[];
 
     /**
+     * Circular buffer of commands.
+     */
+    commands: Commands[];
+
+    /**
      * Next Entity ID.
      */
     nextEntityID: number;
@@ -117,10 +132,12 @@ export class Simulation {
         this.clock = 0;
         this.level = new Level(data);
         this.snapshots = [];
+        this.commands = [];
         for (let i = 0;i < SNAPSHOT_MAX;i++) {
             this.snapshots.push({
                 entities: new Map()
             });
+            this.commands.push(new Map());
         }
         this.nextEntityID = 1;
         this.players = new Map();
@@ -205,14 +222,74 @@ export class Simulation {
             }
         }
 
+        // For every connected player, check to see if we have commands
+        // from them for this tick.
+        //
+        // FIXME: We should probably shift the order in which we resolve
+        //        client commands every tick.
+        for (let [k, v] of this.players) {
+            const cmd = this.commands[currentIndex].get(k);
+            if (cmd === undefined || cmd.clock !== this.clock) {
+                if (cmd === undefined) {
+                    console.debug('No command');
+                } else {
+                    console.debug('Stale command', cmd.clock, this.clock);
+                }
+                continue;
+            }
+
+            if (v.entity === null) {
+                console.debug('Player entity is not set');
+                continue;
+            }
+
+            const entity = target.entities.get(v.entity);
+            if (entity === undefined) {
+                console.debug('Player entity does not exist');
+                continue;
+            }
+
+            if (checkButton(cmd.buttons, Button.WalkForward)) {
+                const newEntity = moveRelative(entity, 8, 0, 0);
+                target.entities.set(v.entity, newEntity);
+            }
+
+            if (checkButton(cmd.buttons, Button.WalkBackward)) {
+                const newEntity = moveRelative(entity, -8, 0, 0);
+                target.entities.set(v.entity, newEntity);
+            }
+
+            if (checkButton(cmd.buttons, Button.StrafeLeft)) {
+                const newEntity = moveRelative(entity, 0, 8, 0);
+                target.entities.set(v.entity, newEntity);
+            }
+
+            if (checkButton(cmd.buttons, Button.StrafeRight)) {
+                const newEntity = moveRelative(entity, 0, -8, 0);
+                target.entities.set(v.entity, newEntity);
+            }
+
+        }
+
         // We're done with the tick, increase our clock.
         this.clock += 1;
     }
 
     /**
+     * Update simulation with commands from a specific client.
+     * 
+     * @param clientID Client ID that these commands belong to.
+     * @param cmd Client command data.
+     */
+    updateCommand(clientID: number, cmd: ClientCommand) {
+        const currentIndex = cmd.clock % SNAPSHOT_MAX;
+        this.commands[currentIndex].set(clientID, cmd);
+    }
+
+    /**
      * Update the simulation with authoritative data for a given tick.
      */
-    update(clock: number, snap: Snapshot) {
+    updateSnapshot(clock: number, snap: Snapshot) {
         // For now, we just assume that all updates are always 100% correct
         // and just replace our existing data with new data, forcing the
         // clock forwards at the same time.

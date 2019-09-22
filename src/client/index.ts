@@ -27,7 +27,7 @@ const keyCodeToButton = (keyCode: number) => {
         case 87: // w
             return Button.WalkForward;
         case 83: // d
-            return Button.WalkBackwards;
+            return Button.WalkBackward;
         case 65: // a
             return Button.StrafeLeft;
         case 68: // d
