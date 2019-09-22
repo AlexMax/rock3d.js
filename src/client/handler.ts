@@ -17,8 +17,10 @@
  */
 
 import { Client } from './client';
-import { unserializeSnapshot } from '../sim';
+import { unserializeSnapshot, Simulation } from '../sim';
 import * as proto from '../proto';
+
+import TESTMAP from '../../asset/TESTMAP.json';
 
 const ping = (client: Client, msg: proto.ServerPing) => {
     client.rtt = msg.rtt;
@@ -26,7 +28,18 @@ const ping = (client: Client, msg: proto.ServerPing) => {
 
 const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
     const snap = unserializeSnapshot(msg.snapshot);
-    client.sim.updateSnapshot(msg.clock, snap);
+    if (client.sim === null) {
+        // Start the simulation now that we have snapshot data.
+        client.sim = new Simulation(TESTMAP, 32, snap.clock);
+    }
+
+    // Store our snapshot data in the simulation.
+    client.sim.updateSnapshot(snap);
+
+    // Take note of which tick we most recently got server data for.
+    if (client.authoritativeClock < snap.clock) {
+        client.authoritativeClock = snap.clock;
+    }
 }
 
 const camera = (client: Client, msg: proto.ServerCamera) => {

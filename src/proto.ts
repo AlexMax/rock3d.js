@@ -126,11 +126,6 @@ export interface ServerSnapshot {
     type: ServerMessageType.Snapshot,
 
     /**
-     * Serverside game clock of the snapshot.
-     */
-    clock: number,
-
-    /**
      * Snapshot data.
      */
     snapshot: SerializedSnapshot,

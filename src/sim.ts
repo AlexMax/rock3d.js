@@ -37,10 +37,12 @@ const SNAPSHOT_MAX = 8;
 const COMMAND_MAX = 32;
 
 export interface Snapshot {
+    clock: number,
     entities: Map<number, Entity>;
 }
 
 export interface SerializedSnapshot {
+    clock: number,
     entities: { [key: number]: SerializedEntity }
 }
 
@@ -55,6 +57,7 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
         serEntities[k] = serializeEntity(v);
     }
     return {
+        clock: snap.clock,
         entities: serEntities,
     };
 }
@@ -72,6 +75,7 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         entities.set(k, unserializeEntity(v));
     }
     return {
+        clock: snap.clock,
         entities: entities,
     };
 }
@@ -135,14 +139,22 @@ export class Simulation {
         entity: number | null,
     }>;
 
-    constructor(data: LevelData, tickrate: number) {
+    /**
+     * Construct the simulation.
+     * 
+     * @param data Level data to simulate.
+     * @param tickrate Expected tickrate of simulation.
+     * @param clock Initial clock of simulation.
+     */
+    constructor(data: LevelData, tickrate: number, clock: number) {
         this.period = 1000 / tickrate;
-        this.clock = 0;
+        this.clock = clock;
         this.level = new Level(data);
         this.snapshots = [];
         this.commands = [];
         for (let i = 0;i < SNAPSHOT_MAX;i++) {
             this.snapshots.push({
+                clock: 0,
                 entities: new Map()
             });
         }
@@ -202,13 +214,19 @@ export class Simulation {
      * Tick the simulation.
      */
     tick() {
+        // Get our current snapshot.
         const currentSnapshot = this.clock % SNAPSHOT_MAX;
-        const currentCommand = this.clock % COMMAND_MAX;
         const current: Readonly<Snapshot> = this.snapshots[currentSnapshot];
+        if (current.clock !== this.clock) {
+            throw new Error(`Unexpected clock in snapshot (expected ${this.clock}, got ${current.clock})`);
+        }
+
+        // Designate our target snapshot.
         const target = this.snapshots[(currentSnapshot + 1) % SNAPSHOT_MAX];
 
         // Copy our current snapshot into our target snapshot.
         snapCopy(target, current);
+        target.clock = this.clock + 1;
 
         // Handle player connections and disconnections.
         for (let [k, v] of this.players) {
@@ -239,6 +257,7 @@ export class Simulation {
         //
         // FIXME: We should probably shift the order in which we resolve
         //        client commands every tick.
+        const currentCommand = this.clock % COMMAND_MAX;
         for (let [k, v] of this.players) {
             const cmd = this.commands[currentCommand].get(k);
             if (cmd === undefined || cmd.clock !== this.clock) {
@@ -305,19 +324,15 @@ export class Simulation {
     /**
      * Update the simulation with authoritative data for a given tick.
      */
-    updateSnapshot(clock: number, snap: Snapshot) {
-        // For now, we just assume that all updates are always 100% correct
-        // and just replace our existing data with new data, forcing the
-        // clock forwards at the same time.
-        this.clock = clock;
-        snapCopy(this.snapshots[clock % SNAPSHOT_MAX], snap);
+    updateSnapshot(snap: Snapshot) {
+        // Replace existing data with new data.
+        snapCopy(this.snapshots[snap.clock % SNAPSHOT_MAX], snap);
     }
 
     /**
      * Return a serialized snapshot of state.
      */
     getSnapshot(): Readonly<Snapshot> {
-        const currentIndex = this.clock % SNAPSHOT_MAX;
-        return this.snapshots[currentIndex];
+        return this.snapshots[this.clock % SNAPSHOT_MAX];
     }
 }

@@ -204,7 +204,7 @@ export class Server {
         });
 
         // Load the level.
-        this.sim = new Simulation(TESTMAP, 32);
+        this.sim = new Simulation(TESTMAP, 32, 0);
 
         // Initialize the timer for the game.
         this.gameTimer = new Timer(this.tick, performance.now, 32);
@@ -227,7 +227,6 @@ export class Server {
         // Send latest snapshot to all clients.
         this.sendAll({
             type: proto.ServerMessageType.Snapshot,
-            clock: this.sim.clock,
             snapshot: serializeSnapshot(this.sim.getSnapshot()),
         });
 

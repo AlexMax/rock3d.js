@@ -24,8 +24,6 @@ import { RenderContext } from '../r3d/render';
 import { Simulation } from '../sim';
 import { Timer } from '../timer';
 
-import TESTMAP from '../../asset/TESTMAP.json';
-
 export class Client {
     /**
      * Websocket connection.
@@ -55,7 +53,12 @@ export class Client {
     /**
      * Clientside (predicted) simulation.
      */
-    sim: Simulation;
+    sim: Simulation | null;
+
+    /**
+     * Clock of latest authoritative snapshot from server.
+     */
+    authoritativeClock: number;
 
     /**
      * Entity ID that camera is attached to.
@@ -92,9 +95,8 @@ export class Client {
         this.buttons = 0;
         this.yaw = 0;
         this.pitch = 0;
-
-        // Load the level.
-        this.sim = new Simulation(TESTMAP, 32);
+        this.authoritativeClock = -Infinity;
+        this.sim = null;
 
         // Construct the clientside socket.
         const hostname = window.location.hostname;
@@ -140,14 +142,17 @@ export class Client {
             return;
         }
 
-        console.debug('rtt', this.rtt);
-
         //const start = performance.now();
 
         // Service incoming network messages.
         let msg: ReturnType<Client['read']> = null;
         while ((msg = this.read()) !== null) {
             handleMessage(this, msg);
+        }
+
+        if (this.sim === null) {
+            // We have no simulation to tick.
+            return;
         }
 
         // Construct command from current button and axis state.
@@ -171,10 +176,15 @@ export class Client {
      * be called from an endless loop of requestAnimationFrame.
      */
     render() {
+        if (this.sim === null) {
+            // Can't draw if we don't have a simulation.
+            return;
+        }
+
         // Get our latest snapshot data to render.
         const snapshot = this.sim.getSnapshot();
 
-        // We need a camera to actually draw anything.
+        // We need camera to actually draw anything.
         if (this.camEntity !== null) {
             const entity = snapshot.entities.get(this.camEntity);
             if (entity !== undefined) {
