@@ -92,8 +92,9 @@ window.addEventListener("load", async () => {
         client.buttonState(button, false);
     });
     window.addEventListener('mousemove', (evt) => {
-        client.axisMove(Axis.Yaw, scaleYaw(evt.movementX));
         client.axisMove(Axis.Pitch, scalePitch(evt.movementY));
+        // Yaw axis is right-to-left so we need to flip our X axis.
+        client.axisMove(Axis.Yaw, scaleYaw(-evt.movementX));
     });
     window.addEventListener('mousedown', (evt) => {
         const button = mouseButtonToButton(evt.button);

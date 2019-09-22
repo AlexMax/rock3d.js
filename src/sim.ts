@@ -19,14 +19,22 @@
 import { quat, vec3 } from 'gl-matrix';
 
 import {
-    Entity, playerConfig, serializeEntity, SerializedEntity, unserializeEntity, moveRelative
+    Entity, playerConfig, serializeEntity, SerializedEntity, unserializeEntity, moveRelative, rotateEuler
 } from './entity';
 import { Level } from './level';
 import { LevelData } from './leveldata';
 import { ClientCommand } from './proto';
 import { checkButton, Button } from './command';
 
+/**
+ * Number of snapshots to store.
+ */
 const SNAPSHOT_MAX = 8;
+
+/**
+ * Number of commands to store.
+ */
+const COMMAND_MAX = 32;
 
 export interface Snapshot {
     entities: Map<number, Entity>;
@@ -137,8 +145,11 @@ export class Simulation {
             this.snapshots.push({
                 entities: new Map()
             });
+        }
+        for (let i = 0;i < COMMAND_MAX;i++) {
             this.commands.push(new Map());
         }
+
         this.nextEntityID = 1;
         this.players = new Map();
     }
@@ -191,9 +202,10 @@ export class Simulation {
      * Tick the simulation.
      */
     tick() {
-        const currentIndex = this.clock % SNAPSHOT_MAX;
-        const current: Readonly<Snapshot> = this.snapshots[currentIndex];
-        const target = this.snapshots[(currentIndex + 1) % SNAPSHOT_MAX];
+        const currentSnapshot = this.clock % SNAPSHOT_MAX;
+        const currentCommand = this.clock % COMMAND_MAX;
+        const current: Readonly<Snapshot> = this.snapshots[currentSnapshot];
+        const target = this.snapshots[(currentSnapshot + 1) % SNAPSHOT_MAX];
 
         // Copy our current snapshot into our target snapshot.
         snapCopy(target, current);
@@ -228,12 +240,12 @@ export class Simulation {
         // FIXME: We should probably shift the order in which we resolve
         //        client commands every tick.
         for (let [k, v] of this.players) {
-            const cmd = this.commands[currentIndex].get(k);
+            const cmd = this.commands[currentCommand].get(k);
             if (cmd === undefined || cmd.clock !== this.clock) {
                 if (cmd === undefined) {
-                    console.debug('No command');
+                    //console.debug('No command');
                 } else {
-                    console.debug('Stale command', cmd.clock, this.clock);
+                    // console.debug('Stale command', cmd.clock, this.clock);
                 }
                 continue;
             }
@@ -269,6 +281,10 @@ export class Simulation {
                 target.entities.set(v.entity, newEntity);
             }
 
+            if (cmd.pitch !== 0.0 || cmd.yaw !== 0.0) {
+                const newEntity = rotateEuler(entity, 0, cmd.pitch, cmd.yaw);
+                target.entities.set(v.entity, newEntity);
+            }
         }
 
         // We're done with the tick, increase our clock.
@@ -282,8 +298,8 @@ export class Simulation {
      * @param cmd Client command data.
      */
     updateCommand(clientID: number, cmd: ClientCommand) {
-        const currentIndex = cmd.clock % SNAPSHOT_MAX;
-        this.commands[currentIndex].set(clientID, cmd);
+        const currentCommand = cmd.clock % COMMAND_MAX;
+        this.commands[currentCommand].set(clientID, cmd);
     }
 
     /**

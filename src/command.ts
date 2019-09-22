@@ -17,8 +17,8 @@
  */
 
 export enum Axis { 
-    Yaw,
     Pitch,
+    Yaw,
 }
 
 export enum Button {

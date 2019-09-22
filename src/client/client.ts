@@ -186,8 +186,13 @@ export class Client {
 
                 // Add our sprites to be rendered.
                 this.renderer.world.clearSprites();
-                for (let entity of snapshot.entities.values()) {
-                    this.renderer.world.addEntity(entity, cam, level.polygons);
+                for (let [k, v] of snapshot.entities) {
+                    if (k === this.camEntity) {
+                        // Don't draw your own sprite.
+                        continue;
+                    }
+
+                    this.renderer.world.addEntity(v, cam, level.polygons);
                 }
 
                 // Render the world.
@@ -212,11 +217,11 @@ export class Client {
      */
     axisMove(axis: Axis, num: number) {
         switch (axis) {
-            case Axis.Yaw:
-                this.yaw += num;
-                break;
             case Axis.Pitch:
                 this.pitch += num;
+                break;
+            case Axis.Yaw:
+                this.yaw += num;
                 break;
         }
     }

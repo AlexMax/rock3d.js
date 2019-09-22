@@ -18,6 +18,8 @@
 
 import { quat, vec3 } from 'gl-matrix';
 
+import { toEuler, constrain } from './math';
+
 /**
  * A single frame of animation.
  */
@@ -185,5 +187,28 @@ export const moveRelative = (
     return {
         ...entity,
         position: newPos
+    };
+}
+
+/**
+ * Return a new camera object that is rotated relative to the current camera
+ * direction.
+ * 
+ * @param entity Entity to modify.
+ * @param x Amount to roll by.
+ * @param y Amount to pitch by.
+ * @param z Amount to yaw by.
+ */
+export function rotateEuler(
+    entity: Readonly<Entity>, x: number, y: number, z: number
+): Entity {
+    const euler = toEuler(vec3.create(), entity.rotation);
+    euler[0] += x;
+    euler[1] = constrain(euler[1] + y, -89.999, 89.999);
+    euler[2] += z;
+    const newRot = quat.fromEuler(quat.create(), euler[0], euler[1], euler[2]);
+    return {
+        ...entity,
+        rotation: newRot,
     };
 }
