@@ -37,7 +37,7 @@ const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
  * Command inputs from client.
  */
 const command = (server: Server, clientID: number, msg: proto.ClientCommand) => {
-    // TODO: Not implemented (yet).
+    console.debug(msg);
 };
 
 /**

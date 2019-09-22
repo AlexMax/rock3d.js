@@ -62,12 +62,30 @@ export class Client {
      */
     renderer: RenderContext;
 
+    /**
+     * Current button state.
+     */
+    buttons: number;
+
+    /**
+     * Amount of yaw accumulated since last tick.
+     */
+    yaw: number;
+
+    /**
+     * Amount of pitch accumulated since last tick.
+     */
+    pitch: number;
+
     constructor(renderer: RenderContext) {
         this.tick = this.tick.bind(this);
         this.buffer = [];
         this.lastTime = -Infinity;
         this.camEntity = null;
         this.renderer = renderer;
+        this.buttons = 0;
+        this.yaw = 0;
+        this.pitch = 0;
 
         // Load the level.
         this.sim = new Simulation(TESTMAP, 32);
@@ -105,7 +123,17 @@ export class Client {
         return msg;
     }
 
+    private send(msg: proto.ClientMessage): void {
+        const data = proto.packClient(msg);
+        this.socket.send(data);
+    }
+
     private tick() {
+        if (this.socket.readyState !== WebSocket.OPEN) {
+            // Don't tick with a closed connection.
+            return;
+        }
+
         //const start = performance.now();
 
         // Service incoming network messages.
@@ -113,6 +141,17 @@ export class Client {
         while ((msg = this.read()) !== null) {
             handleMessage(this, msg);
         }
+
+        // Construct command from current button and axis state.
+        this.send({
+            type: proto.ClientMessageType.Command,
+            clock: this.sim.clock, buttons: this.buttons,
+            yaw: this.yaw, pitch: this.pitch,
+        });
+
+        // Yaw and Pitch are per-tick accumulators, reset them.
+        this.yaw = 0;
+        this.pitch = 0;
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }
@@ -161,14 +200,25 @@ export class Client {
      * Set a specific button to a specific state.
      */
     buttonState(button: Button, state: boolean) {
-        console.debug('buttonState', button, state);
+        if (state) {
+            this.buttons |= (1 << button);
+        } else {
+            this.buttons &= ~(1 << button);
+        }
     }
 
     /**
      * Move an analog axis, like a mouse or a gamepad.
      */
     axisMove(axis: Axis, num: number) {
-        console.debug('axisMove', axis, num);
+        switch (axis) {
+            case Axis.Yaw:
+                this.yaw += num;
+                break;
+            case Axis.Pitch:
+                this.pitch += num;
+                break;
+        }
     }
 
     /**

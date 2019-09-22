@@ -38,9 +38,10 @@ export interface ClientHello {
 
 export interface ClientCommand {
     type: ClientMessageType.Command,
-    clock: number, // Current client game clock
-    button: number, // Currently pressed buttons as a bitfield
-    mouse: [number, number], // Current mouse X and Y
+    clock: number, // Current client game clock.
+    buttons: number, // Currently pressed buttons as a bitfield.
+    yaw: number, // Current yaw.
+    pitch: number, // Current pitch.
 }
 
 export type ClientMessage = ClientHello | ClientCommand;
