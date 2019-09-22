@@ -35,20 +35,20 @@ export enum Button {
  * Set buttons on an existing bitfield.
  * 
  * @param input Input bitset.
- * @param set Bits to set.
+ * @param set Button to set.
  */
-export const setButton = (input: number, set: number): number => {
-    return input | set;
+export const setButton = (input: number, set: Button): number => {
+    return input | (1 << set);
 }
 
 /**
  * Unset buttons on an existing bitfield.
  * 
  * @param input Input bitset.
- * @param unset Bits to unset.
+ * @param unset Button to unset.
  */
-export const unsetButton = (input: number, unset: number): number => {
-    return input & ~unset;
+export const unsetButton = (input: number, unset: Button): number => {
+    return input & ~(1 << unset);
 }
 
 /**

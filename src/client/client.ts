@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Axis, Button } from '../command';
+import { Axis, Button, setButton, unsetButton } from '../command';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
@@ -201,9 +201,9 @@ export class Client {
      */
     buttonState(button: Button, state: boolean) {
         if (state) {
-            this.buttons |= (1 << button);
+            this.buttons = setButton(this.buttons, button);
         } else {
-            this.buttons &= ~(1 << button);
+            this.buttons = unsetButton(this.buttons, button);
         }
     }
 
