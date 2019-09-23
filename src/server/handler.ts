@@ -37,7 +37,7 @@ const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
  * Command inputs from client.
  */
 const command = (server: Server, clientID: number, msg: proto.ClientCommand) => {
-    server.sim.updateCommand(clientID, msg);
+    server.sim.updateCommand(clientID, msg.command);
 };
 
 /**

@@ -21,7 +21,7 @@
  * It also doubles as a sort of expected protocol of the schema.
  */
 
-import { SerializedSnapshot } from './sim';
+import { Command, SerializedSnapshot } from './sim';
 
 /**
  * Possible client messages.
@@ -51,24 +51,9 @@ export interface ClientCommand {
     type: ClientMessageType.Command,
 
     /**
-     * Clientside game clock of the command.
+     * Command data.
      */
-    clock: number,
-
-    /**
-     * Currently pressed buttons as a bitfield.
-     */
-    buttons: number,
-
-    /**
-     * Current pitch axis.
-     */
-    pitch: number,
-
-    /**
-     * Current yaw axis.
-     */
-    yaw: number,
+    command: Command,
 }
 
 export type ClientMessage = ClientHello | ClientCommand;
@@ -129,6 +114,11 @@ export interface ServerSnapshot {
      * Snapshot data.
      */
     snapshot: SerializedSnapshot,
+
+    /**
+     * Commands used to create this snapshot.
+     */
+    commands: Readonly<Command[]>,
 }
 
 export interface ServerCamera {

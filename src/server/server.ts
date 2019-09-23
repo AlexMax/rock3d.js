@@ -161,7 +161,7 @@ export class Server {
     socket: WSServer;
 
     /**
-     * Timer for game logic.
+     * Timer for server.
      */
     gameTimer: Timer;
 
@@ -228,6 +228,7 @@ export class Server {
         this.sendAll({
             type: proto.ServerMessageType.Snapshot,
             snapshot: serializeSnapshot(this.sim.getSnapshot()),
+            commands: this.sim.getCommands(),
         });
 
         // Update players about any camera changes.
@@ -264,5 +265,8 @@ export class Server {
      */
     run() {
         this.gameTimer.start();
+        console.info({
+            msg: 'Server started'
+        });
     }
 }

@@ -23,13 +23,12 @@ import {
 } from './entity';
 import { Level } from './level';
 import { LevelData } from './leveldata';
-import { ClientCommand } from './proto';
 import { checkButton, Button } from './command';
 
 /**
  * Number of snapshots to store.
  */
-const SNAPSHOT_MAX = 8;
+const SNAPSHOT_MAX = 32;
 
 /**
  * Number of commands to store.
@@ -37,7 +36,14 @@ const SNAPSHOT_MAX = 8;
 const COMMAND_MAX = 32;
 
 export interface Snapshot {
+    /**
+     * Serverside game clock of the command.
+     */
     clock: number,
+
+    /**
+     * Complete set of entities for this tick.
+     */
     entities: Map<number, Entity>;
 }
 
@@ -85,16 +91,39 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
  */
 const snapCopy = (dst: Snapshot, src: Snapshot) => {
     // Shallow copy our entities Map.
+    dst.clock = src.clock;
     dst.entities.clear();
     for (let [k, v] of src.entities) {
         dst.entities.set(k, v);
     }
 }
 
+export interface Command {
+    /**
+     * Clientside game clock of the command.
+     */
+    clock: number,
+
+    /**
+     * Currently pressed buttons as a bitfield.
+     */
+    buttons: number,
+
+    /**
+     * Current pitch axis.
+     */
+    pitch: number,
+
+    /**
+     * Current yaw axis.
+     */
+    yaw: number,
+}
+
 /**
  * A map of client ID's and their command packet for a given tick.
  */
-type Commands = Map<number, ClientCommand>;
+type Commands = Map<number, Command>;
 
 /**
  * Contains all information that is relevant to the game over time.
@@ -122,9 +151,14 @@ export class Simulation {
     snapshots: Snapshot[];
 
     /**
-     * Circular buffer of commands.
+     * Circular buffer of future commands.
      */
     commands: Commands[];
+
+    /**
+     * Latest set of commands from all players.
+     */
+    lastCommands: Command[];
 
     /**
      * Next Entity ID.
@@ -152,6 +186,7 @@ export class Simulation {
         this.level = new Level(data);
         this.snapshots = [];
         this.commands = [];
+        this.lastCommands = [];
         for (let i = 0;i < SNAPSHOT_MAX;i++) {
             this.snapshots.push({
                 clock: 0,
@@ -257,6 +292,7 @@ export class Simulation {
         //
         // FIXME: We should probably shift the order in which we resolve
         //        client commands every tick.
+        this.lastCommands = [];
         const currentCommand = this.clock % COMMAND_MAX;
         for (let [k, v] of this.players) {
             const cmd = this.commands[currentCommand].get(k);
@@ -279,6 +315,8 @@ export class Simulation {
                 console.debug('Player entity does not exist');
                 continue;
             }
+
+            this.lastCommands.push(cmd);
 
             if (checkButton(cmd.buttons, Button.WalkForward)) {
                 const newEntity = moveRelative(entity, 8, 0, 0);
@@ -311,12 +349,34 @@ export class Simulation {
     }
 
     /**
+     * Rewind to previous state.
+     *
+     * @param clock Tick to rewind to.
+     * @return Tick that we actually rolled back to.
+     */
+    rewind(clock: number): number {
+        if (clock > this.clock) {
+            // Tried to rewind into the future.
+            return this.clock;
+        }
+
+        if (this.clock - clock >= SNAPSHOT_MAX) {
+            // Tried to rewind to a tick we don't have state for.
+            this.clock -= SNAPSHOT_MAX;
+            return this.clock;
+        }
+
+        this.clock = clock;
+        return this.clock;
+    }
+
+    /**
      * Update simulation with commands from a specific client.
      * 
      * @param clientID Client ID that these commands belong to.
      * @param cmd Client command data.
      */
-    updateCommand(clientID: number, cmd: ClientCommand) {
+    updateCommand(clientID: number, cmd: Command) {
         const currentCommand = cmd.clock % COMMAND_MAX;
         this.commands[currentCommand].set(clientID, cmd);
     }
@@ -334,5 +394,12 @@ export class Simulation {
      */
     getSnapshot(): Readonly<Snapshot> {
         return this.snapshots[this.clock % SNAPSHOT_MAX];
+    }
+
+    /**
+     * Return the latest set of commands from the last tick.
+     */
+    getCommands(): Readonly<Command[]> {
+        return this.lastCommands;
     }
 }

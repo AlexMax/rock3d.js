@@ -21,7 +21,7 @@ import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import { RenderContext } from '../r3d/render';
-import { Simulation } from '../sim';
+import { Command, Simulation } from '../sim';
 import { Timer } from '../timer';
 
 export class Client {
@@ -46,7 +46,7 @@ export class Client {
     rtt: number | null;
 
     /**
-     * Timer for game logic.
+     * Timer for client tick.
      */
     gameTimer: Timer;
 
@@ -118,7 +118,7 @@ export class Client {
             this.socket.send(hello);
         });
 
-        // Initialize the timer for the game.
+        // Initialize the timer for the simulation.
         const now = performance.now.bind(performance);
         this.gameTimer = new Timer(this.tick, now, 32);
     }
@@ -151,15 +151,40 @@ export class Client {
         }
 
         if (this.sim === null) {
-            // We have no simulation to tick.
+            // We need to have a simulation to tick.
+            console.debug('tick: no simulation');
             return;
         }
 
+        if (this.rtt === null) {
+            // We need our ping to know how far ahead we need to be.
+            console.debug('tick: no rtt');
+            return;
+        }
+
+        // How far behind are we from the last authoritative frame?
+        const behindTicks = this.sim.clock - this.authoritativeClock;
+
+        // How far ahead of "now" should we simulate?
+        const predictTicks = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
+
+        // Rewind and start predicting.
+        this.sim.rewind(this.authoritativeClock);
+        console.debug(behindTicks, predictTicks);
+        for (let i = 0;i < behindTicks + predictTicks;i++) {
+            // Tick the simulation the proper number of ticks.
+            this.sim.tick();
+        }
+
         // Construct command from current button and axis state.
-        this.send({
-            type: proto.ClientMessageType.Command,
+        const cmd: Command = {
             clock: this.sim.clock, buttons: this.buttons,
             yaw: this.yaw, pitch: this.pitch,
+        };
+
+        this.send({
+            type: proto.ClientMessageType.Command,
+            command: cmd,
         });
 
         // Yaw and Pitch are per-tick accumulators, reset them.
@@ -178,45 +203,54 @@ export class Client {
     render() {
         if (this.sim === null) {
             // Can't draw if we don't have a simulation.
+            console.debug('render: no sim');
+            return;
+        }
+
+        if (this.camEntity === null) {
+            // We need camera to actually draw anything.
+            console.debug('render: no camEntity');
             return;
         }
 
         // Get our latest snapshot data to render.
         const snapshot = this.sim.getSnapshot();
 
-        // We need camera to actually draw anything.
-        if (this.camEntity !== null) {
-            const entity = snapshot.entities.get(this.camEntity);
-            if (entity !== undefined) {
-                const cam = moveRelative(cameraFromEntity(entity),
-                    0, 0, entity.config.cameraZ);
-                const level = this.sim.level;
-
-                // Create our sky.
-                this.renderer.world.clearSky();
-                this.renderer.world.addSky('SKY1');
-
-                // Add our geometry to be rendered.
-                this.renderer.world.clearWorld();
-                for (let i = 0;i < level.polygons.length;i++) {
-                    this.renderer.world.addPolygon(level.polygons, i);
-                }
-
-                // Add our sprites to be rendered.
-                this.renderer.world.clearSprites();
-                for (let [k, v] of snapshot.entities) {
-                    if (k === this.camEntity) {
-                        // Don't draw your own sprite.
-                        continue;
-                    }
-
-                    this.renderer.world.addEntity(v, cam, level.polygons);
-                }
-
-                // Render the world.
-                this.renderer.world.render(cam);
-            }
+        const entity = snapshot.entities.get(this.camEntity);
+        if (entity === undefined) {
+            // Entity we're trying to render doesn't exist.
+            console.debug('render: missing entity');
+            return;
         }
+
+
+        const cam = moveRelative(cameraFromEntity(entity),
+            0, 0, entity.config.cameraZ);
+        const level = this.sim.level;
+
+        // Create our sky.
+        this.renderer.world.clearSky();
+        this.renderer.world.addSky('SKY1');
+
+        // Add our geometry to be rendered.
+        this.renderer.world.clearWorld();
+        for (let i = 0;i < level.polygons.length;i++) {
+            this.renderer.world.addPolygon(level.polygons, i);
+        }
+
+        // Add our sprites to be rendered.
+        this.renderer.world.clearSprites();
+        for (let [k, v] of snapshot.entities) {
+            if (k === this.camEntity) {
+                // Don't draw your own sprite.
+                continue;
+            }
+
+            this.renderer.world.addEntity(v, cam, level.polygons);
+        }
+
+        // Render the world.
+        this.renderer.world.render(cam);
     }
 
     /**
