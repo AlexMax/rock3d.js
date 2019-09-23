@@ -385,6 +385,12 @@ export class Simulation {
      * Update the simulation with authoritative data for a given tick.
      */
     updateSnapshot(snap: Snapshot) {
+        // If the clock for this snapshot is in the future, we are really
+        // far behind and need to catch up.
+        if (this.clock < snap.clock) {
+            this.clock = snap.clock;
+        }
+
         // Replace existing data with new data.
         snapCopy(this.snapshots[snap.clock % SNAPSHOT_MAX], snap);
     }

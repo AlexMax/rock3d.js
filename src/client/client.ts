@@ -162,16 +162,12 @@ export class Client {
             return;
         }
 
-        // How far behind are we from the last authoritative frame?
-        const behindTicks = this.sim.clock - this.authoritativeClock;
-
-        // How far ahead of "now" should we simulate?
+        // How far ahead of the authority should we simulate?
         const predictTicks = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
 
         // Rewind and start predicting.
         this.sim.rewind(this.authoritativeClock);
-        console.debug(behindTicks, predictTicks);
-        for (let i = 0;i < behindTicks + predictTicks;i++) {
+        for (let i = 0;i < predictTicks;i++) {
             // Tick the simulation the proper number of ticks.
             this.sim.tick();
         }

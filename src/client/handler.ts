@@ -36,7 +36,7 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
     // Store our snapshot data in the simulation.
     client.sim.updateSnapshot(snap);
 
-    // Take note of which tick we most recently got server data for.
+    // Update our authoritative clock to the latest snapshot we got.
     if (client.authoritativeClock < snap.clock) {
         client.authoritativeClock = snap.clock;
     }
