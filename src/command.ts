@@ -32,6 +32,31 @@ export enum Button {
 }
 
 /**
+ * Clientside command.
+ */
+export interface Command {
+    /**
+     * Client ID that command belongs to.
+     */
+    clientID: number;
+
+    /**
+     * Currently pressed buttons as a bitfield.
+     */
+    buttons: number,
+
+    /**
+     * Current pitch axis.
+     */
+    pitch: number,
+
+    /**
+     * Current yaw axis.
+     */
+    yaw: number,
+}
+
+/**
  * Set buttons on an existing bitfield.
  * 
  * @param input Input bitset.
