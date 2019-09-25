@@ -99,6 +99,11 @@ export const unpackClient = (message: string): ClientMessage => {
  */
 export enum ServerMessageType {
     /**
+     * Greet a newly-connecting player.
+     */
+    Hello,
+
+    /**
      * Tell the client how far away they are from the server.
      */
     Ping,
@@ -107,11 +112,15 @@ export enum ServerMessageType {
      * Game data sent from the server.
      */
     Snapshot,
+}
+
+export interface ServerHello {
+    type: ServerMessageType.Hello,
 
     /**
-     * Tell the client which entity their camera should be attached to.
+     * Entity ID.
      */
-    Camera,
+    clientID: number,
 }
 
 export interface ServerPing {
@@ -137,16 +146,7 @@ export interface ServerSnapshot {
     commands: Readonly<Command[]>,
 }
 
-export interface ServerCamera {
-    type: ServerMessageType.Camera,
-
-    /**
-     * Entity ID.
-     */
-    id: number | null,
-}
-
-export type ServerMessage = ServerPing | ServerSnapshot | ServerCamera;
+export type ServerMessage = ServerHello | ServerPing | ServerSnapshot;
 
 /**
  * Serialize a server message into JSON.

@@ -16,24 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Axis, Button, setButton, unsetButton } from '../command';
+import * as cmd from '../command';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import { RenderContext } from '../r3d/render';
-import { Command, Simulation } from '../sim';
+import { Simulation } from './sim';
 import { Timer } from '../timer';
 
 export class Client {
     /**
+     * Client ID.
+     */
+    id: number | null;
+
+    /**
      * Websocket connection.
      */
     socket: WebSocket;
-
-    /**
-     * Time of last message.
-     */
-    lastTime: number; // Time of last message.
 
     /**
      * Server messages.
@@ -56,12 +56,7 @@ export class Client {
     sim: Simulation | null;
 
     /**
-     * Clock of latest authoritative snapshot from server.
-     */
-    authoritativeClock: number;
-
-    /**
-     * Entity ID that camera is attached to.
+     * Entity that the client is attached to.
      */
     camEntity: number | null;
 
@@ -87,16 +82,16 @@ export class Client {
 
     constructor(renderer: RenderContext) {
         this.tick = this.tick.bind(this);
+
+        this.id = null;
         this.rtt = null;
+        this.sim = null;
         this.buffer = [];
-        this.lastTime = -Infinity;
         this.camEntity = null;
         this.renderer = renderer;
         this.buttons = 0;
         this.yaw = 0;
         this.pitch = 0;
-        this.authoritativeClock = -Infinity;
-        this.sim = null;
 
         // Construct the clientside socket.
         const hostname = window.location.hostname;
@@ -104,7 +99,6 @@ export class Client {
 
         // All messages get unpacked into our buffer.
         this.socket.addEventListener('message', (evt) => {
-            this.lastTime = performance.now();
             const msg = proto.unpackServer(evt.data);
             this.buffer.push(msg);
         });
@@ -165,22 +159,12 @@ export class Client {
         // How far ahead of the authority should we simulate?
         const predictTicks = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
 
-        // Rewind and start predicting.
-        this.sim.rewind(this.authoritativeClock);
-        for (let i = 0;i < predictTicks;i++) {
-            // Tick the simulation the proper number of ticks.
-            this.sim.tick();
-        }
-
-        // Construct command from current button and axis state.
-        const cmd: Command = {
-            clock: this.sim.clock, buttons: this.buttons,
-            yaw: this.yaw, pitch: this.pitch,
-        };
-
         this.send({
-            type: proto.ClientMessageType.Command,
-            command: cmd,
+            type: proto.ClientMessageType.Input,
+            clock: this.sim.clock,
+            buttons: this.buttons,
+            pitch: this.pitch,
+            yaw: this.yaw,
         });
 
         // Yaw and Pitch are per-tick accumulators, reset them.
@@ -252,23 +236,23 @@ export class Client {
     /**
      * Set a specific button to a specific state.
      */
-    buttonState(button: Button, state: boolean) {
+    buttonState(button: cmd.Button, state: boolean) {
         if (state) {
-            this.buttons = setButton(this.buttons, button);
+            this.buttons = cmd.setButton(this.buttons, button);
         } else {
-            this.buttons = unsetButton(this.buttons, button);
+            this.buttons = cmd.unsetButton(this.buttons, button);
         }
     }
 
     /**
      * Move an analog axis, like a mouse or a gamepad.
      */
-    axisMove(axis: Axis, num: number) {
+    axisMove(axis: cmd.Axis, num: number) {
         switch (axis) {
-            case Axis.Pitch:
+            case cmd.Axis.Pitch:
                 this.pitch += num;
                 break;
-            case Axis.Yaw:
+            case cmd.Axis.Yaw:
                 this.yaw += num;
                 break;
         }

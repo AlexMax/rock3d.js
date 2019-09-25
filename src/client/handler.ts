@@ -23,6 +23,10 @@ import * as proto from '../proto';
 
 import TESTMAP from '../../asset/TESTMAP.json';
 
+const hello = (client: Client, msg: proto.ServerHello) => {
+    client.id = msg.clientID;
+}
+
 const ping = (client: Client, msg: proto.ServerPing) => {
     client.rtt = msg.rtt;
 }
@@ -31,20 +35,11 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
     const snap = unserializeSnapshot(msg.snapshot);
     if (client.sim === null) {
         // Start the simulation now that we have snapshot data.
-        client.sim = new Simulation(TESTMAP, 32, snap.clock);
+        client.sim = new Simulation(TESTMAP, 32, snap);
     }
 
     // Store our snapshot data in the simulation.
     client.sim.updateSnapshot(snap);
-
-    // Update our authoritative clock to the latest snapshot we got.
-    if (client.authoritativeClock < snap.clock) {
-        client.authoritativeClock = snap.clock;
-    }
-}
-
-const camera = (client: Client, msg: proto.ServerCamera) => {
-    client.camEntity = msg.id;
 }
 
 /**
@@ -58,14 +53,14 @@ export const handleMessage = (client: Client, msg: proto.ServerMessage) => {
     //      where each handler function is aware of its own message type.
     //      But I don't know for certain, patches welcome.
     switch (msg.type) {
+        case proto.ServerMessageType.Hello:
+            hello(client, msg);
+            break;
         case proto.ServerMessageType.Ping:
             ping(client, msg);
             break;
         case proto.ServerMessageType.Snapshot:
             snapshot(client, msg);
-            break;
-        case proto.ServerMessageType.Camera:
-            camera(client, msg);
             break;
         default:
             throw new Error('Unknown message');

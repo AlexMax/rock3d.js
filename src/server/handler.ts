@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as com from '../command';
+import * as cmd from '../command';
 import * as proto from '../proto';
 import { Server } from './server';
 
@@ -24,9 +24,22 @@ import { Server } from './server';
  * Client just joined the server.
  */
 const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
+    // Tell the player what his Client ID is.
+    const client = server.connections.get(clientID);
+    if (client === undefined) {
+        // Not really sure how this could possibly happen, don't add the player.
+        return;
+    }
+
+    // Send the player his client ID.
+    client.send({
+        type: proto.ServerMessageType.Hello,
+        clientID: clientID,
+    });
+
     // Add an ingame player for the simulation.
     server.sim.queueCommand({
-        type: com.CommandTypes.Player,
+        type: cmd.CommandTypes.Player,
         clientID: clientID,
         action: 'add'
     });
@@ -43,7 +56,7 @@ const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
  */
 const input = (server: Server, clientID: number, msg: proto.ClientInput) => {
     server.sim.queueCommand({
-        type: com.CommandTypes.Input,
+        type: cmd.CommandTypes.Input,
         clientID: clientID,
         clock: msg.clock,
         buttons: msg.buttons,

@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Command } from '../command';
+import { Level } from '../level';
+import { LevelData } from '../leveldata';
 import { Snapshot } from '../snapshot';
 
 /**
@@ -25,11 +26,48 @@ import { Snapshot } from '../snapshot';
 export class Simulation {
 
     /**
+     * Period of one tick in milliseconds.
+     */
+    period: number;
+
+    /**
+     * Current clientside clock.
+     */
+    clock: number;
+
+    /**
+     * Original level data.
+     */
+    readonly level: Level;
+
+    /**
      * Last authoritative snapshot from the server.
      */
-    snapshot: Snapshot | null;
+    authSnapshot: Snapshot;
 
-    constructor() {
-        this.snapshot = null;
+    constructor(data: LevelData, tickrate: number, snapshot: Snapshot) {
+        this.period = 1000 / tickrate;
+        this.clock = snapshot.clock;
+        this.level = new Level(data);
+        this.authSnapshot = snapshot;
+    }
+
+    /**
+     * Get the current snapshot.
+     */
+    getSnapshot(): Readonly<Snapshot> {
+        return this.authSnapshot;
+    }
+
+    /**
+     * Add authoritative snapshot to the simulation.
+     * 
+     * @param snap Snapshot to update with.
+     */
+    updateSnapshot(snap: Readonly<Snapshot>) {
+        if (snap.clock <= this.authSnapshot.clock) {
+            return;
+        }
+        this.authSnapshot = snap;
     }
 }
