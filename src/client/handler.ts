@@ -40,6 +40,9 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
 
     // Store our snapshot data in the simulation.
     client.sim.updateSnapshot(snap);
+
+    // Store our latest commands in the simulation.
+    client.sim.updateCommands(msg.commands);
 }
 
 /**

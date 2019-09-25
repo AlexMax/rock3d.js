@@ -119,7 +119,7 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
  * @param dst Destination snapshot.
  * @param src Source snapshot.
  */
-const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
+export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
     // Shallow copy our entities Map.
     dst.clock = src.clock;
     dst.entities.clear();

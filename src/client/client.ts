@@ -56,11 +56,6 @@ export class Client {
     sim: Simulation | null;
 
     /**
-     * Entity that the client is attached to.
-     */
-    camEntity: number | null;
-
-    /**
      * Renderer to use for drawing the client.
      */
     renderer: RenderContext;
@@ -87,7 +82,6 @@ export class Client {
         this.rtt = null;
         this.sim = null;
         this.buffer = [];
-        this.camEntity = null;
         this.renderer = renderer;
         this.buttons = 0;
         this.yaw = 0;
@@ -144,24 +138,56 @@ export class Client {
             handleMessage(this, msg);
         }
 
+        if (this.id === null) {
+            // We need to be aware of our own ID to tick.
+            return;
+        }
+
         if (this.sim === null) {
             // We need to have a simulation to tick.
-            console.debug('tick: no simulation');
             return;
         }
 
         if (this.rtt === null) {
             // We need our ping to know how far ahead we need to be.
-            console.debug('tick: no rtt');
             return;
         }
 
-        // How far ahead of the authority should we simulate?
-        const predictTicks = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
+        // Construct an input from our current client state and queue it.
+        const input: cmd.InputCommand = {
+            type: cmd.CommandTypes.Input,
+            clientID: this.id,
+            clock: this.sim.clock,
+            buttons: this.buttons,
+            pitch: this.pitch,
+            yaw: this.yaw,
+        };
+        this.sim.queueLocalInput(input);
 
+        // Tick the client simulation a single frame.
+        this.sim.tick();
+
+        // How far ahead of the authority are we, actually?
+        const actualFrames = this.sim.predictedFrames();
+
+        // How far ahead of the authority should we be?
+        const targetFrames = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
+
+        if (actualFrames < targetFrames) {
+            // We're too far behind, speed it up.
+            this.gameTimer.setScale(0.8);
+        } else if (actualFrames > targetFrames) {
+            // We're too far ahead, slow it down.
+            this.gameTimer.setScale(1.2);
+        } else {
+            // We're just right.
+            this.gameTimer.setScale(1);
+        }
+
+        // Send the server our inputs.
         this.send({
             type: proto.ClientMessageType.Input,
-            clock: this.sim.clock,
+            clock: this.sim.clock - 1,
             buttons: this.buttons,
             pitch: this.pitch,
             yaw: this.yaw,
@@ -181,28 +207,34 @@ export class Client {
      * be called from an endless loop of requestAnimationFrame.
      */
     render() {
-        if (this.sim === null) {
-            // Can't draw if we don't have a simulation.
-            console.debug('render: no sim');
+        if (this.id === null) {
+            // We're not even connected yet...
+            console.debug('no client id');
             return;
         }
 
-        if (this.camEntity === null) {
-            // We need camera to actually draw anything.
-            console.debug('render: no camEntity');
+        if (this.sim === null) {
+            // Can't draw if we don't have a simulation.
+            console.debug('no sim');
             return;
         }
 
         // Get our latest snapshot data to render.
         const snapshot = this.sim.getSnapshot();
 
-        const entity = snapshot.entities.get(this.camEntity);
-        if (entity === undefined) {
-            // Entity we're trying to render doesn't exist.
-            console.debug('render: missing entity');
+        const camEntity = snapshot.players.get(this.id);
+        if (camEntity === undefined) {
+            // Player has no camera entity.
+            console.debug('no entity id');
             return;
         }
 
+        const entity = snapshot.entities.get(camEntity);
+        if (entity === undefined) {
+            // Entity we're trying to render doesn't exist.
+            console.debug('entity doesnt exist');
+            return;
+        }
 
         const cam = moveRelative(cameraFromEntity(entity),
             0, 0, entity.config.cameraZ);
@@ -221,7 +253,7 @@ export class Client {
         // Add our sprites to be rendered.
         this.renderer.world.clearSprites();
         for (let [k, v] of snapshot.entities) {
-            if (k === this.camEntity) {
+            if (k === camEntity) {
                 // Don't draw your own sprite.
                 continue;
             }

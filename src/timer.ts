@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { constrain } from './math';
+
 /**
  * A function that is called on a steady timer.
  */
@@ -55,6 +57,11 @@ export class Timer {
     period: number;
 
     /**
+     * Amount to scale our timer by.
+     */
+    scale: number;
+
+    /**
      * Last Tick ID, increments by 1 for every tick.
      */
     lastTickID: number;
@@ -74,6 +81,7 @@ export class Timer {
         this.tickFn = tickFn;
         this.tickrate = tickrate;
         this.period = 1000 / tickrate;
+        this.scale = 1;
         this.lastTickID = 0;
         this.tick = this.tick.bind(this);
     }
@@ -86,13 +94,20 @@ export class Timer {
         this.timer = setTimeout(this.tick, 0);
     }
 
+    /**
+     * Set scale on period.
+     */
+    setScale(scale: number) {
+        this.scale = scale;
+    }
+
     private tick() {
         if (this.cursor === undefined) {
             throw new Error('Timer was not started');
         }
 
         // Figure out our target time.
-        let target = this.cursor + this.period;
+        let target = this.cursor + (this.period * this.scale);
 
         // Run tick function.
         this.tickFn(this.lastTickID);

@@ -59,7 +59,7 @@ export class Simulation {
     preInputs: com.Command[];
 
     /**
-     * Future command buffer for each player.
+     * Future input buffer for each player.
      */
     inputs: Map<number, com.InputCommand[]>;
 

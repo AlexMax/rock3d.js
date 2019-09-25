@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as cmd from '../command';
 import { Level } from '../level';
 import { LevelData } from '../leveldata';
-import { Snapshot } from '../snapshot';
+import { copySnapshot, createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
 
 /**
  * Clientside simulation.
@@ -43,20 +44,108 @@ export class Simulation {
     /**
      * Last authoritative snapshot from the server.
      */
-    authSnapshot: Snapshot;
+    authSnapshot: Readonly<Snapshot>;
+
+    /**
+     * Current predicted snapshot.
+     */
+    predictSnapshot: Snapshot;
+
+    /**
+     * Last authoritative command set from the server.
+     */
+    authCommands: Readonly<cmd.Command[]>;
+
+    /**
+     * Input buffer for this player.
+     */
+    inputs: cmd.InputCommand[];
 
     constructor(data: LevelData, tickrate: number, snapshot: Snapshot) {
         this.period = 1000 / tickrate;
         this.clock = snapshot.clock;
         this.level = new Level(data);
         this.authSnapshot = snapshot;
+        this.predictSnapshot = createSnapshot();
+        this.authCommands = [];
+        this.inputs = [];
     }
 
     /**
      * Get the current snapshot.
      */
     getSnapshot(): Readonly<Snapshot> {
-        return this.authSnapshot;
+        return this.predictSnapshot;
+    }
+
+    /**
+     * Return the amount of time in the future we're predicting, in ms.
+     */
+    predictedFrames(): number {
+        return this.clock - this.authSnapshot.clock;
+    }
+
+    /**
+     * Tick one clientside frame, starting from the authoritative snapshot.
+     */
+    tick() {
+        // The client's clock always travels forwards.  Only the amount of
+        // time that we have to predict changes based on how old our
+        // authoritative snapshot is.
+        const targetClock = this.clock + 1;
+
+        // Construct two snapshots and copy the auth into the first current.
+        let current = createSnapshot();
+        let target = createSnapshot();
+        copySnapshot(current, this.authSnapshot);
+
+        while (current.clock < targetClock) {
+            // Find the input for our frame.
+            const input = this.inputs.find((ele) => {
+                return ele.clock === current.clock;
+            }, null);
+            if (input === undefined) {
+                throw new Error(`Can't find input for frame ${target.clock}.`);
+            }
+
+            // Insert our local input into the list of authoritative commands.
+            const commands = [...this.authCommands].map((ele) => {
+                if (ele.clientID !== input.clientID) {
+                    return ele;
+                }
+                return input;
+            });
+
+            // Predict frame.
+            tickSnapshot(target, current, commands);
+
+            // Our target is now our current for the next loop.
+            copySnapshot(current, target);
+        }
+
+        // We're done predicting.  Save the result of our prediction.
+        this.predictSnapshot = current;
+
+        // Our clock now officially the target.
+        this.clock = targetClock;
+    }
+
+    /**
+     * Queue a local input command.
+     *
+     * @param input The input command to queue.
+     */
+    queueLocalInput(input: cmd.InputCommand) {
+        this.inputs.push(input);
+    }
+
+    /**
+     * Add authoritative commands to the simulation.
+     *
+     * @param cmds Commands to update with.
+     */
+    updateCommands(cmds: Readonly<cmd.Command[]>) {
+        this.authCommands = cmds;
     }
 
     /**
@@ -69,5 +158,10 @@ export class Simulation {
             return;
         }
         this.authSnapshot = snap;
+
+        // Remove old inputs that we no longer need.
+        this.inputs.filter((ele) => {
+            return ele.clock >= snap.clock;
+        });
     }
 }
