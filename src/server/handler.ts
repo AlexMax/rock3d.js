@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as com from '../command';
 import * as proto from '../proto';
 import { Server } from './server';
 
@@ -24,7 +25,11 @@ import { Server } from './server';
  */
 const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
     // Add an ingame player for the simulation.
-    server.sim.addPlayer(clientID);
+    server.sim.queueCommand({
+        type: com.CommandTypes.Player,
+        clientID: clientID,
+        action: 'add'
+    });
 
     console.info({
         msg: "Joined the server",
@@ -36,8 +41,15 @@ const hello = (server: Server, clientID: number, msg: proto.ClientHello) => {
 /**
  * Command inputs from client.
  */
-const command = (server: Server, clientID: number, msg: proto.ClientCommand) => {
-    server.sim.updateCommand(clientID, msg.command);
+const input = (server: Server, clientID: number, msg: proto.ClientInput) => {
+    server.sim.queueCommand({
+        type: com.CommandTypes.Input,
+        clientID: clientID,
+        clock: msg.clock,
+        buttons: msg.buttons,
+        pitch: msg.pitch,
+        yaw: msg.yaw,
+    });
 };
 
 /**
@@ -55,8 +67,8 @@ export const handleMessage = (server: Server, clientID: number, msg: proto.Clien
         case proto.ClientMessageType.Hello:
             hello(server, clientID, msg);
             break;
-        case proto.ClientMessageType.Command:
-            command(server, clientID, msg);
+        case proto.ClientMessageType.Input:
+            input(server, clientID, msg);
             break;
         default:
             console.warn({

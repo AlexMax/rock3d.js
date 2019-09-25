@@ -20,7 +20,7 @@ import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity, moveRelative,
     rotateEuler
 } from './entity';
-import { Button, checkButton, Command } from './command';
+import * as cmd from './command';
 
 export interface Snapshot {
     /**
@@ -51,6 +51,18 @@ export interface SerializedSnapshot {
     entities: { [key: number]: SerializedEntity },
     nextEntityID: number,
     players: { [key: number]: number }
+}
+
+/**
+ * Create an empty snapshot.
+ */
+export const createSnapshot = (): Snapshot =>  {
+    return {
+        clock: 0,
+        entities: new Map(),
+        nextEntityID: 1,
+        players: new Map(),
+    }
 }
 
 /**
@@ -107,7 +119,7 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
  * @param dst Destination snapshot.
  * @param src Source snapshot.
  */
-const snapCopy = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
+const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
     // Shallow copy our entities Map.
     dst.clock = src.clock;
     dst.entities.clear();
@@ -122,58 +134,79 @@ const snapCopy = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
     return dst;
 }
 
+const handleInput = (
+    target: Snapshot, current: Readonly<Snapshot>, command: cmd.InputCommand
+): void => {
+    // Get entity of player
+    const entityID = target.players.get(command.clientID);
+    if (entityID === undefined) {
+        return;
+    }
+
+    // Get the commend entity.
+    const entity = target.entities.get(entityID);
+    if (entity === undefined) {
+        return;
+    }
+
+    if (cmd.checkButton(command.buttons, cmd.Button.WalkForward)) {
+        const newEntity = moveRelative(entity, 8, 0, 0);
+        target.entities.set(entityID, newEntity);
+    }
+
+    if (cmd.checkButton(command.buttons, cmd.Button.WalkBackward)) {
+        const newEntity = moveRelative(entity, -8, 0, 0);
+        target.entities.set(entityID, newEntity);
+    }
+
+    if (cmd.checkButton(command.buttons, cmd.Button.StrafeLeft)) {
+        const newEntity = moveRelative(entity, 0, 8, 0);
+        target.entities.set(entityID, newEntity);
+    }
+
+    if (cmd.checkButton(command.buttons, cmd.Button.StrafeRight)) {
+        const newEntity = moveRelative(entity, 0, -8, 0);
+        target.entities.set(entityID, newEntity);
+    }
+
+    if (command.pitch !== 0.0 || command.yaw !== 0.0) {
+        const newEntity = rotateEuler(entity, 0, command.pitch, command.yaw);
+        target.entities.set(entityID, newEntity);
+    }
+}
+
+const handlePlayer = (
+    target: Snapshot, current: Readonly<Snapshot>, command: cmd.PlayerCommand
+): void => {
+
+}
+
 /**
  * Tick a snapshot frame.
  * 
  * @param target Target snapshot frame.
  * @param current Current snapshot frame to tick.
  */
-export const tick = (
+export const tickSnapshot = (
     target: Snapshot, current: Readonly<Snapshot>,
-    commands: Readonly<Command[]>
+    commands: Readonly<cmd.Command[]>
 ): Snapshot  => {
     // Copy our current snapshot into our target snapshot.
-    snapCopy(target, current);
+    copySnapshot(target, current);
     target.clock = current.clock + 1;
 
     // Run our commands against the current frame, in the specified order.
-    for (const cmd of commands) {
-        // Get entity of player
-        const entityID = target.players.get(cmd.clientID);
-        if (entityID === undefined) {
-            continue;
-        }
-
-        // Get the commend entity.
-        const entity = target.entities.get(entityID);
-        if (entity === undefined) {
-            continue;
-        }
-
-        if (checkButton(cmd.buttons, Button.WalkForward)) {
-            const newEntity = moveRelative(entity, 8, 0, 0);
-            target.entities.set(entityID, newEntity);
-        }
-
-        if (checkButton(cmd.buttons, Button.WalkBackward)) {
-            const newEntity = moveRelative(entity, -8, 0, 0);
-            target.entities.set(entityID, newEntity);
-        }
-
-        if (checkButton(cmd.buttons, Button.StrafeLeft)) {
-            const newEntity = moveRelative(entity, 0, 8, 0);
-            target.entities.set(entityID, newEntity);
-        }
-
-        if (checkButton(cmd.buttons, Button.StrafeRight)) {
-            const newEntity = moveRelative(entity, 0, -8, 0);
-            target.entities.set(entityID, newEntity);
-        }
-
-        if (cmd.pitch !== 0.0 || cmd.yaw !== 0.0) {
-            const newEntity = rotateEuler(entity, 0, cmd.pitch, cmd.yaw);
-            target.entities.set(entityID, newEntity);
-        }
+    for (const command of commands) {
+        switch (command.type) {
+            case cmd.CommandTypes.Input:
+                handleInput(target, current, command);
+                break;
+            case cmd.CommandTypes.Player:
+                handlePlayer(target, current, command);
+                break;
+            default:
+                throw new Error('Unknown message');
+            }
     }
 
     return target;

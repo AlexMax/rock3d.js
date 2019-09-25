@@ -21,7 +21,8 @@
  * It also doubles as a sort of expected protocol of the schema.
  */
 
-import { Command, SerializedSnapshot } from './sim';
+import { Command } from './command';
+import { SerializedSnapshot } from './snapshot';
 
 /**
  * Possible client messages.
@@ -35,7 +36,7 @@ export enum ClientMessageType {
     /**
      * Inputs from the client.
      */
-    Command,
+    Input,
 }
 
 export interface ClientHello {
@@ -47,16 +48,31 @@ export interface ClientHello {
     name: string,
 }
 
-export interface ClientCommand {
-    type: ClientMessageType.Command,
+export interface ClientInput {
+    type: ClientMessageType.Input,
 
     /**
-     * Command data.
+     * Predicted clock of client message.
      */
-    command: Command,
+    clock: number,
+
+    /**
+     * Currently pressed buttons as a bitfield.
+     */
+    buttons: number,
+
+    /**
+     * Current pitch axis.
+     */
+    pitch: number,
+
+    /**
+     * Current yaw axis.
+     */
+    yaw: number,
 }
 
-export type ClientMessage = ClientHello | ClientCommand;
+export type ClientMessage = ClientHello | ClientInput;
 
 /**
  * Serialize a client message into JSON.

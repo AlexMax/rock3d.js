@@ -19,9 +19,11 @@
 import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
+import * as com from '../command';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
-import { serializeSnapshot, Simulation } from '../sim';
+import { Simulation } from './sim';
+import { serializeSnapshot } from '../snapshot';
 import { Timer } from '../timer';
 
 import TESTMAP from '../../asset/TESTMAP.json';
@@ -184,8 +186,12 @@ export class Server {
             const clientID = this.nextID;
             const conn = new Connection(clientID, wsc);
             wsc.on('close', () => {
+                this.sim.queueCommand({
+                    type: com.CommandTypes.Player,
+                    clientID: clientID,
+                    action: 'remove',
+                });
                 this.connections.delete(clientID);
-                this.sim.removePlayer(clientID);
 
                 console.info({
                     msg: 'Disconnected',
@@ -204,7 +210,7 @@ export class Server {
         });
 
         // Load the level.
-        this.sim = new Simulation(TESTMAP, 32, 0);
+        this.sim = new Simulation(TESTMAP, 32);
 
         // Initialize the timer for the game.
         this.gameTimer = new Timer(this.tick, performance.now, 32);
@@ -230,18 +236,6 @@ export class Server {
             snapshot: serializeSnapshot(this.sim.getSnapshot()),
             commands: this.sim.getCommands(),
         });
-
-        // Update players about any camera changes.
-        for (let [k, v] of this.connections) {
-            const entityID = this.sim.getPlayerEntity(k);
-            if (entityID !== v.cameraEntity) {
-                v.send({
-                    type: proto.ServerMessageType.Camera,
-                    id: entityID,
-                });
-                (this.connections.get(k) as Connection).cameraEntity = entityID;
-            }
-        }
 
         // Ping everybody.
         for (let conn of this.connections.values()) {

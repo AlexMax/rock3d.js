@@ -17,7 +17,8 @@
  */
 
 import { Client } from './client';
-import { unserializeSnapshot, Simulation } from '../sim';
+import { Simulation } from './sim';
+import { unserializeSnapshot } from '../snapshot';
 import * as proto from '../proto';
 
 import TESTMAP from '../../asset/TESTMAP.json';

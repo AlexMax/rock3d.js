@@ -31,14 +31,30 @@ export enum Button {
     Use,
 }
 
-/**
- * Clientside command.
- */
-export interface Command {
+export enum CommandTypes {
+    /**
+     * Inputs from a client.
+     */
+    Input,
+
+    /**
+     * Player joins or leaves the state.
+     */
+    Player,
+}
+
+export interface InputCommand {
+    type: CommandTypes.Input;
+
     /**
      * Client ID that command belongs to.
      */
     clientID: number;
+
+    /**
+     * Client predicted clock of inputs.
+     */
+    clock: number;
 
     /**
      * Currently pressed buttons as a bitfield.
@@ -55,6 +71,22 @@ export interface Command {
      */
     yaw: number,
 }
+
+export interface PlayerCommand {
+    type: CommandTypes.Player;
+
+    /**
+     * Client ID of the player.
+     */
+    clientID: number;
+
+    /**
+     * Action to take with the player.
+     */
+    action: 'add' | 'remove';
+}
+
+export type Command = InputCommand | PlayerCommand;
 
 /**
  * Set buttons on an existing bitfield.
