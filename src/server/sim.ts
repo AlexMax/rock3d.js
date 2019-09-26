@@ -120,6 +120,9 @@ export class Simulation {
 
         // Save our commands so we can deliver them to clients later.
         this.commands[this.clock % SNAPSHOT_MAX] = commands;
+
+        // Clear any queued commands.
+        this.preInputs = [];
     }
 
     /**

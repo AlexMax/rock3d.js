@@ -16,9 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { quat, vec3 } from 'gl-matrix';
+
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity, moveRelative,
-    rotateEuler
+    rotateEuler, playerConfig
 } from './entity';
 import * as cmd from './command';
 
@@ -137,7 +139,7 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
 const handleInput = (
     target: Snapshot, current: Readonly<Snapshot>, command: cmd.InputCommand
 ): void => {
-    // Get entity of player
+    // Get entity ID for player entity.
     const entityID = target.players.get(command.clientID);
     if (entityID === undefined) {
         return;
@@ -178,7 +180,32 @@ const handleInput = (
 const handlePlayer = (
     target: Snapshot, current: Readonly<Snapshot>, command: cmd.PlayerCommand
 ): void => {
+    switch (command.action) {
+        case 'add':
+            // Add a player to the player array.
+            target.players.set(command.clientID, target.nextEntityID);
 
+            // Create a new entity for the player.
+            target.entities.set(target.nextEntityID, {
+                config: playerConfig,
+                polygon: 0,
+                position: vec3.fromValues(0, 0, 0),
+                rotation: quat.fromEuler(quat.create(), 0, 0, 90),
+            });
+            target.nextEntityID += 1;
+            break;
+        case 'remove':
+            // Get the Entity ID for the player.
+            const entityID = target.players.get(command.clientID);
+            if (entityID !== undefined) {
+                // Delete the entity.
+                target.entities.delete(entityID);
+            }
+
+            // Remove a player from the player array.
+            target.players.delete(command.clientID);
+            break;
+    }
 }
 
 /**
