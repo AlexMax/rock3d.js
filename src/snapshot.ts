@@ -146,34 +146,34 @@ const handleInput = (
     }
 
     // Get the commend entity.
-    const entity = target.entities.get(entityID);
+    let entity = target.entities.get(entityID);
     if (entity === undefined) {
         return;
     }
 
     if (cmd.checkButton(command.buttons, cmd.Button.WalkForward)) {
-        const newEntity = moveRelative(entity, 8, 0, 0);
-        target.entities.set(entityID, newEntity);
+        entity = moveRelative(entity, 8, 0, 0);
+        target.entities.set(entityID, entity);
     }
 
     if (cmd.checkButton(command.buttons, cmd.Button.WalkBackward)) {
-        const newEntity = moveRelative(entity, -8, 0, 0);
-        target.entities.set(entityID, newEntity);
+        entity = moveRelative(entity, -8, 0, 0);
+        target.entities.set(entityID, entity);
     }
 
     if (cmd.checkButton(command.buttons, cmd.Button.StrafeLeft)) {
-        const newEntity = moveRelative(entity, 0, 8, 0);
-        target.entities.set(entityID, newEntity);
+        entity = moveRelative(entity, 0, 8, 0);
+        target.entities.set(entityID, entity);
     }
 
     if (cmd.checkButton(command.buttons, cmd.Button.StrafeRight)) {
-        const newEntity = moveRelative(entity, 0, -8, 0);
-        target.entities.set(entityID, newEntity);
+        entity = moveRelative(entity, 0, -8, 0);
+        target.entities.set(entityID, entity);
     }
 
     if (command.pitch !== 0.0 || command.yaw !== 0.0) {
-        const newEntity = rotateEuler(entity, 0, command.pitch, command.yaw);
-        target.entities.set(entityID, newEntity);
+        entity = rotateEuler(entity, 0, command.pitch, command.yaw);
+        target.entities.set(entityID, entity);
     }
 }
 
