@@ -24,6 +24,11 @@ import { RenderContext } from '../r3d/render';
 import { Simulation } from './sim';
 import { Timer } from '../timer';
 
+interface Capture {
+    time: number,
+    msg: proto.ServerMessage,
+}
+
 export class Client {
     /**
      * Client ID.
@@ -75,6 +80,11 @@ export class Client {
      */
     pitch: number;
 
+    /**
+     * Packet capture of server data.
+     */
+    capture: Capture[];
+
     constructor(renderer: RenderContext) {
         this.tick = this.tick.bind(this);
 
@@ -86,6 +96,7 @@ export class Client {
         this.buttons = 0;
         this.yaw = 0;
         this.pitch = 0;
+        this.capture = []
 
         // Construct the clientside socket.
         const hostname = window.location.hostname;
@@ -94,6 +105,10 @@ export class Client {
         // All messages get unpacked into our buffer.
         this.socket.addEventListener('message', (evt) => {
             const msg = proto.unpackServer(evt.data);
+            this.capture.push({
+                time: performance.now(),
+                msg: msg,
+            });
             this.buffer.push(msg);
         });
 
@@ -175,10 +190,10 @@ export class Client {
 
         if (actualFrames < targetFrames) {
             // We're too far behind, speed it up.
-            this.gameTimer.setScale(0.8);
+            this.gameTimer.setScale(0.9);
         } else if (actualFrames > targetFrames) {
             // We're too far ahead, slow it down.
-            this.gameTimer.setScale(1.2);
+            this.gameTimer.setScale(1.1);
         } else {
             // We're just right.
             this.gameTimer.setScale(1);
@@ -295,5 +310,9 @@ export class Client {
      */
     run() {
         this.gameTimer.start();
+    }
+
+    halt() {
+        this.gameTimer.stop();
     }
 }

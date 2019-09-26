@@ -95,6 +95,15 @@ export class Timer {
     }
 
     /**
+     * Stop the timer.
+     */
+    stop() {
+        if (this.timer !== undefined) {
+            clearTimeout(this.timer);
+        }
+    }
+
+    /**
      * Set scale on period.
      */
     setScale(scale: number) {

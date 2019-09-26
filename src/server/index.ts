@@ -16,7 +16,51 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as process from 'process';
+
 import { Server } from './server';
+
+// Make console messages pretty.
+const debug = console.debug;
+console.debug = (...args: any) => {
+    debug({
+        time: new Date(),
+        level: 'DEBUG',
+        args: [...args],
+    });
+}
+const error = console.error;
+console.error = (...args: any) => {
+    error({
+        time: new Date(),
+        level: 'ERROR',
+        args: [...args],
+    });
+}
+const info = console.info;
+console.info = (...args: any) => {
+    info({
+        time: new Date(),
+        level: 'INFO',
+        args: [...args],
+    });
+}
+const log = console.log;
+console.log = (...args: any) => {
+    log({
+        time: new Date(),
+        level: 'LOG',
+        args: [...args],
+    });
+}
+const warn = console.warn;
+console.warn = (...args: any) => {
+    warn({
+        time: new Date(),
+        level: 'WARN',
+        args: [...args],
+    });
+}
 
 const server = new Server();
 server.run();

@@ -78,6 +78,17 @@ window.addEventListener("load", async () => {
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {
+        if (evt.keyCode === 192) {
+            // User hit tilde, stop the client and dump a packet capture.
+            client.halt();
+            const now = performance.now();
+            const dump = document.getElementById('dump') as HTMLTextAreaElement;
+            dump.value = JSON.stringify(client.capture.filter((ele) => {
+                return ele.time > now - 1000;
+            }));
+            return;
+        }
+
         const button = keyCodeToButton(evt.keyCode);
         if (button === undefined) {
             return;
