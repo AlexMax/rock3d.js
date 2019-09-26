@@ -110,7 +110,11 @@ export class Simulation {
                     clientID: clientID,
                     action: 'remove',
                 });
+                continue;
             }
+
+            // Add this input.
+            inputCommands.push(latest);
         }
 
         // Tick our snapshot.
