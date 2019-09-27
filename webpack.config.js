@@ -31,7 +31,10 @@ const editor = {
 
 const client = {
     name: 'client',
-    entry: './src/client/index.ts',
+    entry: {
+        client: './src/client/index.ts',
+        demoClient: './src/client/demoIndex.ts',
+    },
     mode: "production",
     module: {
         rules: [{
@@ -49,7 +52,7 @@ const client = {
         }]
     },
     output: {
-        filename: 'client.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'public/dist'),
         publicPath: '/dist/'
     },

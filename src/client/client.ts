@@ -17,17 +17,13 @@
  */
 
 import * as cmd from '../command';
+import { Connection } from './connection';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import { RenderContext } from '../r3d/render';
 import { Simulation } from './sim';
 import { Timer } from '../timer';
-
-interface Capture {
-    time: number,
-    msg: proto.ServerMessage,
-}
 
 export class Client {
     /**
@@ -36,9 +32,11 @@ export class Client {
     id: number | null;
 
     /**
-     * Websocket connection.
+     * Connection abstraction.
+     *
+     * Either a real connection or a demo player.
      */
-    socket: WebSocket;
+    connection: Connection;
 
     /**
      * Server messages.
@@ -80,15 +78,11 @@ export class Client {
      */
     pitch: number;
 
-    /**
-     * Packet capture of server data.
-     */
-    capture: Capture[];
-
-    constructor(renderer: RenderContext) {
+    constructor(conn: Connection, renderer: RenderContext) {
         this.tick = this.tick.bind(this);
 
         this.id = null;
+        this.connection = conn;
         this.rtt = null;
         this.sim = null;
         this.buffer = [];
@@ -96,51 +90,14 @@ export class Client {
         this.buttons = 0;
         this.yaw = 0;
         this.pitch = 0;
-        this.capture = []
-
-        // Construct the clientside socket.
-        const hostname = window.location.hostname;
-        this.socket = new WebSocket('ws://' + hostname + ':11210');
-
-        // All messages get unpacked into our buffer.
-        this.socket.addEventListener('message', (evt) => {
-            const msg = proto.unpackServer(evt.data);
-            this.capture.push({
-                time: performance.now(),
-                msg: msg,
-            });
-            this.buffer.push(msg);
-        });
-
-        // When we connect, greet the server.
-        this.socket.addEventListener('open', () => {
-            const hello = proto.packClient({
-                type: proto.ClientMessageType.Hello,
-                name: 'Player'
-            });
-            this.socket.send(hello);
-        });
 
         // Initialize the timer for the simulation.
         const now = performance.now.bind(performance);
         this.gameTimer = new Timer(this.tick, now, 32);
     }
 
-    private read(): proto.ServerMessage | null {
-        const msg = this.buffer.shift();
-        if (msg === undefined) {
-            return null;
-        }
-        return msg;
-    }
-
-    private send(msg: proto.ClientMessage): void {
-        const data = proto.packClient(msg);
-        this.socket.send(data);
-    }
-
     private tick() {
-        if (this.socket.readyState !== WebSocket.OPEN) {
+        if (!this.connection.ready()) {
             // Don't tick with a closed connection.
             return;
         }
@@ -148,8 +105,8 @@ export class Client {
         //const start = performance.now();
 
         // Service incoming network messages.
-        let msg: ReturnType<Client['read']> = null;
-        while ((msg = this.read()) !== null) {
+        let msg: ReturnType<Connection['read']> = null;
+        while ((msg = this.connection.read()) !== null) {
             handleMessage(this, msg);
         }
 
@@ -200,7 +157,7 @@ export class Client {
         }
 
         // Send the server our inputs.
-        this.send({
+        this.connection.send({
             type: proto.ClientMessageType.Input,
             clock: this.sim.clock - 1,
             buttons: this.buttons,

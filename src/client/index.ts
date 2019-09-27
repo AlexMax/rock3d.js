@@ -18,8 +18,8 @@
 
 import { Client } from './client'; 
 import { Axis, Button } from '../command';
+import { SocketConnection } from './connection';
 import { RenderContext } from '../r3d/render';
-
 import { loadAssets } from './loader';
 
 const keyCodeToButton = (keyCode: number) => {
@@ -74,18 +74,21 @@ window.addEventListener("load", async () => {
     await loadAssets(renderer);
 
     // Create our client.
-    const client = new Client(renderer);
+    const hostname = window.location.hostname;
+    const client = new Client(new SocketConnection(hostname, 11210), renderer);
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {
         if (evt.keyCode === 192) {
             // User hit tilde, stop the client and dump a packet capture.
             client.halt();
+            /*
             const now = performance.now();
-            const dump = document.getElementById('dump') as HTMLTextAreaElement;
-            dump.value = JSON.stringify(client.capture.filter((ele) => {
+            const capture = document.getElementById('capture') as HTMLTextAreaElement;
+            capture.value = JSON.stringify(client.capture.filter((ele) => {
                 return ele.time > now - 1000;
             }));
+            */
             return;
         }
 
