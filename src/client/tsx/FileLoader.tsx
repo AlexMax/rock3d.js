@@ -16,17 +16,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
 
-import { DemoRoot } from './tsx/DemoRoot';
+import { localFileLoader } from "../loader";
 
-window.addEventListener("load", async () => {
-    // Get our player element.
-    const root = document.getElementById('player');
-    if (root === null) {
-        throw new Error('Could not find root element');
+export interface Props {
+    /**
+     * Function to call when we've loaded the file.
+     */
+    onLoad: (data: string) => void;
+}
+
+export class FileLoader extends React.Component<Props> {
+
+    constructor(props: Readonly<Props>) {
+        super(props);
+
+        this.onChange = this.onChange.bind(this);
     }
 
-    ReactDOM.render(React.createElement(DemoRoot), root);
-});
+    async onChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const files = event.target.files;
+        if (files === null) {
+            return;
+        }
+
+        const data = await localFileLoader(files[0]);
+        this.props.onLoad(data);
+    }
+
+    render() {
+        return <input type="file" onChange={this.onChange}/>;
+    }
+}

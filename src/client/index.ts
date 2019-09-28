@@ -75,7 +75,7 @@ window.addEventListener("load", async () => {
 
     // Create our client.
     const hostname = window.location.hostname;
-    const client = new Client(new SocketConnection(hostname, 11210), renderer);
+    const client = new Client(new SocketConnection(hostname, 11210));
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {
@@ -134,7 +134,7 @@ window.addEventListener("load", async () => {
 
     // Start our rendering loop too.
     const draw = () => {
-        client.render();
+        client.render(renderer);
         window.requestAnimationFrame(draw);
     }
     window.requestAnimationFrame(draw);

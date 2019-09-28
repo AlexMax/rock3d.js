@@ -59,16 +59,11 @@ export class Client {
     sim: Simulation | null;
 
     /**
-     * Renderer to use for drawing the client.
-     */
-    renderer: RenderContext;
-
-    /**
      * Current input state.
      */
     input: cmd.Input;
 
-    constructor(conn: Connection, renderer: RenderContext) {
+    constructor(conn: Connection) {
         this.tick = this.tick.bind(this);
 
         this.id = null;
@@ -76,7 +71,6 @@ export class Client {
         this.rtt = null;
         this.sim = null;
         this.buffer = [];
-        this.renderer = renderer;
         this.input = cmd.createInput();
 
         // Initialize the timer for the simulation.
@@ -164,7 +158,7 @@ export class Client {
      * This is _not_ handled inside the main game loop, it should usually
      * be called from an endless loop of requestAnimationFrame.
      */
-    render() {
+    render(ctx: RenderContext) {
         if (this.id === null) {
             // We're not even connected yet...
             console.debug('no client id');
@@ -199,28 +193,28 @@ export class Client {
         const level = this.sim.level;
 
         // Create our sky.
-        this.renderer.world.clearSky();
-        this.renderer.world.addSky('SKY1');
+        ctx.world.clearSky();
+        ctx.world.addSky('SKY1');
 
         // Add our geometry to be rendered.
-        this.renderer.world.clearWorld();
+        ctx.world.clearWorld();
         for (let i = 0;i < level.polygons.length;i++) {
-            this.renderer.world.addPolygon(level.polygons, i);
+            ctx.world.addPolygon(level.polygons, i);
         }
 
         // Add our sprites to be rendered.
-        this.renderer.world.clearSprites();
+        ctx.world.clearSprites();
         for (let [k, v] of snapshot.entities) {
             if (k === camEntity) {
                 // Don't draw your own sprite.
                 continue;
             }
 
-            this.renderer.world.addEntity(v, cam, level.polygons);
+            ctx.world.addEntity(v, cam, level.polygons);
         }
 
         // Render the world.
-        this.renderer.world.render(cam);
+        ctx.world.render(cam);
     }
 
     /**

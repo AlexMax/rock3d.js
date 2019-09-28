@@ -120,3 +120,21 @@ export const loadAssets = async (renderer: RenderContext) => {
     // Persist the atlas to the GPU.
     renderer.world.bakeSpriteAtlas(spriteAtlas);
 }
+
+export const localFileLoader = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener('error', () => {
+            reader.abort();
+            reject(new Error('Could not read file'));
+        });
+        reader.addEventListener('load', () => {
+            if (typeof reader.result !== 'string') {
+                reject(new Error('Unexpected result type'));
+                return;
+            }
+            resolve(reader.result);
+        });
+        reader.readAsText(file);
+    });
+}

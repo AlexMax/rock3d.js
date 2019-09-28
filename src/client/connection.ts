@@ -169,6 +169,7 @@ export class DemoConnection implements Connection {
         this.demo = JSON.parse(data);
         this.pos = 0;
         this.buffer = [];
+        this.hydrate();
     }
 
     ready(): boolean {
@@ -191,11 +192,15 @@ export class DemoConnection implements Connection {
        // Do nothing.
     }
 
-    hydrate() {
+    private hydrate() {
         const tick = this.demo.ticks[this.pos];
         if (tick === undefined) {
             return;
         }
         this.buffer = [...tick.readCapture];
+    }
+
+    getTick() {
+        return this.demo.ticks[this.pos];
     }
 }

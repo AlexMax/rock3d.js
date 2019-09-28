@@ -16,17 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
 
-import { DemoRoot } from './tsx/DemoRoot';
+import { DemoTick } from "../connection";
 
-window.addEventListener("load", async () => {
-    // Get our player element.
-    const root = document.getElementById('player');
-    if (root === null) {
-        throw new Error('Could not find root element');
+export interface Props {
+    /**
+     * Current tick of demo we're looking at.
+     */
+    tick: DemoTick;
+}
+
+export class TickInfo extends React.Component<Props> {
+
+    render() {
+        return <table>
+            <tbody>
+                <tr>
+                    <td>Clock</td><td>{this.props.tick.clock}</td>
+                    <td>Server info</td><td>{this.props.tick.readCapture.toString()}</td>
+                    <td>Inputs</td><td>{this.props.tick.inputCapture.toString()}</td>
+                </tr>
+            </tbody>
+        </table>;
     }
-
-    ReactDOM.render(React.createElement(DemoRoot), root);
-});
+}
