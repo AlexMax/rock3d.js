@@ -19,10 +19,17 @@
 import React from 'react';
 
 import { Client } from '../client';
-import { FileLoader } from './FileLoader';
 import { DemoConnection } from '../connection';
+import { DemoControlWindow } from './DemoControlWindow';
+import { DemoInfoWindow } from './DemoInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
-import { TickInfo } from './TickInfo';
+
+const getConn = (client: Client | null) => {
+    if (client !== null && client.connection instanceof DemoConnection) {
+        return client.connection;
+    }
+    return null;
+}
 
 interface State {
     client: Client | null,
@@ -69,7 +76,11 @@ export class DemoRoot extends React.Component<{}, State> {
     }
 
     private onNext() {
-
+        const conn = getConn(this.state.client);
+        if (conn === null) {
+            return;
+        }
+        conn.next();
     }
 
     private onEnd() {
@@ -78,22 +89,22 @@ export class DemoRoot extends React.Component<{}, State> {
 
     render() {
         let info: JSX.Element | null = null;
-        if (this.state.client !== null && this.state.client.connection instanceof DemoConnection) {
-            info = <TickInfo tick={this.state.client.connection.getTick()}/>;
+        const conn = getConn(this.state.client);
+        if (conn !== null) {
+            info = <DemoInfoWindow tick={conn.getTick()}/>;
         }
 
         return <div>
-            <div>
                 <RenderCanvas client={this.state.client}/>
-            </div>
-            {info}
-            <FileLoader onLoad={this.onFileLoad}/>
-            <button onClick={this.onStart}>&#9198;</button>
-            <button onClick={this.onLast}>&#9194;&#65038;</button>
-            <button onClick={this.onPlay}>&#9205;</button>
-            <button onClick={this.onPause}>&#9208;</button>
-            <button onClick={this.onNext}>&#9193;&#65038;</button>
-            <button onClick={this.onEnd}>&#9197;</button>
-        </div>;
+                <DemoControlWindow
+                    onFileLoad={this.onFileLoad}
+                    onStart={this.onStart}
+                    onLast={this.onLast}
+                    onPlay={this.onPlay}
+                    onPause={this.onPause}
+                    onNext={this.onNext}
+                    onEnd={this.onEnd}/>
+                {info}
+            </div>;
     }
 }

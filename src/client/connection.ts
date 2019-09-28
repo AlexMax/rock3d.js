@@ -203,4 +203,9 @@ export class DemoConnection implements Connection {
     getTick() {
         return this.demo.ticks[this.pos];
     }
+
+    next() {
+        this.pos += 1;
+        this.hydrate();
+    }
 }
