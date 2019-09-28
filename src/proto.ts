@@ -21,7 +21,7 @@
  * It also doubles as a sort of expected protocol of the schema.
  */
 
-import { Command } from './command';
+import { Input, Command } from './command';
 import { SerializedSnapshot } from './snapshot';
 
 /**
@@ -57,19 +57,9 @@ export interface ClientInput {
     clock: number,
 
     /**
-     * Currently pressed buttons as a bitfield.
+     * Input of client.
      */
-    buttons: number,
-
-    /**
-     * Current pitch axis.
-     */
-    pitch: number,
-
-    /**
-     * Current yaw axis.
-     */
-    yaw: number,
+    input: Input,
 }
 
 export type ClientMessage = ClientHello | ClientInput;

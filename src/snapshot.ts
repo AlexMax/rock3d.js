@@ -137,7 +137,8 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
 }
 
 const handleInput = (
-    target: Snapshot, current: Readonly<Snapshot>, command: cmd.InputCommand
+    target: Snapshot, current: Readonly<Snapshot>,
+    command: Readonly<cmd.InputCommand>
 ): void => {
     // Get entity ID for player entity.
     const entityID = target.players.get(command.clientID);
@@ -151,34 +152,37 @@ const handleInput = (
         return;
     }
 
-    if (cmd.checkButton(command.buttons, cmd.Button.WalkForward)) {
+    // Use our inputs to directly manipulate the camera.
+    const input = command.input;
+    if (cmd.checkButton(input, cmd.Button.WalkForward)) {
         entity = moveRelative(entity, 8, 0, 0);
         target.entities.set(entityID, entity);
     }
 
-    if (cmd.checkButton(command.buttons, cmd.Button.WalkBackward)) {
+    if (cmd.checkButton(input, cmd.Button.WalkBackward)) {
         entity = moveRelative(entity, -8, 0, 0);
         target.entities.set(entityID, entity);
     }
 
-    if (cmd.checkButton(command.buttons, cmd.Button.StrafeLeft)) {
+    if (cmd.checkButton(input, cmd.Button.StrafeLeft)) {
         entity = moveRelative(entity, 0, 8, 0);
         target.entities.set(entityID, entity);
     }
 
-    if (cmd.checkButton(command.buttons, cmd.Button.StrafeRight)) {
+    if (cmd.checkButton(input, cmd.Button.StrafeRight)) {
         entity = moveRelative(entity, 0, -8, 0);
         target.entities.set(entityID, entity);
     }
 
-    if (command.pitch !== 0.0 || command.yaw !== 0.0) {
-        entity = rotateEuler(entity, 0, command.pitch, command.yaw);
+    if (input.pitch !== 0.0 || input.yaw !== 0.0) {
+        entity = rotateEuler(entity, 0, input.pitch, input.yaw);
         target.entities.set(entityID, entity);
     }
 }
 
 const handlePlayer = (
-    target: Snapshot, current: Readonly<Snapshot>, command: cmd.PlayerCommand
+    target: Snapshot, current: Readonly<Snapshot>,
+    command: Readonly<cmd.PlayerCommand>
 ): void => {
     switch (command.action) {
         case 'add':

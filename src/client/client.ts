@@ -17,7 +17,7 @@
  */
 
 import * as cmd from '../command';
-import { Connection } from './connection';
+import { Connection, Demo } from './connection';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
@@ -64,19 +64,9 @@ export class Client {
     renderer: RenderContext;
 
     /**
-     * Current button state.
+     * Current input state.
      */
-    buttons: number;
-
-    /**
-     * Amount of yaw accumulated since last tick.
-     */
-    yaw: number;
-
-    /**
-     * Amount of pitch accumulated since last tick.
-     */
-    pitch: number;
+    input: cmd.Input;
 
     constructor(conn: Connection, renderer: RenderContext) {
         this.tick = this.tick.bind(this);
@@ -87,9 +77,7 @@ export class Client {
         this.sim = null;
         this.buffer = [];
         this.renderer = renderer;
-        this.buttons = 0;
-        this.yaw = 0;
-        this.pitch = 0;
+        this.input = cmd.createInput();
 
         // Initialize the timer for the simulation.
         const now = performance.now.bind(performance);
@@ -126,15 +114,13 @@ export class Client {
         }
 
         // Construct an input from our current client state and queue it.
-        const input: cmd.InputCommand = {
+        const inputCmd: cmd.InputCommand = {
             type: cmd.CommandTypes.Input,
             clientID: this.id,
             clock: this.sim.clock,
-            buttons: this.buttons,
-            pitch: this.pitch,
-            yaw: this.yaw,
+            input: this.input,
         };
-        this.sim.queueLocalInput(input);
+        this.sim.queueLocalInput(inputCmd);
 
         // Tick the client simulation a single frame.
         this.sim.tick();
@@ -160,14 +146,14 @@ export class Client {
         this.connection.send({
             type: proto.ClientMessageType.Input,
             clock: this.sim.clock - 1,
-            buttons: this.buttons,
-            pitch: this.pitch,
-            yaw: this.yaw,
+            input: this.input,
         });
 
-        // Yaw and Pitch are per-tick accumulators, reset them.
-        this.yaw = 0;
-        this.pitch = 0;
+        // Save a demo frame.
+        this.connection.saveDemoFrame(this.sim.clock - 1, this.input);
+
+        // Pitch and yaw are per-tick accumulators, reset them.
+        this.input = cmd.clearAxis(this.input);
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }
@@ -238,38 +224,24 @@ export class Client {
     }
 
     /**
-     * Set a specific button to a specific state.
-     */
-    buttonState(button: cmd.Button, state: boolean) {
-        if (state) {
-            this.buttons = cmd.setButton(this.buttons, button);
-        } else {
-            this.buttons = cmd.unsetButton(this.buttons, button);
-        }
-    }
-
-    /**
-     * Move an analog axis, like a mouse or a gamepad.
-     */
-    axisMove(axis: cmd.Axis, num: number) {
-        switch (axis) {
-            case cmd.Axis.Pitch:
-                this.pitch += num;
-                break;
-            case cmd.Axis.Yaw:
-                this.yaw += num;
-                break;
-        }
-    }
-
-    /**
      * Start running the game.
      */
     run() {
         this.gameTimer.start();
     }
 
+    /**
+     * Stop the game.
+     */
     halt() {
         this.gameTimer.stop();
+    }
+
+    /**
+     * Run a tick outside the timer with the given inputs.
+     */
+    manualTick(input: cmd.Input) {
+        this.input = input;
+        this.tick();
     }
 }

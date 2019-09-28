@@ -59,9 +59,7 @@ const input = (server: Server, clientID: number, msg: proto.ClientInput) => {
         type: cmd.CommandTypes.Input,
         clientID: clientID,
         clock: msg.clock,
-        buttons: msg.buttons,
-        pitch: msg.pitch,
-        yaw: msg.yaw,
+        input: msg.input,
     });
 };
 

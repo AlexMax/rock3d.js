@@ -17,7 +17,7 @@
  */
 
 import { Client } from './client'; 
-import { Axis, Button } from '../command';
+import { Axis, Button, setAxis, setButton, unsetButton } from '../command';
 import { SocketConnection } from './connection';
 import { RenderContext } from '../r3d/render';
 import { loadAssets } from './loader';
@@ -47,7 +47,7 @@ const mouseButtonToButton = (button: number) => {
 }
 
 const scaleYaw = (movement: number) => {
-    return movement;
+    return -movement;
 }
 
 const scalePitch = (movement: number) => {
@@ -82,13 +82,13 @@ window.addEventListener("load", async () => {
         if (evt.keyCode === 192) {
             // User hit tilde, stop the client and dump a packet capture.
             client.halt();
-            /*
-            const now = performance.now();
-            const capture = document.getElementById('capture') as HTMLTextAreaElement;
-            capture.value = JSON.stringify(client.capture.filter((ele) => {
-                return ele.time > now - 1000;
-            }));
-            */
+            const json = JSON.stringify((client.connection as SocketConnection).demo);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.getElementById('capture') as HTMLAnchorElement;
+            link.download = 'demo.json';
+            link.href = url;
+            link.textContent = 'Download';
             return;
         }
 
@@ -96,33 +96,32 @@ window.addEventListener("load", async () => {
         if (button === undefined) {
             return;
         }
-        client.buttonState(button, true);
+        client.input = setButton(client.input, button);
     });
     window.addEventListener('keyup', (evt) => {
         const button = keyCodeToButton(evt.keyCode);
         if (button === undefined) {
             return;
         }
-        client.buttonState(button, false);
+        client.input = unsetButton(client.input, button);
     });
     window.addEventListener('mousemove', (evt) => {
-        client.axisMove(Axis.Pitch, scalePitch(evt.movementY));
-        // Yaw axis is right-to-left so we need to flip our X axis.
-        client.axisMove(Axis.Yaw, scaleYaw(-evt.movementX));
+        client.input = setAxis(client.input,
+            scalePitch(evt.movementY), scaleYaw(evt.movementX));
     });
     window.addEventListener('mousedown', (evt) => {
         const button = mouseButtonToButton(evt.button);
         if (button === undefined) {
             return;
         }
-        client.buttonState(button, true);
+        setButton(client.input, button);
     });
     window.addEventListener('mouseup', (evt) => {
         const button = mouseButtonToButton(evt.button);
         if (button === undefined) {
             return;
         }
-        client.buttonState(button, false);
+        unsetButton(client.input, button);
     });
 
     // Prevent the context menu from popping up
@@ -140,4 +139,3 @@ window.addEventListener("load", async () => {
     }
     window.requestAnimationFrame(draw);
 });
-

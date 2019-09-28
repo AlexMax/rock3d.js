@@ -31,6 +31,25 @@ export enum Button {
     Use,
 }
 
+interface MutableInput {
+    /**
+     * Currently pressed buttons as a bitfield.
+     */
+    buttons: number,
+
+    /**
+     * Current pitch axis.
+     */
+    pitch: number,
+
+    /**
+     * Current yaw axis.
+     */
+    yaw: number,
+}
+
+export type Input = Readonly<MutableInput>;
+
 export enum CommandTypes {
     /**
      * Inputs from a client.
@@ -41,6 +60,73 @@ export enum CommandTypes {
      * Player joins or leaves the state.
      */
     Player,
+}
+
+/**
+ * Construct a new input object.
+ */
+export const createInput = (): Input => {
+    return {
+        buttons: 0, pitch: 0, yaw: 0
+    };
+}
+
+/**
+ * Set buttons on an Input.
+ * 
+ * @param input Input to work from.
+ * @param set Button to set.
+ */
+export const setButton = (input: Input, set: Button): Input => {
+    return {
+        ...input,
+        buttons: input.buttons | (1 << set),
+    };
+}
+
+/**
+ * Unset buttons on an Input.
+ * 
+ * @param input Input to work from.
+ * @param unset Button to unset.
+ */
+export const unsetButton = (input: Input, unset: Button): Input => {
+    return {
+        ...input,
+        buttons: input.buttons & ~(1 << unset),
+    };
+}
+
+/**
+ * Check to see if a particular button is pressed.
+ * 
+ * @param input Input to check.
+ * @param button Button to check.
+ */
+export const checkButton = (input: Input, button: number): boolean => {
+    return (input.buttons & (1 << button)) > 0 ? true : false;
+}
+
+/**
+ * Accumulate the axis on an Input.
+ */
+export const setAxis = (input: Input, pitch: number, yaw: number): Input => {
+    return {
+        ...input,
+        pitch: input.pitch + pitch,
+        yaw: input.yaw + yaw,
+    };
+}
+
+/**
+ * Clear axis on an Input.
+ */
+export const clearAxis = (input: Input): Input => {
+    return {
+        ...input,
+        pitch: 0,
+        yaw: 0,
+    };
 }
 
 export interface InputCommand {
@@ -57,19 +143,9 @@ export interface InputCommand {
     clock: number;
 
     /**
-     * Currently pressed buttons as a bitfield.
+     * Actual input.
      */
-    buttons: number,
-
-    /**
-     * Current pitch axis.
-     */
-    pitch: number,
-
-    /**
-     * Current yaw axis.
-     */
-    yaw: number,
+    input: Input;
 }
 
 export interface PlayerCommand {
@@ -87,33 +163,3 @@ export interface PlayerCommand {
 }
 
 export type Command = InputCommand | PlayerCommand;
-
-/**
- * Set buttons on an existing bitfield.
- * 
- * @param input Input bitset.
- * @param set Button to set.
- */
-export const setButton = (input: number, set: Button): number => {
-    return input | (1 << set);
-}
-
-/**
- * Unset buttons on an existing bitfield.
- * 
- * @param input Input bitset.
- * @param unset Button to unset.
- */
-export const unsetButton = (input: number, unset: Button): number => {
-    return input & ~(1 << unset);
-}
-
-/**
- * Check to see if a particular button is pressed.
- * 
- * @param input Input bitset.
- * @param button Button to check.
- */
-export const checkButton = (input: number, button: number): boolean => {
-    return (input & (1 << button)) > 0 ? true : false;
-}

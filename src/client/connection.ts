@@ -16,19 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Input } from '../command';
 import * as proto from '../proto';
 
-interface Capture {
+export interface DemoTick {
     /**
-     * Timestamp of message.
+     * Clock of demo tick.
      */
-    time: number;
+    clock: number;
 
     /**
-     * Actual server message.
+     * Read packet capture for tick.
      */
-    msg: proto.ServerMessage;
+    readCapture: proto.ServerMessage[];
+
+    /**
+     * Input for tick.
+     */
+    inputCapture: Input;
 }
+
+export interface Demo {
+    /**
+     * Discrete time-slices of demo.
+     */
+    ticks: DemoTick[];
+}
+
+const createDemo = (): Demo => {
+    return {
+        ticks: [],
+    };
+};
 
 export interface Connection {
     /**
@@ -40,6 +59,11 @@ export interface Connection {
      * Read a message from the connection.
      */
     read: () => proto.ServerMessage | null;
+
+    /**
+     * Save a demo frame.
+     */
+    saveDemoFrame: (clock: number, input: Input) => void;
 
     /**
      * Send a message through the connection.
@@ -57,18 +81,31 @@ export class SocketConnection implements Connection {
     wsc: WebSocket;
 
     /**
-     * Server messages.
+     * Buffered server messages.
      */
     buffer: proto.ServerMessage[];
 
+    /**
+     * Buffered messages for demo.
+     */
+    demoBuffer: proto.ServerMessage[];
+
+    /**
+     * Saved demo for connection.
+     */
+    demo: Demo;
+
     constructor(hostname: string, port: number) {
         this.buffer = [];
+        this.demoBuffer = [];
+        this.demo = createDemo();
         this.wsc = new WebSocket('ws://' + hostname + ':' + port.toString());
 
         // All messages get unpacked into our buffer.
         this.wsc.addEventListener('message', (evt) => {
             const msg = proto.unpackServer(evt.data);
             this.buffer.push(msg);
+            this.demoBuffer.push(msg);
         });
 
         // When we connect, greet the server.
@@ -93,6 +130,15 @@ export class SocketConnection implements Connection {
         return msg;
     }
 
+    saveDemoFrame(clock: number, input: Input): void {
+        this.demo.ticks.push({
+            clock: clock,
+            readCapture: this.demoBuffer,
+            inputCapture: input,
+        });
+        this.demoBuffer = [];
+    }
+
     send(msg: proto.ClientMessage): void {
         const data = proto.packClient(msg);
         this.wsc.send(data);
@@ -105,18 +151,24 @@ export class SocketConnection implements Connection {
 export class DemoConnection implements Connection {
 
     /**
-     * Complete packet capture.
+     * Demo we're using as our "connection".
      */
-    capture: Capture[];
+    demo: Demo;
 
     /**
      * Position inside the packet capture.
      */
     pos: number;
 
+    /**
+     * Buffer of unread messages for given position.
+     */
+    buffer: proto.ServerMessage[];
+
     constructor(data: string) {
-        this.capture = JSON.parse(data);
+        this.demo = JSON.parse(data);
         this.pos = 0;
+        this.buffer = [];
     }
 
     ready(): boolean {
@@ -124,15 +176,26 @@ export class DemoConnection implements Connection {
     }
 
     read(): proto.ServerMessage | null {
-        const packet = this.capture[this.pos];
-        if (packet === undefined) {
+        const msg = this.buffer.shift();
+        if (msg === undefined) {
             return null;
         }
-        this.pos += 1;
-        return packet.msg;
+        return msg;
+    }
+
+    saveDemoFrame(clock: number, input: Input): void {
+        // Do nothing.
     }
 
     send(msg: proto.ClientMessage): void {
        // Do nothing.
+    }
+
+    hydrate() {
+        const tick = this.demo.ticks[this.pos];
+        if (tick === undefined) {
+            return;
+        }
+        this.buffer = [...tick.readCapture];
     }
 }
