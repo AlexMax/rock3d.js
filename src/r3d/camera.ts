@@ -47,7 +47,10 @@ export const create = (x: number, y: number, z: number): Camera => {
  */
 export const fromEntity = (entity: Entity): Camera => {
     return {
-        pos: vec3.clone(entity.position),
+        pos: vec3.fromValues(
+            entity.position[0],
+            entity.position[1],
+            entity.position[2] + entity.config.cameraZ),
         dir: quat.clone(entity.rotation),
     };
 }

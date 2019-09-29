@@ -114,7 +114,7 @@ export const render = (client: Client, ctx: RenderContext) => {
         return;
     }
 
-    const cam = moveRelative(fromEntity(entity), 0, 0, entity.config.cameraZ);
+    const cam = fromEntity(entity);
     const level = client.sim.level;
 
     // Create our sky.
