@@ -22,7 +22,9 @@
  * @param gl WebGL rendering context, which contains the enumerations.
  * @param num The enumeration to stringify.
  */
-export function glErrorString(gl: WebGLRenderingContext, num: GLenum): string {
+export const glErrorString = (
+    gl: WebGLRenderingContext, num: GLenum
+): string => {
     switch (num) {
     case gl.VERTEX_SHADER:
         return 'VERTEX_SHADER';

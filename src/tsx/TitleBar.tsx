@@ -49,7 +49,9 @@ export interface WrappedProps {
 type WrapperComponent = new (props: Props) => React.Component<Props, State>;
 type WrappedComponent = new (...any: any[]) => React.Component<WrappedProps>;
 
-export function withTitleBar(WrappedComponent: WrappedComponent): WrapperComponent {
+export const withTitleBar = (
+    WrappedComponent: WrappedComponent
+): WrapperComponent => {
     return class extends React.Component<Props, State> {
 
         ref: any;

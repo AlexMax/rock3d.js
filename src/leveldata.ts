@@ -24,7 +24,7 @@ export interface EdgeData {
     backPoly?: number;
 }
 
-function isEdgeData(data: EdgeData): data is EdgeData {
+const isEdgeData = (data: EdgeData): data is EdgeData => {
     if (!Array.isArray(data.vertex)) {
         throw new Error('edge vertex is not an Array');
     }
@@ -58,7 +58,7 @@ export interface PolygonData {
     brightness: number[];
 }
 
-function isPolygonData(data: PolygonData): data is PolygonData {
+const isPolygonData = (data: PolygonData): data is PolygonData => {
     if (!Array.isArray(data.edges)) {
         throw new Error('polygon edges is not an Array');
     }
@@ -103,7 +103,7 @@ export interface LocationData {
     rotation: number[],
 }
 
-function isLocationData(data: LocationData): data is LocationData {
+const isLocationData = (data: LocationData): data is LocationData => {
     if (typeof data.type !== 'string') {
         throw new Error('location type is not a string');
     }
@@ -140,7 +140,7 @@ export interface LevelData {
     locations: LocationData[];
 };
 
-export function isLevelData(data: LevelData): data is LevelData {
+export const isLevelData = (data: LevelData): data is LevelData => {
     if (!Array.isArray(data.polygons)) {
         throw new Error('mapData polygons is not an Array');
     }

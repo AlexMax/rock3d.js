@@ -76,7 +76,7 @@ interface Edge {
     normalCache?: vec2;
 }
 
-function toEdge(data: EdgeData): Edge {
+const toEdge = (data: EdgeData): Edge => {
     return {
         vertex: vec2.fromValues(data.vertex[0], data.vertex[1]),
         upperTex: (typeof data.upperTex === 'string') ? data.upperTex : null,
@@ -98,7 +98,7 @@ export interface Polygon {
     ceilCacheInds: number[];
 }
 
-function toPolygon(data: PolygonData): Polygon {
+const toPolygon = (data: PolygonData): Polygon => {
     return {
         ceilHeight: data.ceilHeight,
         floorHeight: data.floorHeight,
@@ -120,7 +120,7 @@ function toPolygon(data: PolygonData): Polygon {
  * 
  * @param poly Polygon to tessellate
  */
-export function cacheFlats(poly: Polygon): void {
+export const cacheFlats = (poly: Polygon): void => {
     const verts: number[] = [];
     for (let i = 0;i < poly.edges.length;i++) {
         const vert = poly.edges[i].vertex;
@@ -139,7 +139,7 @@ export interface Location {
     rotation: quat,
 };
 
-function toLocation(data: LocationData): Location {
+const toLocation = (data: LocationData): Location => {
     return {
         type: data.type,
         polygon: data.polygon,
@@ -203,9 +203,10 @@ export class Level {
 type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
     sourcePoly: number | null, sourceSide: number | null) => boolean;
 
-function floodRecursive(level: Level, checkPoly: number, lastPoly: number | null,
-    lastEdge: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>)
-{
+const floodRecursive = (
+    level: Level, checkPoly: number, lastPoly: number | null,
+    lastEdge: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>
+) => {
     flooded.add(checkPoly);
     const poly = level.polygons[checkPoly];
     for (let i = 0;i < poly.edges.length;i++) {
@@ -235,7 +236,9 @@ function floodRecursive(level: Level, checkPoly: number, lastPoly: number | null
  * @param shouldFlood A function that returns true if the given polygon
  *                    should be included in the result set, otherwise false.
  */
-export function flood(level: Level, start: number, shouldFlood: ShouldFloodFn): Set<number> {
+export const flood = (
+    level: Level, start: number, shouldFlood: ShouldFloodFn
+): Set<number> => {
     const flooded: Set<number> = new Set();
     floodRecursive(level, start, null, null, shouldFlood, flooded);
     return flooded;
@@ -302,9 +305,9 @@ export type Hit = HitEdge | HitFloor | HitCeiling | HitEntity;
  * @param position Ray origin.
  * @param direction Normalized ray direction.
  */
-export function hitscan(level: Level, polyID: number, position: vec3,
-    direction: vec3): Hit | null
-{
+export const hitscan = (
+    level: Level, polyID: number, position: vec3, direction: vec3)
+: Hit | null => {
     const poly = level.polygons[polyID];
 
     // Some functions require absolute position of startDir.

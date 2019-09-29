@@ -25,7 +25,9 @@ import { glErrorString } from './util';
  * @param shaderType Shader type
  * @param source Source string
  */
-export function compileShader(gl: WebGLRenderingContext, shaderType: number, source: string): WebGLShader {
+export const compileShader = (
+    gl: WebGLRenderingContext, shaderType: number, source: string
+): WebGLShader => {
     const shader = gl.createShader(shaderType);
     if (shader === null) {
         throw new Error('Could not create shader object');
@@ -50,7 +52,9 @@ export function compileShader(gl: WebGLRenderingContext, shaderType: number, sou
  * @param gl WebGL context
  * @param shaders Compiled shaders to link
  */
-export function linkShaderProgram(gl: WebGLRenderingContext, shaders: WebGLShader[]): WebGLProgram {
+export const linkShaderProgram = (
+    gl: WebGLRenderingContext, shaders: WebGLShader[]
+): WebGLProgram => {
     const program = gl.createProgram();
     if (program === null) {
         throw new Error('Could not create program object');

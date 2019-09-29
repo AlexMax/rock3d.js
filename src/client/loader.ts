@@ -59,7 +59,7 @@ export interface Texture {
  * @param name Original name of the texture.
  * @param src Source URL of image.
  */
-export function textureLoader(name: string, src: string): Promise<Texture> {
+export const textureLoader = (name: string, src: string): Promise<Texture> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {

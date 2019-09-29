@@ -34,7 +34,7 @@ const unitUp = vec3.fromValues(0, 0, 1);
 /**
  * Create a new camera.
  */
-export function create(x: number, y: number, z: number): Camera {
+export const create = (x: number, y: number, z: number): Camera => {
     const dir = quat.create();
     return {
         pos: vec3.fromValues(x, y, z),
@@ -45,7 +45,7 @@ export function create(x: number, y: number, z: number): Camera {
 /**
  * Create a camera from an entity.
  */
-export function fromEntity(entity: Entity): Camera {
+export const fromEntity = (entity: Entity): Camera => {
     return {
         pos: vec3.clone(entity.position),
         dir: quat.clone(entity.rotation),
@@ -61,7 +61,9 @@ export function fromEntity(entity: Entity): Camera {
  * @param y Amount to walk forwards or backwards by.
  * @param z Amount to raise or lower by.
  */
-export function moveRelative(camera: Camera, x: number, y: number, z: number): Camera {
+export const moveRelative = (
+    camera: Camera, x: number, y: number, z: number
+): Camera => {
     const translation = vec3.fromValues(x, y, z);
     vec3.transformQuat(translation, translation, camera.dir);
     vec3.add(translation, translation, camera.pos);
@@ -80,7 +82,9 @@ export function moveRelative(camera: Camera, x: number, y: number, z: number): C
  * @param y Amount to pitch by.
  * @param z Amount to yaw by.
  */
-export function rotateEuler(camera: Camera, x: number, y: number, z: number): Camera {
+export const rotateEuler = (
+    camera: Camera, x: number, y: number, z: number
+): Camera => {
     const euler = toEuler(vec3.create(), camera.dir);
     euler[0] += x;
     euler[1] = constrain(euler[1] + y, -89.999, 89.999);
@@ -101,7 +105,9 @@ export function rotateEuler(camera: Camera, x: number, y: number, z: number): Ca
  * @param y Amount to pitch by.
  * @param z Amount to yaw by.
  */
-export function rotateRelative(camera: Camera, x: number, y: number, z: number): Camera {
+export const rotateRelative = (
+    camera: Camera, x: number, y: number, z: number
+): Camera => {
     const dir = quat.fromEuler(quat.create(), x, y, z);
     quat.multiply(dir, camera.dir, dir);
     return {
@@ -113,7 +119,7 @@ export function rotateRelative(camera: Camera, x: number, y: number, z: number):
 /**
  * Get a view matrix for looking through the Camera.
  */
-export function getViewMatrix(camera: Camera) {
+export const getViewMatrix = (camera: Camera) => {
     const cameraMat = mat4.lookAt(mat4.create(), unitOrigin, unitForward, unitUp);
     const rot = quat.conjugate(quat.create(), camera.dir);
     const cameraRot = mat4.fromQuat(mat4.create(), rot);
@@ -129,7 +135,9 @@ interface BoundingBox {
     opposite: vec2,
 }
 
-function edgeToBoundingBox(viewMat: mat4, level: Level, poly: number, edge: number) {
+const edgeToBoundingBox = (
+    viewMat: mat4, level: Level, poly: number, edge: number
+) => {
     const source = level.polygons[poly]
     const first = source.edges[edge].vertex;
     const second = source.edges[(edge + 1) % source.edges.length].vertex;
@@ -164,7 +172,9 @@ function edgeToBoundingBox(viewMat: mat4, level: Level, poly: number, edge: numb
  * @param project Projection matrix to flatten coordinates.
  * @param level Level to check.
  */
-export function visiblePolygons(camera: Camera, project: mat4, level: Level): number[] {
+export const visiblePolygons = (
+    camera: Camera, project: mat4, level: Level
+): number[] => {
     const viewMat = getViewMatrix(camera);
     const polyHash: Map<string, BoundingBox> = new Map();
 

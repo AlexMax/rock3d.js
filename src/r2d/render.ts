@@ -26,7 +26,7 @@ import { Level } from '../level';
  * 
  * @param coord Coordinate to round.
  */
-function crisp(coord: number) {
+const crisp = (coord: number) => {
     return Math.round(coord) + 0.5;
 }
 

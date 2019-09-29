@@ -25,7 +25,7 @@ import { quat, vec2, vec3, vec4 } from 'gl-matrix';
  * @param min Minimum bound.
  * @param max Maximum bound.
  */
-export function constrain(x: number, min: number, max: number): number {
+export const constrain = (x: number, min: number, max: number): number => {
     return Math.max(min, Math.min(max, x));
 }
 
@@ -38,7 +38,9 @@ export function constrain(x: number, min: number, max: number): number {
  * @param r First point of second line.
  * @param s Second point of second line.
  */
-export function intersectLines(out: vec2, p: vec2, q: vec2, r: vec2, s: vec2): vec2 | null {
+export const intersectLines = (
+    out: vec2, p: vec2, q: vec2, r: vec2, s: vec2
+): vec2 | null => {
     const dx12 = q[0] - p[0];
     const dy12 = q[1] - p[1];
     const dx34 = s[0] - r[0];
@@ -66,7 +68,9 @@ export function intersectLines(out: vec2, p: vec2, q: vec2, r: vec2, s: vec2): v
  * @param q Second point of line.
  * @param r A plane in the form of Ax + By + Cz + D = 0 where r is ABCD.
  */
-export function intersectPlane(out: vec3, p: vec3, q: vec3, r: vec4): vec3 | null {
+export const intersectPlane = (
+    out: vec3, p: vec3, q: vec3, r: vec4
+): vec3 | null => {
     const dx = q[0] - p[0];
     const dy = q[1] - p[1];
     const dz = q[2] - p[2];
@@ -93,7 +97,7 @@ export function intersectPlane(out: vec3, p: vec3, q: vec3, r: vec4): vec3 | nul
  * @param q Origin point of circle.
  * @param r Radius of circle.
  */
-export function pointInCircle(p: vec2, q: vec2, r: number): boolean {
+export const pointInCircle = (p: vec2, q: vec2, r: number): boolean => {
     return (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < r ** 2;
 }
 
@@ -102,7 +106,7 @@ export function pointInCircle(p: vec2, q: vec2, r: number): boolean {
  * 
  * The two points on the rectangle can be passed using any orientation.
  */
-export function pointInCube(p: vec3, q: vec3, r: vec3): boolean {
+export const pointInCube = (p: vec3, q: vec3, r: vec3): boolean => {
     if (q[0] < r[0]) {
         var minX = q[0];
         var maxX = r[0];
@@ -148,7 +152,7 @@ export function pointInCube(p: vec3, q: vec3, r: vec3): boolean {
  *          only the direction.
  * @param r Point we are checking.
  */
-export function pointInDirection2(p: vec2, q: vec2, r: vec2): boolean {
+export const pointInDirection2 = (p: vec2, q: vec2, r: vec2): boolean => {
     if (q[0] > 0 && r[0] < p[0]) {
         return false; // Direction is +X, intersection is -X
     } else if (q[0] < 0 && r[0] > p[0]) {
@@ -171,7 +175,7 @@ export function pointInDirection2(p: vec2, q: vec2, r: vec2): boolean {
  *          only the direction.
  * @param r Point we are checking.
  */
-export function pointInDirection3(p: vec3, q: vec3, r: vec3): boolean {
+export const pointInDirection3 = (p: vec3, q: vec3, r: vec3): boolean => {
     if (q[0] > 0 && r[0] < p[0]) {
         return false; // Direction is +X, intersection is -X
     } else if (q[0] < 0 && r[0] > p[0]) {
@@ -199,7 +203,7 @@ export function pointInDirection3(p: vec3, q: vec3, r: vec3): boolean {
  * @param q Origin point of rectangle. 
  * @param r Opposite point of rectangle.
  */
-export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
+export const pointInRect = (p: vec2, q: vec2, r: vec2): boolean => {
     if (q[0] < r[0]) {
         var minX = q[0];
         var maxX = r[0];
@@ -233,7 +237,7 @@ export function pointInRect(p: vec2, q: vec2, r: vec2): boolean {
  * @param r Origin point of other rectangle.
  * @param s Opposite point of other rectangle.
  */
-export function rectOverlap(p: vec2, q: vec2, r: vec2, s: vec2): boolean {
+export const rectOverlap = (p: vec2, q: vec2, r: vec2, s: vec2): boolean => {
     if (p[0] < q[0]) {
         var aMinX = p[0];
         var aMaxX = q[0];
@@ -284,9 +288,9 @@ export function rectOverlap(p: vec2, q: vec2, r: vec2, s: vec2): boolean {
  * @param phi Parallel angle in radians.
  * @param theta Meridian angle in radians.
  */
-export function sphereToCartesian(out: vec3, radius: number, phi: number,
-    theta: number): vec3
-{
+export const sphereToCartesian = (
+    out: vec3, radius: number, phi: number, theta: number
+): vec3 => {
     const sinPhi = Math.sin(phi);
     out[0] = radius * sinPhi * Math.cos(theta);
     out[1] = radius * sinPhi * Math.sin(theta);
@@ -299,7 +303,7 @@ export function sphereToCartesian(out: vec3, radius: number, phi: number,
  *
  * @param p Quaternion to convert.
  */
-export function toEuler(out: vec3, p: quat): vec3 {
+export const toEuler = (out: vec3, p: quat): vec3 => {
     const xY = 2 * (p[3] * p[0] + p[1] * p[2]);
     const xX = 1 - 2 * (p[0] * p[0] + p[1] * p[1]);
     const xRad = Math.atan2(xY, xX);
@@ -333,7 +337,7 @@ export function toEuler(out: vec3, p: quat): vec3 {
  * @param q Second point of plane.
  * @param r Third point of plane.
  */
-export function toPlane(out: vec4, p: vec3, q: vec3, r: vec3): vec4 {
+export const toPlane = (out: vec4, p: vec3, q: vec3, r: vec3): vec4 => {
     const AB = vec3.sub(vec3.create(), q, p);
     const AC = vec3.sub(vec3.create(), r, p);
 

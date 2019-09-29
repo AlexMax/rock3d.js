@@ -27,7 +27,7 @@ export interface Texture {
 /**
  * Round a number to the nearest multiple.
  */
-export function mround(num: number, multi: number) {
+export const mround = (num: number, multi: number) => {
     return Math.round(num / multi) * multi;
 }
 
@@ -38,7 +38,7 @@ export function mround(num: number, multi: number) {
  * @param name Original name of the texture.
  * @param src Source URL of image.
  */
-export function textureLoader(name: string, src: string): Promise<Texture> {
+export const textureLoader = (name: string, src: string): Promise<Texture> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {

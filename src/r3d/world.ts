@@ -36,7 +36,7 @@ const ATLAS_SIZE = 512;
  * 
  * @param count Number of vertexes to measure.
  */
-function vertexBytes(count: number) {
+const vertexBytes = (count: number) => {
     return count * 48;
 }
 
@@ -50,11 +50,12 @@ function vertexBytes(count: number) {
  *              vertexes that come before (in the data) the vertex you want
  *              to write.
  */
-function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
-    z: number, uAtOrigin: number, vAtOrigin: number, uAtLen: number,
-    vAtLen: number, uTex: number, vTex: number, rBright: number, gBright: number,
-    bBright: number): ArrayBuffer
-{
+const setVertex = (
+    buffer: ArrayBuffer, index: number, x: number, y: number, z: number,
+    uAtOrigin: number, vAtOrigin: number, uAtLen: number, vAtLen: number,
+    uTex: number, vTex: number, rBright: number, gBright: number,
+    bBright: number
+): ArrayBuffer => {
     const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
     view.setFloat32(0, x, true);
     view.setFloat32(4, y, true);
@@ -85,9 +86,10 @@ function setVertex(buffer: ArrayBuffer, index: number, x: number, y: number,
  * @param width Width of sprite.
  * @param height Height of sprite.
  */
-function billboardVertex(out: vec3, spriteCenter: vec3, offset: vec2,
-    right: vec3, up: vec3, width: number, height: number)
-{
+const billboardVertex = (
+    out: vec3, spriteCenter: vec3, offset: vec2, right: vec3, up: vec3,
+    width: number, height: number
+) => {
     const calcRight = vec3.copy(vec3.create(), right);
     vec3.scale(calcRight, calcRight, offset[0]);
     vec3.scale(calcRight, calcRight, width);
@@ -107,7 +109,7 @@ function billboardVertex(out: vec3, spriteCenter: vec3, offset: vec2,
  * @param camAngle World angle of camera.
  * @param sprAngle World angle of sprite.
  */
-function spriteRot(camAngle: number, sprAngle: number): number {
+const spriteRot = (camAngle: number, sprAngle: number): number => {
     camAngle += 180; sprAngle += 180;
     const angle = ((sprAngle + 202.5 - camAngle) + 360) % 360;
     return Math.floor(angle / 45) + 1;

@@ -34,7 +34,7 @@ export interface Camera {
 /**
  * Create a new camera.
  */
-export function create(): Camera {
+export const create = (): Camera => {
     return {
         center: vec2.create(),
         zoom: 1.0,
@@ -48,7 +48,7 @@ export function create(): Camera {
  * @param x X amount to move camera by, assuming 1.0 zoom.
  * @param y Y amount to move camera by, assuming 1.0 zoom.
  */
-export function pan(camera: Camera, x: number, y: number): Camera {
+export const pan = (camera: Camera, x: number, y: number): Camera => {
     camera.center[0] += (x * (1 / camera.zoom));
     camera.center[1] += (y * (1 / camera.zoom));
 
@@ -62,7 +62,7 @@ export function pan(camera: Camera, x: number, y: number): Camera {
  * @param camera Camera to modify.
  * @param zoom Amount to modify zoom by.
  */
-export function zoom(canera: Camera, zoom: number): Camera {
+export const zoom = (canera: Camera, zoom: number): Camera => {
     // Return a new object so shallow object equality fails.
     return {
         center: canera.center,
@@ -75,7 +75,7 @@ export function zoom(canera: Camera, zoom: number): Camera {
  * 
  * @param camera Camera to get view matrix for.
  */
-export function getViewMatrix(camera: Camera): mat3 {
+export const getViewMatrix = (camera: Camera): mat3 => {
     const scale = vec2.fromValues(camera.zoom, camera.zoom);
     const cameraMat = mat3.create();
     mat3.scale(cameraMat, cameraMat, scale);
