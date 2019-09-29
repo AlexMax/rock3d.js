@@ -22,9 +22,10 @@ import { FileLoader } from './FileLoader';
 import { Window } from  '../../editor/tsx/ui/Window';
 
 export interface Props {
+    isPlaying: boolean;
     onFileLoad: (data: string) => void;
     onStart: () => void;
-    onLast: () => void;
+    onPrevious: () => void;
     onPlay: () => void;
     onPause: () => void;
     onNext: () => void;
@@ -33,12 +34,17 @@ export interface Props {
 
 export class DemoControlWindow extends React.Component<Props> {
     render() {
+        if (this.props.isPlaying) {
+            var playPauseButton = <button onClick={this.props.onPause}>&#9208;</button>;
+        } else {
+            var playPauseButton = <button onClick={this.props.onPlay}>&#9205;</button>;
+        }
+
         return <Window title="Demo Controls">
             <FileLoader onLoad={this.props.onFileLoad}/>
             <button onClick={this.props.onStart}>&#9198;</button>
-            <button onClick={this.props.onLast}>&#9194;&#65038;</button>
-            <button onClick={this.props.onPlay}>&#9205;</button>
-            <button onClick={this.props.onPause}>&#9208;</button>
+            <button onClick={this.props.onPrevious}>&#9194;&#65038;</button>
+            {playPauseButton}
             <button onClick={this.props.onNext}>&#9193;&#65038;</button>
             <button onClick={this.props.onEnd}>&#9197;</button>
         </Window>;

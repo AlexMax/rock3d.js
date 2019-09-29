@@ -20,6 +20,7 @@ import * as cmd from '../command';
 import { Client, handleMessage } from './client';
 import * as proto from '../proto';
 import { Simulation } from './sim';
+import { Timer } from '../timer';
 
 export interface DemoTick {
     /**
@@ -78,13 +79,24 @@ export class DemoClient implements Client {
      */
     pos: number;
 
+    /**
+     * Timer for demo tick.
+     */
+    demoTimer: Timer;
+
     constructor(data: string) {
+        this.tick = this.tick.bind(this);
+
         this.id = null;
         this.rtt = null;
         this.sim = null;
 
         this.demo = JSON.parse(data);
         this.pos = 0;
+
+        // Initialize the timer for the demo.
+        const now = performance.now.bind(performance);
+        this.demoTimer = new Timer(this.tick, now, 32);
     }
 
     private tick() {
@@ -117,10 +129,9 @@ export class DemoClient implements Client {
         this.pos += 1;
     }
 
-    getTick() {
-        return this.demo.ticks[this.pos];
-    }
-
+    /**
+     * Rewind back to the first tick.
+     */
     first() {
         this.id = null;
         this.rtt = null;
@@ -129,7 +140,52 @@ export class DemoClient implements Client {
         this.pos = 0;
     }
 
+    /**
+     * Rewind to the last tick.
+     */
+    previous() {
+        const target = Math.max(0, this.pos - 1);
+        this.first();
+        while (this.pos < target) {
+            this.tick();
+        }
+    }
+
+    /**
+     * Get current tick information.
+     */
+    getTick() {
+        return this.demo.ticks[this.pos];
+    }
+
+    /**
+     * Go to the next tick.
+     */
     next() {
         this.tick();
+    }
+
+    /**
+     * Pause the demo.
+     */
+    pause() {
+        this.demoTimer.stop();
+    }
+
+    /**
+     * Run the demo in normal time.
+     */
+    play() {
+        this.demoTimer.start();
+    }
+
+    /**
+     * Go to the end of the demo.
+     */
+    end() {
+        const target = this.demo.ticks.length - 1;
+        while (this.pos < target) {
+            this.tick();
+        }
     }
 }

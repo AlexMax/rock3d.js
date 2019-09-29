@@ -24,8 +24,20 @@ import { DemoInfoWindow } from './DemoInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
 
 interface State {
+    /**
+     * Current demo client.
+     */
     client: DemoClient | null,
+
+    /**
+     * Current tick data.
+     */
     tick: DemoTick | null,
+
+    /**
+     * True if the demo is playing, otherwise false.
+     */
+    isPlaying: boolean,
 }
 
 export class DemoRoot extends React.Component<{}, State> {
@@ -35,7 +47,7 @@ export class DemoRoot extends React.Component<{}, State> {
 
         this.onFileLoad = this.onFileLoad.bind(this);
         this.onStart = this.onStart.bind(this);
-        this.onLast = this.onLast.bind(this);
+        this.onPrevious = this.onPrevious.bind(this);
         this.onPlay = this.onPlay.bind(this);
         this.onPause = this.onPause.bind(this);
         this.onNext = this.onNext.bind(this);
@@ -44,6 +56,7 @@ export class DemoRoot extends React.Component<{}, State> {
         this.state = {
             client: null,
             tick: null,
+            isPlaying: false,
         }
     }
 
@@ -64,16 +77,31 @@ export class DemoRoot extends React.Component<{}, State> {
         this.setState({ tick: client.getTick() });
     }
 
-    private onLast() {
-
+    private onPrevious() {
+        const client = this.state.client;
+        if (client === null) {
+            return;
+        }
+        client.previous();
+        this.setState({ tick: client.getTick() });
     }
 
     private onPlay() {
-
+        const client = this.state.client;
+        if (client === null) {
+            return;
+        }
+        client.play();
+        this.setState({ isPlaying: true });
     }
 
     private onPause() {
-
+        const client = this.state.client;
+        if (client === null) {
+            return;
+        }
+        client.pause();
+        this.setState({ isPlaying: false, tick: client.getTick() });
     }
 
     private onNext() {
@@ -86,7 +114,12 @@ export class DemoRoot extends React.Component<{}, State> {
     }
 
     private onEnd() {
-
+        const client = this.state.client;
+        if (client === null) {
+            return;
+        }
+        client.end();
+        this.setState({ tick: client.getTick() });
     }
 
     render() {
@@ -99,9 +132,10 @@ export class DemoRoot extends React.Component<{}, State> {
         return <div>
                 <RenderCanvas client={this.state.client}/>
                 <DemoControlWindow
+                    isPlaying={this.state.isPlaying}
                     onFileLoad={this.onFileLoad}
                     onStart={this.onStart}
-                    onLast={this.onLast}
+                    onPrevious={this.onPrevious}
                     onPlay={this.onPlay}
                     onPause={this.onPause}
                     onNext={this.onNext}
