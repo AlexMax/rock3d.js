@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Client } from './client'; 
-import { Axis, Button, setAxis, setButton, unsetButton } from '../command';
-import { SocketConnection } from './connection';
-import { RenderContext } from '../r3d/render';
+import { render } from './client';
+import { Button, setAxis, setButton, unsetButton } from '../command';
 import { loadAssets } from './loader';
+import { RenderContext } from '../r3d/render';
+import { SocketClient } from './socket'; 
 
 const keyCodeToButton = (keyCode: number) => {
     switch (keyCode) {
@@ -75,17 +75,20 @@ window.addEventListener("load", async () => {
 
     // Create our client.
     const hostname = window.location.hostname;
-    const client = new Client(new SocketConnection(hostname, 11210));
+    const client = new SocketClient(hostname, 11210);
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {
         if (evt.keyCode === 192) {
             // User hit tilde, stop the client and dump a packet capture.
             client.halt();
-            const json = JSON.stringify((client.connection as SocketConnection).demo);
+            const json = JSON.stringify(client.connection.demo);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const link = document.getElementById('capture') as HTMLAnchorElement;
+            const link = document.getElementById('capture');
+            if (!(link instanceof HTMLAnchorElement)) {
+                throw new Error('Capture is not an anchor element');
+            }
             link.download = 'demo.json';
             link.href = url;
             link.textContent = 'Download';
@@ -134,7 +137,7 @@ window.addEventListener("load", async () => {
 
     // Start our rendering loop too.
     const draw = () => {
-        client.render(renderer);
+        render(client, renderer);
         window.requestAnimationFrame(draw);
     }
     window.requestAnimationFrame(draw);

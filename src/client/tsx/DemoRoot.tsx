@@ -18,21 +18,14 @@
 
 import React from 'react';
 
-import { Client } from '../client';
-import { DemoConnection } from '../connection';
+import { DemoClient, DemoTick } from '../demo';
 import { DemoControlWindow } from './DemoControlWindow';
 import { DemoInfoWindow } from './DemoInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
 
-const getConn = (client: Client | null) => {
-    if (client !== null && client.connection instanceof DemoConnection) {
-        return client.connection;
-    }
-    return null;
-}
-
 interface State {
-    client: Client | null,
+    client: DemoClient | null,
+    tick: DemoTick | null,
 }
 
 export class DemoRoot extends React.Component<{}, State> {
@@ -50,17 +43,25 @@ export class DemoRoot extends React.Component<{}, State> {
 
         this.state = {
             client: null,
+            tick: null,
         }
     }
 
     private onFileLoad(data: string) {
+        const client = new DemoClient(data);
         this.setState({
-            client: new Client(new DemoConnection(data)),
+            client: client,
+            tick: client.getTick(),
         });
     }
 
     private onStart() {
-
+        const client = this.state.client;
+        if (client === null) {
+            return;
+        }
+        client.first();
+        this.setState({ tick: client.getTick() });
     }
 
     private onLast() {
@@ -76,11 +77,12 @@ export class DemoRoot extends React.Component<{}, State> {
     }
 
     private onNext() {
-        const conn = getConn(this.state.client);
-        if (conn === null) {
+        const client = this.state.client;
+        if (client === null) {
             return;
         }
-        conn.next();
+        client.next();
+        this.setState({ tick: client.getTick() });
     }
 
     private onEnd() {
@@ -88,10 +90,10 @@ export class DemoRoot extends React.Component<{}, State> {
     }
 
     render() {
+        // Only render the info window if we have a tick to render.
         let info: JSX.Element | null = null;
-        const conn = getConn(this.state.client);
-        if (conn !== null) {
-            info = <DemoInfoWindow tick={conn.getTick()}/>;
+        if (this.state.tick !== null) {
+            info = <DemoInfoWindow tick={this.state.tick}/>;
         }
 
         return <div>

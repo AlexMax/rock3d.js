@@ -18,9 +18,11 @@
 
 import React from "react";
 
-import { DemoTick } from "../connection";
-import { ServerMessage, ServerHello, ServerPing, ServerSnapshot, ServerMessageType } from "../../proto";
 import { Input, checkButton, Button } from "../../command";
+import { DemoTick } from "../demo";
+import {
+    ServerMessage, ServerHello, ServerPing, ServerSnapshot, ServerMessageType
+} from "../../proto";
 import { Window } from  '../../editor/tsx/ui/Window';
 
 const helloMessage = (key: number, hello: ServerHello) => {
@@ -108,7 +110,7 @@ export interface Props {
 
 export const DemoInfoWindow = (props: Props) => {
     return <Window title="Demo Info">
-        <table style={{margin: '1em', width: '640px', whiteSpace: 'normal' }}>
+        <table style={{fontSize: '80%', margin: '1em', width: '320px', whiteSpace: 'normal' }}>
             <tbody>
                 <tr><th>Client Clock: {props.tick.clock}</th></tr>
                 <tr><th>Server Messages</th></tr>

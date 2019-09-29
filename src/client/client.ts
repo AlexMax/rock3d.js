@@ -16,32 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as cmd from '../command';
-import { Connection, Demo } from './connection';
-import { handleMessage } from './handler';
+import { moveRelative, fromEntity } from '../r3d/camera';
 import * as proto from '../proto';
-import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
-import { RenderContext } from '../r3d/render';
 import { Simulation } from './sim';
-import { Timer } from '../timer';
+import { unserializeSnapshot } from '../snapshot';
+import { RenderContext } from '../r3d/render';
 
-export class Client {
+import TESTMAP from '../../asset/TESTMAP.json';
+
+export interface Client {
     /**
      * Client ID.
      */
     id: number | null;
-
-    /**
-     * Connection abstraction.
-     *
-     * Either a real connection or a demo player.
-     */
-    connection: Connection;
-
-    /**
-     * Server messages.
-     */
-    buffer: proto.ServerMessage[]; // Message backlog.
 
     /**
      * Round-trip-time to the server.
@@ -49,193 +36,108 @@ export class Client {
     rtt: number | null;
 
     /**
-     * Timer for client tick.
-     */
-    gameTimer: Timer;
-
-    /**
      * Clientside (predicted) simulation.
      */
     sim: Simulation | null;
+}
 
-    /**
-     * Current input state.
-     */
-    input: cmd.Input;
+const hello = (client: Client, msg: proto.ServerHello) => {
+    client.id = msg.clientID;
+}
 
-    constructor(conn: Connection) {
-        this.tick = this.tick.bind(this);
+const ping = (client: Client, msg: proto.ServerPing) => {
+    client.rtt = msg.rtt;
+}
 
-        this.id = null;
-        this.connection = conn;
-        this.rtt = null;
-        this.sim = null;
-        this.buffer = [];
-        this.input = cmd.createInput();
-
-        // Initialize the timer for the simulation.
-        const now = performance.now.bind(performance);
-        this.gameTimer = new Timer(this.tick, now, 32);
+const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
+    const snap = unserializeSnapshot(msg.snapshot);
+    if (client.sim === null) {
+        // Start the simulation now that we have snapshot data.
+        client.sim = new Simulation(TESTMAP, 32, snap);
     }
 
-    private tick() {
-        if (!this.connection.ready()) {
-            // Don't tick with a closed connection.
-            return;
-        }
+    // Store our snapshot data in the simulation.
+    client.sim.updateSnapshot(snap);
 
-        //const start = performance.now();
+    // Store our latest commands in the simulation.
+    client.sim.updateCommands(msg.commands);
+}
 
-        // Service incoming network messages.
-        let msg: ReturnType<Connection['read']> = null;
-        while ((msg = this.connection.read()) !== null) {
-            handleMessage(this, msg);
-        }
+/**
+ * Handle a server message.
+ * 
+ * @param client Client that is handling message.
+ * @param msg Message contents.
+ */
+export const handleMessage = (client: Client, msg: proto.ServerMessage) => {
+    // [AM] As far as I know, there's no easier way to do dynamic dispatch
+    //      where each handler function is aware of its own message type.
+    //      But I don't know for certain, patches welcome.
+    switch (msg.type) {
+        case proto.ServerMessageType.Hello:
+            hello(client, msg);
+            break;
+        case proto.ServerMessageType.Ping:
+            ping(client, msg);
+            break;
+        case proto.ServerMessageType.Snapshot:
+            snapshot(client, msg);
+            break;
+        default:
+            throw new Error('Unknown message');
+    }
+}
 
-        if (this.id === null) {
-            // We need to be aware of our own ID to tick.
-            return;
-        }
-
-        if (this.sim === null) {
-            // We need to have a simulation to tick.
-            return;
-        }
-
-        if (this.rtt === null) {
-            // We need our ping to know how far ahead we need to be.
-            return;
-        }
-
-        // Construct an input from our current client state and queue it.
-        const inputCmd: cmd.InputCommand = {
-            type: cmd.CommandTypes.Input,
-            clientID: this.id,
-            clock: this.sim.clock,
-            input: this.input,
-        };
-        this.sim.queueLocalInput(inputCmd);
-
-        // Tick the client simulation a single frame.
-        this.sim.tick();
-
-        // How far ahead of the authority are we, actually?
-        const actualFrames = this.sim.predictedFrames();
-
-        // How far ahead of the authority should we be?
-        const targetFrames = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
-
-        if (actualFrames < targetFrames) {
-            // We're too far behind, speed it up.
-            this.gameTimer.setScale(0.9);
-        } else if (actualFrames > targetFrames) {
-            // We're too far ahead, slow it down.
-            this.gameTimer.setScale(1.1);
-        } else {
-            // We're just right.
-            this.gameTimer.setScale(1);
-        }
-
-        // Send the server our inputs.
-        this.connection.send({
-            type: proto.ClientMessageType.Input,
-            clock: this.sim.clock - 1,
-            input: this.input,
-        });
-
-        // Save a demo frame.
-        this.connection.saveDemoFrame(this.sim.clock - 1, this.input);
-
-        // Pitch and yaw are per-tick accumulators, reset them.
-        this.input = cmd.clearAxis(this.input);
-
-        //console.debug(`frame time: ${performance.now() - start}ms`);
+/**
+ * Render the most up-to-date snapshot of the game.
+ * 
+ * This is _not_ handled inside the main game loop, it should usually
+ * be called from an endless loop of requestAnimationFrame.
+ */
+export const render = (client: Client, ctx: RenderContext) => {
+    if (client.id === null || client.sim === null) {
+        return;
     }
 
-    /**
-     * Render the most up-to-date snapshot of the game.
-     * 
-     * This is _not_ handled inside the main game loop, it should usually
-     * be called from an endless loop of requestAnimationFrame.
-     */
-    render(ctx: RenderContext) {
-        if (this.id === null) {
-            // We're not even connected yet...
-            console.debug('no client id');
-            return;
-        }
+    // Get our latest snapshot data to render.
+    const snapshot = client.sim.getSnapshot();
 
-        if (this.sim === null) {
-            // Can't draw if we don't have a simulation.
-            console.debug('no sim');
-            return;
-        }
-
-        // Get our latest snapshot data to render.
-        const snapshot = this.sim.getSnapshot();
-
-        const camEntity = snapshot.players.get(this.id);
-        if (camEntity === undefined) {
-            // Player has no camera entity.
-            console.debug('no entity id');
-            return;
-        }
-
-        const entity = snapshot.entities.get(camEntity);
-        if (entity === undefined) {
-            // Entity we're trying to render doesn't exist.
-            console.debug('entity doesnt exist');
-            return;
-        }
-
-        const cam = moveRelative(cameraFromEntity(entity),
-            0, 0, entity.config.cameraZ);
-        const level = this.sim.level;
-
-        // Create our sky.
-        ctx.world.clearSky();
-        ctx.world.addSky('SKY1');
-
-        // Add our geometry to be rendered.
-        ctx.world.clearWorld();
-        for (let i = 0;i < level.polygons.length;i++) {
-            ctx.world.addPolygon(level.polygons, i);
-        }
-
-        // Add our sprites to be rendered.
-        ctx.world.clearSprites();
-        for (let [k, v] of snapshot.entities) {
-            if (k === camEntity) {
-                // Don't draw your own sprite.
-                continue;
-            }
-
-            ctx.world.addEntity(v, cam, level.polygons);
-        }
-
-        // Render the world.
-        ctx.world.render(cam);
+    const camEntity = snapshot.players.get(client.id);
+    if (camEntity === undefined) {
+        // Player has no camera entity.
+        return;
     }
 
-    /**
-     * Start running the game.
-     */
-    run() {
-        this.gameTimer.start();
+    const entity = snapshot.entities.get(camEntity);
+    if (entity === undefined) {
+        // Entity we're trying to render doesn't exist.
+        return;
     }
 
-    /**
-     * Stop the game.
-     */
-    halt() {
-        this.gameTimer.stop();
+    const cam = moveRelative(fromEntity(entity), 0, 0, entity.config.cameraZ);
+    const level = client.sim.level;
+
+    // Create our sky.
+    ctx.world.clearSky();
+    ctx.world.addSky('SKY1');
+
+    // Add our geometry to be rendered.
+    ctx.world.clearWorld();
+    for (let i = 0;i < level.polygons.length;i++) {
+        ctx.world.addPolygon(level.polygons, i);
     }
 
-    /**
-     * Run a tick outside the timer with the given inputs.
-     */
-    manualTick(input: cmd.Input) {
-        this.input = input;
-        this.tick();
+    // Add our sprites to be rendered.
+    ctx.world.clearSprites();
+    for (let [k, v] of snapshot.entities) {
+        if (k === camEntity) {
+            // Don't draw your own sprite.
+            continue;
+        }
+
+        ctx.world.addEntity(v, cam, level.polygons);
     }
+
+    // Render the world.
+    ctx.world.render(cam);
 }
