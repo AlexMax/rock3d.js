@@ -19,7 +19,7 @@
 import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
-import * as com from '../command';
+import { CommandTypes } from '../command';
 import { handleMessage } from './handler';
 import * as proto from '../proto';
 import { Simulation } from './sim';
@@ -187,7 +187,7 @@ export class Server {
             const conn = new Connection(clientID, wsc);
             wsc.on('close', () => {
                 this.sim.queueCommand({
-                    type: com.CommandTypes.Player,
+                    type: CommandTypes.Player,
                     clientID: clientID,
                     action: 'remove',
                 });

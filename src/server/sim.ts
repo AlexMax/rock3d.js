@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as com from '../command';
+import * as cmd from '../command';
 import { createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
 import { Level } from '../level';
 import { LevelData } from '../leveldata';
@@ -51,17 +51,17 @@ export class Simulation {
     /**
      * Past complete set of commands.
      */
-    commands: com.Command[][];
+    commands: cmd.Command[][];
 
     /**
      * Command queue for internal commands to be resolved before inputs.
      */
-    preInputs: com.Command[];
+    preInputs: cmd.Command[];
 
     /**
      * Future input buffer for each player.
      */
-    inputs: Map<number, com.InputCommand[]>;
+    inputs: Map<number, cmd.InputCommand[]>;
 
     constructor(data: LevelData, tickrate: number) {
         this.period = 1000 / tickrate;
@@ -83,9 +83,9 @@ export class Simulation {
 
         // Collect input commands for every player.
         const preInputCommands = [...this.preInputs];
-        const inputCommands: com.InputCommand[] = [];
+        const inputCommands: cmd.InputCommand[] = [];
         for (const [clientID, inputs] of this.inputs) {
-            const latest = inputs.reduce((acc: com.InputCommand | null, cur) => {
+            const latest = inputs.reduce((acc: cmd.InputCommand | null, cur) => {
                 if (cur.clock > this.clock) {
                     // Ignore this input, it's too far ahead.
                     return acc;
@@ -106,7 +106,7 @@ export class Simulation {
             // the paint.
             if (latest === null) {
                 preInputCommands.push({
-                    type: com.CommandTypes.Player,
+                    type: cmd.CommandTypes.Player,
                     clientID: clientID,
                     action: 'remove',
                 });
@@ -134,9 +134,9 @@ export class Simulation {
      * 
      * @param command 
      */
-    queueCommand(command: com.Command) {
+    queueCommand(command: cmd.Command) {
         switch (command.type) {
-            case com.CommandTypes.Input:
+            case cmd.CommandTypes.Input:
                 var inputs = this.inputs.get(command.clientID);
                 if (inputs === undefined) {
                     // Got inputs for a client that we don't know about.
@@ -146,7 +146,7 @@ export class Simulation {
                 // Add inputs to the appropriate input buffer.
                 inputs.push(command);
                 break;
-            case com.CommandTypes.Player:
+            case cmd.CommandTypes.Player:
                 // Add or remove players from the simulation.
                 var inputs = this.inputs.get(command.clientID);
                 if (command.action === 'add' && inputs === undefined) {
@@ -171,7 +171,7 @@ export class Simulation {
     /**
      * Return the latest set of commands from the last tick.
      */
-    getCommands(): Readonly<com.Command[]> {
+    getCommands(): Readonly<cmd.Command[]> {
         return this.commands[this.clock % SNAPSHOT_MAX];
     }
 }
