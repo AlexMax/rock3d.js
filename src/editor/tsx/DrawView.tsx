@@ -24,8 +24,8 @@ import {
 } from '../../r2d/camera';
 import { DrawInput } from './DrawInput';
 import { MutLevel } from '../mutlevel';
-import { StatusBar } from './ui/StatusBar';
-import { Toolbar } from './ui/Toolbar';
+import { StatusBar } from '../../tsx/StatusBar';
+import { Toolbar } from '../../tsx/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
 import { mround } from '../util';
 

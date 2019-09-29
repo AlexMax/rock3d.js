@@ -19,7 +19,7 @@
 import React from 'react';
 
 import { name, repository_url, version } from '../package';
-import { Window } from './ui/Window';
+import { Window } from '../../tsx/Window';
 
 interface Props {
     onClose: () => void;

@@ -24,7 +24,7 @@ import {
 } from '../../r3d/camera';
 import { FPCanvas } from './FPCanvas';
 import { MutLevel } from '../mutlevel';
-import { StatusBar } from './ui/StatusBar';
+import { StatusBar } from '../../tsx/StatusBar';
 import { VisualInput } from './VisualInput';
 
 export interface Props {

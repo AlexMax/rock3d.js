@@ -23,7 +23,7 @@ import { DemoTick } from "../demo";
 import {
     ServerMessage, ServerHello, ServerPing, ServerSnapshot, ServerMessageType
 } from "../../proto";
-import { Window } from  '../../editor/tsx/ui/Window';
+import { Window } from  '../../tsx/Window';
 
 const helloMessage = (key: number, hello: ServerHello) => {
     return <div key={key}>

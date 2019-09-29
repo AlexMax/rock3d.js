@@ -19,7 +19,7 @@
 import React from 'react';
 
 import { FileLoader } from './FileLoader';
-import { Window } from  '../../editor/tsx/ui/Window';
+import { Window } from  '../../tsx/Window';
 
 export interface Props {
     isPlaying: boolean;
@@ -32,21 +32,19 @@ export interface Props {
     onEnd: () => void;
 }
 
-export class DemoControlWindow extends React.Component<Props> {
-    render() {
-        if (this.props.isPlaying) {
-            var playPauseButton = <button onClick={this.props.onPause}>&#9208;</button>;
-        } else {
-            var playPauseButton = <button onClick={this.props.onPlay}>&#9205;</button>;
-        }
-
-        return <Window title="Demo Controls">
-            <FileLoader onLoad={this.props.onFileLoad}/>
-            <button onClick={this.props.onStart}>&#9198;</button>
-            <button onClick={this.props.onPrevious}>&#9194;&#65038;</button>
-            {playPauseButton}
-            <button onClick={this.props.onNext}>&#9193;&#65038;</button>
-            <button onClick={this.props.onEnd}>&#9197;</button>
-        </Window>;
+export const DemoControlWindow = (props: Readonly<Props>) => {
+    if (props.isPlaying) {
+        var playPauseButton = <button onClick={props.onPause}>&#9208;</button>;
+    } else {
+        var playPauseButton = <button onClick={props.onPlay}>&#9205;</button>;
     }
+
+    return <Window title="Demo Controls">
+        <FileLoader onLoad={props.onFileLoad}/>
+        <button onClick={props.onStart}>&#9198;</button>
+        <button onClick={props.onPrevious}>&#9194;&#65038;</button>
+        {playPauseButton}
+        <button onClick={props.onNext}>&#9193;&#65038;</button>
+        <button onClick={props.onEnd}>&#9197;</button>
+    </Window>;
 }

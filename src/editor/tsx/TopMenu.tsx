@@ -18,7 +18,7 @@
 
 import React from 'react';
 
-import { MenuConfig, MenuBar } from './ui/Menu';
+import { MenuConfig, MenuBar } from '../../tsx/Menu';
 
 export interface Props {
     onOpenFile: () => void;
