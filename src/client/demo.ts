@@ -65,6 +65,11 @@ export class DemoClient implements Client {
     rtt: number | null;
 
     /**
+     * Health of connection.
+     */
+    health: number | null;
+
+    /**
      * Clientside (predicted) simulation.
      */
     sim: Simulation | null;
@@ -89,6 +94,7 @@ export class DemoClient implements Client {
 
         this.id = null;
         this.rtt = null;
+        this.health = null;
         this.sim = null;
 
         this.demo = JSON.parse(data);

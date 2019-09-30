@@ -41,7 +41,8 @@ const snapshotMessage = (key: number, snap: ServerSnapshot) => {
     return <div key={key}>
         <strong>Snapshot Message</strong><br/>
         Snapshot: <code>{JSON.stringify(snap.snapshot)}</code><br/>
-        Commands: <code>{JSON.stringify(snap.commands)}</code>
+        Commands: <code>{JSON.stringify(snap.commands)}</code><br/>
+        Health: <code>{snap.health !== null ? snap.health : 'None'}</code>
     </div>;
 }
 

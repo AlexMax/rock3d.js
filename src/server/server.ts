@@ -230,28 +230,21 @@ export class Server {
         // Do one gametic's worth of simulation.
         this.sim.tick();
 
-        // Send latest snapshot to all clients.
-        this.sendAll({
-            type: proto.ServerMessageType.Snapshot,
-            snapshot: serializeSnapshot(this.sim.getSnapshot()),
-            commands: this.sim.getCommands(),
-        });
-
-        // Ping everybody.
+        // Do post-tick housekeeping on all players.
         for (let conn of this.connections.values()) {
+            // Send latest snapshot to all clients.
+            conn.send({
+                type: proto.ServerMessageType.Snapshot,
+                snapshot: serializeSnapshot(this.sim.getSnapshot()),
+                commands: this.sim.getCommands(),
+                health: this.sim.getHealth(conn.id),
+            });
+
+            // Continue the ping/pong cycle, if able.
             conn.ping();
         }
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
-    }
-
-    /**
-     * Send a message to all connected clients.
-     */
-    private sendAll(msg: proto.ServerMessage) {
-        for (let conn of this.connections.values()) {
-            conn.send(msg);
-        }
     }
 
     /**

@@ -63,6 +63,11 @@ export class Simulation {
      */
     inputs: Map<number, cmd.InputCommand[]>;
 
+    /**
+     * Input buffer health for each player.
+     */
+    health: Map<number, number | null>;
+
     constructor(data: LevelData, tickrate: number) {
         this.period = 1000 / tickrate;
         this.clock = 0;
@@ -75,6 +80,7 @@ export class Simulation {
         }
         this.preInputs = [];
         this.inputs = new Map();
+        this.health = new Map();
     }
 
     tick() {
@@ -85,8 +91,15 @@ export class Simulation {
         const preInputCommands = [...this.preInputs];
         const inputCommands: cmd.InputCommand[] = [];
         for (const [clientID, inputs] of this.inputs) {
-            const latest = inputs.reduce((acc: cmd.InputCommand | null, cur) => {
+            let ahead: number | null = null;
+            const best = inputs.reduce((acc: cmd.InputCommand | null, cur) => {
                 if (cur.clock > this.clock) {
+                    // Count how far ahead this tick was, for later.
+                    const diff = cur.clock - this.clock;
+                    if (ahead === null || diff > ahead) {
+                        ahead = diff;
+                    }
+
                     // Ignore this input, it's too far ahead.
                     return acc;
                 }
@@ -104,7 +117,7 @@ export class Simulation {
 
             // We don't have any inputs for this player, get them up out
             // the paint.
-            if (latest === null) {
+            if (best === null) {
                 preInputCommands.push({
                     type: cmd.CommandTypes.Player,
                     clientID: clientID,
@@ -114,7 +127,24 @@ export class Simulation {
             }
 
             // Add this input.
-            inputCommands.push(latest);
+            inputCommands.push(best);
+
+            // Record how far ahead or behind the player is.
+            if (ahead !== null) {
+                // Client is ahead, should probably slow down.
+                this.health.set(clientID, ahead);
+            } else if (best.clock < this.clock) {
+                // Client is behind, should probably speed up.
+                this.health.set(clientID, best.clock - this.clock);
+            } else {
+                // Client is just right.
+                this.health.set(clientID, 0);
+            }
+
+            // Filter out inputs that are too old to be useful.
+            this.inputs.set(clientID, inputs.filter((input) => {
+                return input.clock > this.clock - SNAPSHOT_MAX;
+            }));
         }
 
         // Tick our snapshot.
@@ -151,8 +181,10 @@ export class Simulation {
                 var inputs = this.inputs.get(command.clientID);
                 if (command.action === 'add' && inputs === undefined) {
                     this.inputs.set(command.clientID, []);
+                    this.health.set(command.clientID, null);
                 } else if (command.action === 'remove' && inputs !== undefined) {
                     this.inputs.delete(command.clientID);
+                    this.health.delete(command.clientID);
                 }
 
                 // Player creation and destruction is handled before inputs.
@@ -173,5 +205,18 @@ export class Simulation {
      */
     getCommands(): Readonly<cmd.Command[]> {
         return this.commands[this.clock % SNAPSHOT_MAX];
+    }
+
+    /**
+     * Get the average health of the client ID.
+     * 
+     * @param clientID Client ID to get health for.
+     */
+    getHealth(clientID: number) {
+        const health = this.health.get(clientID);
+        if (health === undefined) {
+            return null;
+        }
+        return health;
     }
 }

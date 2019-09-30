@@ -134,6 +134,15 @@ export interface ServerSnapshot {
      * Commands used to create this snapshot.
      */
     commands: Readonly<Command[]>,
+
+    /**
+     * How "even" the client's commands are with the server.
+     * 
+     * This number should be as close to 0 as reasonable.  Negative numbers
+     * indicate input buffer starvation, positive numbers indicate buffer
+     * bloat, null means we don't have any inputs to tell yet.
+     */
+    health: number | null,
 }
 
 export type ServerMessage = ServerHello | ServerPing | ServerSnapshot;

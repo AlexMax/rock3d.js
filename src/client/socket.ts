@@ -93,7 +93,9 @@ class SocketConnection {
 
     send(msg: proto.ClientMessage): void {
         const data = proto.packClient(msg);
-        this.wsc.send(data);
+        setTimeout(() => {
+            this.wsc.send(data);
+        }, 150);
     }
 }
 
@@ -107,6 +109,11 @@ export class SocketClient implements Client {
      * Round-trip-time to the server.
      */
     rtt: number | null;
+
+    /**
+     * Health of connection.
+     */
+    health: number | null;
 
     /**
      * Clientside (predicted) simulation.
@@ -135,16 +142,23 @@ export class SocketClient implements Client {
      */
     input: cmd.Input;
 
+    /**
+     * Last health value, to compare against.
+     */
+    lastHealth: number | null;
+
     constructor(hostname: string, port: number) {
         this.tick = this.tick.bind(this);
 
         this.id = null;
         this.rtt = null;
+        this.health = null;
         this.sim = null;
 
         this.connection = new SocketConnection(hostname, port);
         this.buffer = [];
         this.input = cmd.createInput();
+        this.lastHealth = null;
 
         // Initialize the timer for the simulation.
         const now = performance.now.bind(performance);
@@ -181,18 +195,28 @@ export class SocketClient implements Client {
         // Tick the client simulation a single frame.
         this.sim.tick();
 
-        // How far ahead of the authority are we, actually?
-        const actualFrames = this.sim.predictedFrames();
+        // Determine health of our connection.
+        if (this.health === null) {
+            // How far ahead of the authority are we, at this exact moment?
+            const actualFrames = this.sim.predictedFrames();
 
-        // How far ahead of the authority should we be?
-        const targetFrames = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
+            // How far ahead of the authority should we be?
+            const targetFrames = Math.ceil((this.rtt / 2) / this.gameTimer.period) + 1;
 
-        if (actualFrames < targetFrames) {
+            // Since we don't have health information, use RTT to guess.
+            this.health = actualFrames - targetFrames;
+        }
+
+        // Try and stay a reasonable distance ahead of the server.
+        if (this.health < 0.5) {
             // We're too far behind, speed it up.
-            this.gameTimer.setScale(0.9);
-        } else if (actualFrames > targetFrames) {
+            this.gameTimer.setScale(0.95);
+        } else if (this.health < 0) {
+            // We're way too far behind, speed it up significantly.
+            this.gameTimer.setScale(0.75);
+        } else if (this.health > 1.5) {
             // We're too far ahead, slow it down.
-            this.gameTimer.setScale(1.1);
+            this.gameTimer.setScale(1.05);
         } else {
             // We're just right.
             this.gameTimer.setScale(1);
@@ -210,6 +234,9 @@ export class SocketClient implements Client {
 
         // Pitch and yaw are per-tick accumulators, reset them.
         this.input = cmd.clearAxis(this.input);
+
+        // Save our health tick for later.
+        this.lastHealth = this.health;
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }

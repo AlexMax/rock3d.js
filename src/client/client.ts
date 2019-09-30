@@ -36,6 +36,11 @@ export interface Client {
     rtt: number | null;
 
     /**
+     * Health of connection.
+     */
+    health: number | null;
+
+    /**
      * Clientside (predicted) simulation.
      */
     sim: Simulation | null;
@@ -61,6 +66,9 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
 
     // Store our latest commands in the simulation.
     client.sim.updateCommands(msg.commands);
+
+    // Record our connection health.
+    client.health = msg.health;
 }
 
 /**
