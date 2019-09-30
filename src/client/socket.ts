@@ -17,11 +17,9 @@
  */
 
 import { Client, handleMessage } from './client';
-import { fromEntity as cameraFromEntity, moveRelative } from '../r3d/camera';
 import * as cmd from '../command';
 import { Demo, createDemo } from './demo';
 import * as proto from '../proto';
-import { RenderContext } from '../r3d/render';
 import { Simulation } from './sim';
 import { Timer } from '../timer';
 

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { moveRelative, fromEntity } from '../r3d/camera';
+import { fromEntity } from '../r3d/camera';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { unserializeSnapshot } from '../snapshot';
