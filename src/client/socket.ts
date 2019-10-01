@@ -228,7 +228,7 @@ export class SocketClient implements Client {
             var scale = 2;
         } else if (calc < 1 && calc > 0) {
             // We're too fast, slow down.
-            var scale = calc;
+            var scale = 1 + calc;
         } else {
             // Just right.
             var scale = 1;
@@ -236,7 +236,7 @@ export class SocketClient implements Client {
 
         const debug = document.getElementById('debug');
         if (debug instanceof HTMLTextAreaElement) {
-            debug.innerHTML = `health: ${this.health}\nscale: ${scale}\npid: ${JSON.stringify(this.healthPID)}`;
+            debug.innerHTML = `health: ${this.health}\ncalc: ${calc} scale: ${scale}\npid: ${JSON.stringify(this.healthPID)}`;
         }
         this.gameTimer.setScale(scale);
 
