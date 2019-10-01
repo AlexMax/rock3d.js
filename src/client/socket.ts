@@ -22,6 +22,8 @@ import { Demo, createDemo } from './demo';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { Timer } from '../timer';
+import { createPID, PID, updatePID, calculatePID } from '../util';
+import { constrain } from '../math';
 
 /**
  * A connection over a websocket.
@@ -99,6 +101,8 @@ class SocketConnection {
     }
 }
 
+let TICKS = 0;
+
 export class SocketClient implements Client {
     /**
      * Client ID.
@@ -143,9 +147,9 @@ export class SocketClient implements Client {
     input: cmd.Input;
 
     /**
-     * Last health value, to compare against.
+     * PID controller for health.
      */
-    lastHealth: number | null;
+    healthPID: PID;
 
     constructor(hostname: string, port: number) {
         this.tick = this.tick.bind(this);
@@ -158,7 +162,7 @@ export class SocketClient implements Client {
         this.connection = new SocketConnection(hostname, port);
         this.buffer = [];
         this.input = cmd.createInput();
-        this.lastHealth = null;
+        this.healthPID = createPID(0.1, 0, 0);
 
         // Initialize the timer for the simulation.
         const now = performance.now.bind(performance);
@@ -207,20 +211,34 @@ export class SocketClient implements Client {
             this.health = actualFrames - targetFrames;
         }
 
-        // Try and stay a reasonable distance ahead of the server.
-        if (this.health < 0.5) {
-            // We're too far behind, speed it up.
-            this.gameTimer.setScale(0.95);
-        } else if (this.health < 0) {
-            // We're way too far behind, speed it up significantly.
-            this.gameTimer.setScale(0.75);
-        } else if (this.health > 1.5) {
-            // We're too far ahead, slow it down.
-            this.gameTimer.setScale(1.05);
+        // Use PID controller to get to the right simulation speed to stay
+        // ahead of the server.
+        const error = this.health - 1;
+        this.healthPID = updatePID(this.healthPID, error);
+        const calc = calculatePID(this.healthPID);
+
+        if (calc <= -1) {
+            // Lower limit.
+            var scale = 0.5;
+        } else if (calc > -1 && calc < 0) {
+            // We're too slow, speed up.
+            var scale = 1 + (calc / 2);
+        } else if (calc >= 1) {
+            // Upper limit.
+            var scale = 2;
+        } else if (calc < 1 && calc > 0) {
+            // We're too fast, slow down.
+            var scale = calc;
         } else {
-            // We're just right.
-            this.gameTimer.setScale(1);
+            // Just right.
+            var scale = 1;
         }
+
+        const debug = document.getElementById('debug');
+        if (debug instanceof HTMLTextAreaElement) {
+            debug.innerHTML = `health: ${this.health}\nscale: ${scale}\npid: ${JSON.stringify(this.healthPID)}`;
+        }
+        this.gameTimer.setScale(scale);
 
         // Send the server our inputs.
         this.connection.send({
@@ -234,9 +252,6 @@ export class SocketClient implements Client {
 
         // Pitch and yaw are per-tick accumulators, reset them.
         this.input = cmd.clearAxis(this.input);
-
-        // Save our health tick for later.
-        this.lastHealth = this.health;
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }

@@ -24,3 +24,54 @@
 export const arrayRandom = <T>(array: T[]): T => {
     return array[Math.floor(Math.random() * array.length)];
 }
+
+export interface PID {
+    p: number,
+    i: number,
+    d: number,
+    pError: number,
+    iError: number,
+    dError: number,
+}
+
+/**
+ * Create a new PID object.
+ * 
+ * @param p Proportional parameter.
+ * @param i Integral parameter.
+ * @param d Derivative parameter.
+ */
+export const createPID = (p: number, i: number, d: number): PID => {
+    return {
+        p: p,
+        i: i,
+        d: d,
+        pError: 0,
+        iError: 0,
+        dError: 0,
+    };
+}
+
+/**
+ * Tick the PID controller with an error value.
+ * 
+ * @param pid PID to use as our source.
+ * @param error Error to add to PID object.
+ */
+export const updatePID = (pid: PID, error: number): PID => {
+    return {
+        ...pid,
+        pError: error,
+        iError: pid.iError + error,
+        dError: error - pid.pError,
+    };
+}
+
+/**
+ * Calculate output based on PID.
+ * 
+ * @param pid PID to use as our source.
+ */
+export const calculatePID = (pid: PID): number => {
+    return pid.p * pid.pError + pid.i * pid.iError + pid.d * pid.dError;
+}
