@@ -17,7 +17,6 @@
  */
 
 import { mat3, vec2 } from "gl-matrix";
-import { Camera } from "../r3d";
 
 export interface Camera {
     /**

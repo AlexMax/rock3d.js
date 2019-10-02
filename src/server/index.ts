@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as process from 'process';
-
 import { Server } from './server';
 
 // Make console messages pretty.

@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { constrain } from './math';
-
 /**
  * A function that is called on a steady timer.
  */
