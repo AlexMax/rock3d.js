@@ -18,7 +18,7 @@
 
 import { render } from './client';
 import { Button, setAxis, setButton, unsetButton } from '../command';
-import { loadAssets } from './loader';
+import { loadAssets } from '../r3d/loader';
 import { RenderContext } from '../r3d/render';
 import { SocketClient } from './socket'; 
 

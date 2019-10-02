@@ -19,11 +19,10 @@
 import { Client, handleMessage } from './client';
 import * as cmd from '../command';
 import { Demo, createDemo } from './demo';
+import { createPID, PID, updatePID, calculatePID } from '../pid';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { Timer } from '../timer';
-import { createPID, PID, updatePID, calculatePID } from '../util';
-import { constrain } from '../math';
 
 /**
  * A connection over a websocket.
@@ -100,8 +99,6 @@ class SocketConnection {
         }, 150);
     }
 }
-
-let TICKS = 0;
 
 export class SocketClient implements Client {
     /**

@@ -21,28 +21,8 @@ import React from 'react';
 import { Atlas } from '../../atlas';
 import { Camera } from '../../r3d/camera';
 import { MutLevel } from '../mutlevel';
+import { loadAssets } from '../../r3d/loader';
 import { RenderContext } from '../../r3d/render';
-import { textureLoader } from '../util';
-
-import BROWN96 from '../../../asset/BROWN96.png';
-import CEIL5_1 from '../../../asset/CEIL5_1.png';
-import F_SKY1 from '../../../asset/F_SKY1.png';
-import FLAT14 from '../../../asset/FLAT14.png';
-import FLAT2 from '../../../asset/FLAT2.png';
-import FLOOR4_8 from '../../../asset/FLOOR4_8.png';
-import GRASS1 from '../../../asset/GRASS1.png';
-import RROCK18 from '../../../asset/RROCK18.png';
-import SKY1 from '../../../asset/SKY1.png';
-import STARTAN3 from '../../../asset/STARTAN3.png';
-import STEP3 from '../../../asset/STEP3.png';
-
-import PLAYA1 from '../../../asset/PLAYA1.png';
-import PLAYA2A8 from '../../../asset/PLAYA2A8.png';
-import PLAYA3A7 from '../../../asset/PLAYA3A7.png';
-import PLAYA4A6 from '../../../asset/PLAYA4A6.png';
-import PLAYA5 from '../../../asset/PLAYA5.png';
-
-const ATLAS_SIZE = 512;
 
 export interface Props {
     /**
@@ -76,49 +56,8 @@ export class FPCanvas extends React.Component<Props> {
         this.renderer = new RenderContext(canvas);
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
-        // Wait to load all of our textures.
-        const textures = await Promise.all([
-            textureLoader('BROWN96', BROWN96),
-            textureLoader('CEIL5_1', CEIL5_1),
-            textureLoader('F_SKY1', F_SKY1),
-            textureLoader('FLAT14', FLAT14),
-            textureLoader('FLAT2', FLAT2),
-            textureLoader('FLOOR4_8', FLOOR4_8),
-            textureLoader('GRASS1', GRASS1),
-            textureLoader('RROCK18', RROCK18),
-            textureLoader('SKY1', SKY1),
-            textureLoader('STARTAN3', STARTAN3),
-            textureLoader('STEP3', STEP3),
-        ]);
-
-        // Load our textures into the atlas.
-        const texAtlas = new Atlas(ATLAS_SIZE);
-        for (let i = 0;i < textures.length;i++) {
-            const { name, img } = textures[i];
-            texAtlas.add(name, img);
-        }
-
-        // Persist the atlas to the GPU.
-        this.renderer.world.bakeTextureAtlas(texAtlas);
-
-        // Wait to load all of our sprites.
-        const sprites = await Promise.all([
-            textureLoader('PLAYA1', PLAYA1),
-            textureLoader('PLAYA2A8', PLAYA2A8),
-            textureLoader('PLAYA3A7', PLAYA3A7),
-            textureLoader('PLAYA4A6', PLAYA4A6),
-            textureLoader('PLAYA5', PLAYA5),
-        ]);
-
-        // Load our textures into the atlas.
-        const spriteAtlas = new Atlas(ATLAS_SIZE);
-        for (let i = 0;i < sprites.length;i++) {
-            const { name, img } = sprites[i];
-            spriteAtlas.add(name, img);
-        }
-
-        // Persist the atlas to the GPU.
-        this.renderer.world.bakeSpriteAtlas(spriteAtlas);
+        // Load all of our textures.
+        await loadAssets(this.renderer);
 
         const perf = performance.now();
 

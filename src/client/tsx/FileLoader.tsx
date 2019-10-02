@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { localFileLoader } from "../loader";
+import { localFileLoader } from "../../r3d/loader";
 
 export interface Props {
     /**

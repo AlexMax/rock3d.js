@@ -17,7 +17,7 @@
  */
 
 import { Atlas } from '../atlas';
-import { RenderContext } from '../r3d/render';
+import { RenderContext } from './render';
 
 // Textures
 import BROWN96 from '../../asset/BROWN96.png';

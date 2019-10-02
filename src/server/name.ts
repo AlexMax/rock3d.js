@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { arrayRandom } from "../util";
+import { arrayRandom } from "../math";
 
 const prefixes = [
     'Absolute',

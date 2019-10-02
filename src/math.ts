@@ -19,6 +19,15 @@
 import { quat, vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
+ * Return a random array value.
+ * 
+ * @param array Array to return value from.
+ */
+export const arrayRandom = <T>(array: T[]): T => {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+/**
  * Constrain a number between two bounds.
  * 
  * @param x Number to constrain.
@@ -88,6 +97,16 @@ export const intersectPlane = (
         p[2] - ((dz * common) / denominator)
     );
     return out;
+}
+
+/**
+ * Round a number to the nearest multiple.
+ * 
+ * @param num Number to round.
+ * @param multi Multiple to round by.
+ */
+export const mround = (num: number, multi: number) => {
+    return Math.round(num / multi) * multi;
 }
 
 /**

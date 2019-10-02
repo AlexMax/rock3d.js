@@ -27,7 +27,7 @@ import { MutLevel } from '../mutlevel';
 import { StatusBar } from '../../tsx/StatusBar';
 import { Toolbar } from '../../tsx/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
-import { mround } from '../util';
+import { mround } from '../../math';
 
 export interface Props {
     level: MutLevel;

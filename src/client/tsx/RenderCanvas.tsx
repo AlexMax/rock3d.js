@@ -20,7 +20,7 @@ import React from "react";
 
 import { render } from "../client";
 import { DemoClient } from "../demo";
-import { loadAssets } from "../loader";
+import { loadAssets } from "../../r3d/loader";
 import { RenderContext } from "../../r3d/render";
 
 export interface Props {

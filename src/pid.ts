@@ -16,21 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/**
- * Return a random array value.
- * 
- * @param array Array to return value from.
- */
-export const arrayRandom = <T>(array: T[]): T => {
-    return array[Math.floor(Math.random() * array.length)];
-}
-
+ /**
+  * PID state.
+  */
 export interface PID {
+    /**
+     * Proportional multiplier.
+     */
     p: number,
+
+    /**
+     * Integral multiplier.
+     */
     i: number,
+
+    /**
+     * Derivative multiplier.
+     */
     d: number,
+
+    /**
+     * Proportional error - always the most recent error.
+     */
     pError: number,
+
+    /**
+     * Integral error - accumulates over time.
+     */
     iError: number,
+
+    /**
+     * Derivative error - difference between two most recent error values.
+     */
     dError: number,
 }
 
