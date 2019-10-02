@@ -40,6 +40,7 @@ const prefixes = [
     'Battle',
     'Bio',
     'Bionic',
+    'Blast',
     'Blood',
     'Blue',
     'Bright',
@@ -103,6 +104,7 @@ const prefixes = [
     'Half',
     'Hardy',
     'Hex',
+    'Hideous',
     'Hip',
     'Hybrid',
     'Hyper',
@@ -139,6 +141,7 @@ const prefixes = [
     'Moon',
     'Mysterious',
     'Mystery',
+    'Nano',
     'Neo',
     "Neuro",
     'Night',
@@ -149,6 +152,7 @@ const prefixes = [
     'Obsidian',
     'Omega',
     'Original',
+    'Outlaw',
     'Over',
     'Paranoid',
     'Pearl',
@@ -175,6 +179,7 @@ const prefixes = [
     'Secret',
     'Sergeant',
     'Shadow',
+    'Shock',
     'Silent',
     'Silver',
     'Simple',
@@ -271,6 +276,7 @@ const suffixes = [
     'Design',
     'Designer',
     'Destroyer',
+    'Destructor',
     'Devastator',
     'Diver',
     'DNA',
@@ -374,6 +380,7 @@ const suffixes = [
     'Octopus',
     'Oracle',
     'Origin',
+    'Outlaw',
     'Owl',
     'Panther',
     'Penguin',
@@ -442,6 +449,7 @@ const suffixes = [
     'Striker',
     'Sun',
     'Sword',
+    'Tech',
     'Terra',
     'Thief',
     'Thunder',
@@ -451,6 +459,7 @@ const suffixes = [
     'Tribune',
     'Trickster',
     'Trigger',
+    'Truth',
     'Uranus',
     'Venus',
     'Violence',
@@ -507,6 +516,9 @@ export const randomName = (): string => {
             continue;
         }
         if (pre === 'Avenging' && suf === 'Avenger') {
+            continue;
+        }
+        if (pre === 'Blast' && suf === 'Blaster') {
             continue;
         }
         if (pre === 'Certain' && suf === 'Certainty') {
