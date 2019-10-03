@@ -249,6 +249,21 @@ export const pointInRect = (p: vec2, q: vec2, r: vec2): boolean => {
 }
 
 /**
+ * Convert polar to cartesian coordinates.
+ *
+ * @param out Output vector.
+ * @param radius Radius coordinate.
+ * @param theta Angle coordinate in radians.
+ */
+export const polarToCartesian = <T extends vec2 | vec3>(
+    out: T, radius: number, theta: number
+): T => {
+    out[0] = radius * Math.cos(theta);
+    out[1] = radius * Math.sin(theta);
+    return out;
+}
+
+/**
  * Check if rectangle is partly overlapping another rectangle.
  *
  * @param p Origin point of rectangle.

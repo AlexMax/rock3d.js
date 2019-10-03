@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { quat, vec3 } from 'gl-matrix';
+import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { toEuler, constrain } from './math';
+import { toEuler, constrain, polarToCartesian } from './math';
 
 /**
  * A single frame of animation.
@@ -126,6 +126,11 @@ export interface Entity {
      * Rotation.
      */
     rotation: quat;
+
+    /**
+     * Velocity.
+     */
+    velocity: vec3;
 }
 
 export interface SerializedEntity {
@@ -133,6 +138,7 @@ export interface SerializedEntity {
     polygon: number;
     position: [number, number, number];
     rotation: [number, number, number, number];
+    velocity: [number, number, number];
 }
 
 /**
@@ -144,10 +150,15 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
     return {
         config: entity.config.name,
         polygon: entity.polygon,
-        position: [entity.position[0], entity.position[1], entity.position[2]],
+        position: [
+            entity.position[0], entity.position[1], entity.position[2],
+        ],
         rotation: [
             entity.rotation[0], entity.rotation[1],
             entity.rotation[2], entity.rotation[3],
+        ],
+        velocity: [
+            entity.velocity[0], entity.velocity[1], entity.velocity[2],
         ],
     };
 }
@@ -161,32 +172,28 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
     return {
         config: playerConfig,
         polygon: entity.polygon,
-        position: vec3.fromValues(
-            entity.position[0], entity.position[1], entity.position[2]),
-        rotation: quat.fromValues(
-            entity.rotation[0], entity.rotation[1],
-            entity.rotation[2], entity.rotation[3])
+        position: vec3.fromValues(...entity.position),
+        rotation: quat.fromValues(...entity.rotation),
+        velocity: vec3.fromValues(...entity.velocity),
     };
 }
 
 /**
- * Return a new entity object that is offset relative to the current entity
- * position and rotation.
- * 
+ * Apply a force to an entity on the XY axis relative to its rotation.
+ *
  * @param entity Entity to modify.
- * @param x Amount to walk forwards or backwards by.
- * @param y Amount to sidestep left or right by.
- * @param z Amount to raise or lower by.
+ * @param radius Radial coordinate.
+ * @param angle Angular coordinate.
  */
-export const moveRelative = (
-    entity: Readonly<Entity>, x: number, y: number, z: number
+export const forceRelativeXY = (
+    entity: Readonly<Entity>, radius: number, angle: number
 ): Entity => {
-    const newPos = vec3.fromValues(x, y, z);
-    vec3.transformQuat(newPos, newPos, entity.rotation);
-    vec3.add(newPos, newPos, entity.position);
+    const newVelocity = polarToCartesian<vec3>(vec3.create(), radius, angle);
+    vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
+    vec3.add(newVelocity, newVelocity, entity.velocity);
     return {
         ...entity,
-        position: newPos
+        velocity: newVelocity,
     };
 }
 

@@ -149,7 +149,7 @@ export class Simulation {
 
         // Tick our snapshot.
         const commands = this.preInputs.concat(inputCommands);
-        tickSnapshot(target, current, commands);
+        tickSnapshot(target, current, commands, this.period);
         this.clock += 1;
 
         // Save our commands so we can deliver them to clients later.

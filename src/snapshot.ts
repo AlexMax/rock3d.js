@@ -19,8 +19,8 @@
 import { quat, vec3 } from 'gl-matrix';
 
 import {
-    Entity, serializeEntity, SerializedEntity, unserializeEntity, moveRelative,
-    rotateEuler, playerConfig
+    Entity, serializeEntity, SerializedEntity, unserializeEntity,
+    forceRelativeXY, rotateEuler, playerConfig
 } from './entity';
 import * as cmd from './command';
 
@@ -138,7 +138,7 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
 
 const handleInput = (
     target: Snapshot, current: Readonly<Snapshot>,
-    command: Readonly<cmd.InputCommand>
+    command: Readonly<cmd.InputCommand>, period: number
 ): void => {
     // Get entity ID for player entity.
     const entityID = target.players.get(command.clientID);
@@ -152,37 +152,42 @@ const handleInput = (
         return;
     }
 
-    // Use our inputs to directly manipulate the camera.
+    // Use inputs to rotate entity rotation.
     const input = command.input;
-    if (cmd.checkButton(input, cmd.Button.WalkForward)) {
-        entity = moveRelative(entity, 8, 0, 0);
-        target.entities.set(entityID, entity);
-    }
-
-    if (cmd.checkButton(input, cmd.Button.WalkBackward)) {
-        entity = moveRelative(entity, -8, 0, 0);
-        target.entities.set(entityID, entity);
-    }
-
-    if (cmd.checkButton(input, cmd.Button.StrafeLeft)) {
-        entity = moveRelative(entity, 0, 8, 0);
-        target.entities.set(entityID, entity);
-    }
-
-    if (cmd.checkButton(input, cmd.Button.StrafeRight)) {
-        entity = moveRelative(entity, 0, -8, 0);
-        target.entities.set(entityID, entity);
-    }
-
     if (input.pitch !== 0.0 || input.yaw !== 0.0) {
         entity = rotateEuler(entity, 0, input.pitch, input.yaw);
+        target.entities.set(entityID, entity);
+    }
+
+    // Use our inputs to calculate desired force.
+    //
+    // Note that we are purposefully handling our axis separately
+    // in order to allow straferunning.
+    let forceX = 0, forceY = 0;
+
+    if (cmd.checkButton(input, cmd.Button.WalkForward)) {
+        forceX += 8;
+    }
+    if (cmd.checkButton(input, cmd.Button.WalkBackward)) {
+        forceX -= 8;
+    }
+    if (cmd.checkButton(input, cmd.Button.StrafeLeft)) {
+        forceY += 8;
+    }
+    if (cmd.checkButton(input, cmd.Button.StrafeRight)) {
+        forceY -= 8;
+    }
+    if (forceX !== 0 || forceY !== 0) {
+        const radius = Math.sqrt(forceX ** 2 + forceY ** 2);
+        const angle = Math.atan2(forceY, forceX);
+        entity = forceRelativeXY(entity, radius, angle);
         target.entities.set(entityID, entity);
     }
 }
 
 const handlePlayer = (
     target: Snapshot, current: Readonly<Snapshot>,
-    command: Readonly<cmd.PlayerCommand>
+    command: Readonly<cmd.PlayerCommand>, period: number
 ): void => {
     switch (command.action) {
         case 'add':
@@ -195,6 +200,7 @@ const handlePlayer = (
                 polygon: 0,
                 position: vec3.fromValues(0, 0, 0),
                 rotation: quat.fromEuler(quat.create(), 0, 0, 90),
+                velocity: vec3.fromValues(0, 0, 0),
             });
             target.nextEntityID += 1;
             break;
@@ -212,6 +218,14 @@ const handlePlayer = (
     }
 }
 
+const handlePhysics = (
+    target: Snapshot, current: Readonly<Snapshot>, period: number
+): void => {
+    for (let [k, v] of target.entities) {
+        vec3.add(v.position, v.position, v.velocity);
+    }
+}
+
 /**
  * Tick a snapshot frame.
  * 
@@ -220,7 +234,7 @@ const handlePlayer = (
  */
 export const tickSnapshot = (
     target: Snapshot, current: Readonly<Snapshot>,
-    commands: Readonly<cmd.Command[]>
+    commands: Readonly<cmd.Command[]>, period: number
 ): Snapshot  => {
     // Copy our current snapshot into our target snapshot.
     copySnapshot(target, current);
@@ -230,15 +244,18 @@ export const tickSnapshot = (
     for (const command of commands) {
         switch (command.type) {
             case cmd.CommandTypes.Input:
-                handleInput(target, current, command);
+                handleInput(target, current, command, period);
                 break;
             case cmd.CommandTypes.Player:
-                handlePlayer(target, current, command);
+                handlePlayer(target, current, command, period);
                 break;
             default:
                 throw new Error('Unknown message');
             }
     }
+
+    // Run one tick worth of physics.
+    handlePhysics(target, current, period);
 
     return target;
 }
