@@ -18,7 +18,7 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { toEuler, constrain, polarToCartesian } from './math';
+import { toEuler, constrain, distanceOrigin } from './math';
 
 /**
  * A single frame of animation.
@@ -179,16 +179,15 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
 }
 
 /**
- * Apply a force to an entity on the XY axis relative to its rotation.
+ * Apply a force to an entity relative to its rotation.
  *
  * @param entity Entity to modify.
- * @param radius Radial coordinate.
- * @param angle Angular coordinate.
+ * @param force Force to apply in camera space.
  */
 export const forceRelativeXY = (
-    entity: Readonly<Entity>, radius: number, angle: number
+    entity: Readonly<Entity>, force: vec2
 ): Entity => {
-    const newVelocity = polarToCartesian<vec3>(vec3.create(), radius, angle);
+    const newVelocity = vec3.fromValues(force[0], force[1], 0);
     vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
     vec3.add(newVelocity, newVelocity, entity.velocity);
     return {

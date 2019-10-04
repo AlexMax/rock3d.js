@@ -94,9 +94,7 @@ class SocketConnection {
 
     send(msg: proto.ClientMessage): void {
         const data = proto.packClient(msg);
-        setTimeout(() => {
-            this.wsc.send(data);
-        }, 150);
+        this.wsc.send(data);
     }
 }
 

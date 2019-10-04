@@ -19,12 +19,26 @@
 import { quat, vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
+ * Polar coordinates as radius, angle (in radians) pair.
+ */
+type polar = [number, number];
+
+/**
  * Return a random array value.
  * 
  * @param array Array to return value from.
  */
 export const arrayRandom = <T>(array: T[]): T => {
     return array[Math.floor(Math.random() * array.length)];
+}
+
+/**
+ * Convert cartesian to polar coordinates.
+ */
+export const cartesianToPolar = (out: polar, x: number, y: number): polar => {
+    out[0] = Math.sqrt(x ** 2 + y ** 2);
+    out[1] = Math.atan2(y, x);
+    return out;
 }
 
 /**
@@ -36,6 +50,16 @@ export const arrayRandom = <T>(array: T[]): T => {
  */
 export const constrain = (x: number, min: number, max: number): number => {
     return Math.max(min, Math.min(max, x));
+}
+
+/**
+ * Distance from origin to (x, y).
+ *
+ * @param x X coordinate.
+ * @param y Y coordinate.
+ */
+export const distanceOrigin = (x: number, y: number): number => {
+    return Math.sqrt(x ** 2 + y ** 2);
 }
 
 /**

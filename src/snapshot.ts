@@ -16,13 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { quat, vec3 } from 'gl-matrix';
+import { quat, vec2, vec3 } from 'gl-matrix';
 
+import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig
 } from './entity';
-import * as cmd from './command';
+import { cartesianToPolar } from './math';
 
 export interface Snapshot {
     /**
@@ -163,24 +164,21 @@ const handleInput = (
     //
     // Note that we are purposefully handling our axis separately
     // in order to allow straferunning.
-    let forceX = 0, forceY = 0;
-
+    const force = vec2.create();
     if (cmd.checkButton(input, cmd.Button.WalkForward)) {
-        forceX += 8;
+        force[0] += 8;
     }
     if (cmd.checkButton(input, cmd.Button.WalkBackward)) {
-        forceX -= 8;
+        force[0] -= 8;
     }
     if (cmd.checkButton(input, cmd.Button.StrafeLeft)) {
-        forceY += 8;
+        force[1] += 8;
     }
     if (cmd.checkButton(input, cmd.Button.StrafeRight)) {
-        forceY -= 8;
+        force[1] -= 8;
     }
-    if (forceX !== 0 || forceY !== 0) {
-        const radius = Math.sqrt(forceX ** 2 + forceY ** 2);
-        const angle = Math.atan2(forceY, forceX);
-        entity = forceRelativeXY(entity, radius, angle);
+    if (force[0] !== 0 || force[1] !== 0) {
+        entity = forceRelativeXY(entity, force);
         target.entities.set(entityID, entity);
     }
 }
