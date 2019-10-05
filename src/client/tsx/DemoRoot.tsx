@@ -22,6 +22,8 @@ import { DemoClient, DemoTick } from '../demo';
 import { DemoControlWindow } from './DemoControlWindow';
 import { DemoInfoWindow } from './DemoInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
+import { Snapshot } from '../../snapshot';
+import { SnapshotInfoWindow } from './SnapshotInfoWindow';
 
 interface State {
     /**
@@ -33,6 +35,11 @@ interface State {
      * Current tick data.
      */
     tick: DemoTick | null,
+
+    /**
+     * Current snapshot data.
+     */
+    snapshot: Snapshot | null,
 
     /**
      * True if the demo is playing, otherwise false.
@@ -56,6 +63,7 @@ export class DemoRoot extends React.Component<{}, State> {
         this.state = {
             client: null,
             tick: null,
+            snapshot: null,
             isPlaying: false,
         }
     }
@@ -66,6 +74,12 @@ export class DemoRoot extends React.Component<{}, State> {
             client: client,
             tick: client.getTick(),
         });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({
+            snapshot: client.sim.getSnapshot()
+        });
     }
 
     private onStart() {
@@ -75,6 +89,10 @@ export class DemoRoot extends React.Component<{}, State> {
         }
         client.first();
         this.setState({ tick: client.getTick() });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({ snapshot: client.sim.getSnapshot() });
     }
 
     private onPrevious() {
@@ -84,6 +102,10 @@ export class DemoRoot extends React.Component<{}, State> {
         }
         client.previous();
         this.setState({ tick: client.getTick() });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({ snapshot: client.sim.getSnapshot() });
     }
 
     private onPlay() {
@@ -101,7 +123,14 @@ export class DemoRoot extends React.Component<{}, State> {
             return;
         }
         client.pause();
-        this.setState({ isPlaying: false, tick: client.getTick() });
+        this.setState({
+            isPlaying: false,
+            tick: client.getTick(),
+        });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({ snapshot: client.sim.getSnapshot() });
     }
 
     private onNext() {
@@ -111,6 +140,10 @@ export class DemoRoot extends React.Component<{}, State> {
         }
         client.next();
         this.setState({ tick: client.getTick() });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({ snapshot: client.sim.getSnapshot() });
     }
 
     private onEnd() {
@@ -120,13 +153,23 @@ export class DemoRoot extends React.Component<{}, State> {
         }
         client.end();
         this.setState({ tick: client.getTick() });
+        if (client.sim === null) {
+            return;
+        }
+        this.setState({ snapshot: client.sim.getSnapshot() });
     }
 
     render() {
         // Only render the info window if we have a tick to render.
-        let info: JSX.Element | null = null;
+        let demoInfo: JSX.Element | null = null;
         if (this.state.tick !== null) {
-            info = <DemoInfoWindow tick={this.state.tick}/>;
+            demoInfo = <DemoInfoWindow tick={this.state.tick}/>;
+        }
+
+        // Only render the snapshot window if we have a snapshot to render.
+        let snapshotInfo: JSX.Element | null = null;
+        if (this.state.snapshot !== null) {
+            snapshotInfo = <SnapshotInfoWindow snapshot={this.state.snapshot}/>;
         }
 
         return <div>
@@ -140,7 +183,8 @@ export class DemoRoot extends React.Component<{}, State> {
                     onPause={this.onPause}
                     onNext={this.onNext}
                     onEnd={this.onEnd}/>
-                {info}
+                {demoInfo}
+                {snapshotInfo}
             </div>;
     }
 }
