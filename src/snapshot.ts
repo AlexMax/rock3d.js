@@ -219,8 +219,13 @@ const handlePlayer = (
 const handlePhysics = (
     target: Snapshot, current: Readonly<Snapshot>, period: number
 ): void => {
-    for (let [k, v] of target.entities) {
-        vec3.add(v.position, v.position, v.velocity);
+    for (let [entityID, entity] of target.entities) {
+        if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
+            target.entities.set(entityID, {
+                ...entity,
+                position: vec3.add(vec3.create(), entity.position, entity.velocity),
+            })
+        }
     }
 }
 
