@@ -31,6 +31,11 @@ export interface Props {
      * Current snapshot we're looking at.
      */
     snapshot: Snapshot;
+
+    /**
+     * Number of predicted frames.
+     */
+    predicted: number;
 }
 
 export const SnapshotInfoWindow = (props: Props) => {
@@ -38,6 +43,7 @@ export const SnapshotInfoWindow = (props: Props) => {
         <table style={{fontSize: '80%', margin: '1em', width: '320px', whiteSpace: 'normal' }}>
             <tbody>
                 <tr><th>Client Clock: {props.snapshot.clock}</th></tr>
+                <tr><th>Predicted Frames: {props.predicted}</th></tr>
                 <tr><th>Entities</th></tr>
                 <tr><td>{entities(props.snapshot.entities)}</td></tr>
             </tbody>

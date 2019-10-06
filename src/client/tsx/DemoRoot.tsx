@@ -42,6 +42,11 @@ interface State {
     snapshot: Snapshot | null,
 
     /**
+     * Current number of predicted frames.
+     */
+    predicted: number | null,
+
+    /**
      * True if the demo is playing, otherwise false.
      */
     isPlaying: boolean,
@@ -64,6 +69,7 @@ export class DemoRoot extends React.Component<{}, State> {
             client: null,
             tick: null,
             snapshot: null,
+            predicted: null,
             isPlaying: false,
         }
     }
@@ -78,7 +84,8 @@ export class DemoRoot extends React.Component<{}, State> {
             return;
         }
         this.setState({
-            snapshot: client.sim.getSnapshot()
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
         });
     }
 
@@ -92,7 +99,10 @@ export class DemoRoot extends React.Component<{}, State> {
         if (client.sim === null) {
             return;
         }
-        this.setState({ snapshot: client.sim.getSnapshot() });
+        this.setState({
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
+        });
     }
 
     private onPrevious() {
@@ -105,7 +115,10 @@ export class DemoRoot extends React.Component<{}, State> {
         if (client.sim === null) {
             return;
         }
-        this.setState({ snapshot: client.sim.getSnapshot() });
+        this.setState({
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
+        });
     }
 
     private onPlay() {
@@ -130,7 +143,10 @@ export class DemoRoot extends React.Component<{}, State> {
         if (client.sim === null) {
             return;
         }
-        this.setState({ snapshot: client.sim.getSnapshot() });
+        this.setState({
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
+        });
     }
 
     private onNext() {
@@ -143,7 +159,10 @@ export class DemoRoot extends React.Component<{}, State> {
         if (client.sim === null) {
             return;
         }
-        this.setState({ snapshot: client.sim.getSnapshot() });
+        this.setState({
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
+        });
     }
 
     private onEnd() {
@@ -156,7 +175,10 @@ export class DemoRoot extends React.Component<{}, State> {
         if (client.sim === null) {
             return;
         }
-        this.setState({ snapshot: client.sim.getSnapshot() });
+        this.setState({
+            snapshot: client.sim.getSnapshot(),
+            predicted: client.sim.predictedFrames(),
+        });
     }
 
     render() {
@@ -168,8 +190,10 @@ export class DemoRoot extends React.Component<{}, State> {
 
         // Only render the snapshot window if we have a snapshot to render.
         let snapshotInfo: JSX.Element | null = null;
-        if (this.state.snapshot !== null) {
-            snapshotInfo = <SnapshotInfoWindow snapshot={this.state.snapshot}/>;
+        if (this.state.snapshot !== null && this.state.predicted !== null) {
+            snapshotInfo = <SnapshotInfoWindow
+                snapshot={this.state.snapshot}
+                predicted={this.state.predicted}/>;
         }
 
         return <div>
