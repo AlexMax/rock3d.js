@@ -1,5 +1,5 @@
 // common
-import { glMatrix, vec2, Mat2, mat2, Mat3, mat3, Mat4, mat4, vec3, vec4, Mat2D, mat2d, quat } from "gl-matrix";
+import { glMatrix, vec2, mat2, mat3, mat4, vec3, vec4, mat2d, quat } from "gl-matrix";
 
 var outVal: number;
 var outBool: boolean;
@@ -33,10 +33,10 @@ let outMat3 = mat3.create();
 let outMat4 = mat4.create();
 let outQuat = quat.create();
 
-let outMat2Null: Mat2 | null;
-let outMat2dNull: Mat2D | null;
-let outMat3Null: Mat3 | null;
-let outMat4Null: Mat4 | null;
+let outMat2Null: mat2 | null;
+let outMat2dNull: mat2d | null;
+let outMat3Null: mat3 | null;
+let outMat4Null: mat4 | null;
 
 // vec2
 outVec2 = vec2.create();
