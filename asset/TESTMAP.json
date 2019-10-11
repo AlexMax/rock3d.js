@@ -171,6 +171,29 @@
             "vertex": [64, 1600],
             "middleTex": "BROWN96"
         }, {
+            "vertex": [128, 1600],
+            "lowerTex": "METAL2",
+            "backPoly": 6
+        }, {
+            "vertex": [128, 1472],
+            "lowerTex": "METAL2",
+            "backPoly": 6
+        }, {
+            "vertex": [192, 1472],
+            "lowerTex": "PLAT1",
+            "backPoly": 7
+        }, {
+            "vertex": [320, 1472],
+            "lowerTex": "SW1MET2",
+            "backPoly": 6
+        }, {
+            "vertex": [384, 1472],
+            "lowerTex": "METAL2",
+            "backPoly": 6
+        }, {
+            "vertex": [384, 1600],
+            "middleTex": "BROWN96"
+        }, {
             "vertex": [448, 1600],
             "middleTex": "BROWN96"
         }, {
@@ -182,6 +205,59 @@
         }, {
             "vertex": [448, 896],
             "middleTex": "BROWN96"
+        }]
+    }, {
+        "brightness": [224, 224, 224],
+        "ceilHeight": 160,
+        "floorHeight": 88,
+        "ceilTex": "F_SKY1",
+        "floorTex": "RROCK03",
+        "edges": [{
+            "vertex": [128, 1600],
+            "middleTex": "BROWN96"
+        }, {
+            "vertex": [384, 1600],
+            "backPoly": 5
+        }, {
+            "vertex": [384, 1472],
+            "backPoly": 5
+        }, {
+            "vertex": [320, 1472],
+            "backPoly": 7
+        }, {
+            "vertex": [320, 1536],
+            "backPoly": 7
+        }, {
+            "vertex": [192, 1536],
+            "backPoly": 7
+        }, {
+            "vertex": [192, 1472],
+            "backPoly": 5
+        }, {
+            "vertex": [128, 1472],
+            "backPoly": 5
+        }]
+    }, {
+        "brightness": [224, 224, 224],
+        "ceilHeight": 160,
+        "floorHeight": 80,
+        "ceilTex": "F_SKY1",
+        "floorTex": "STEP2",
+        "edges": [{
+            "vertex": [192, 1536],
+            "lowerTex": "METAL2",
+            "backPoly": 6
+        }, {
+            "vertex": [320, 1536],
+            "lowerTex": "METAL2",
+            "backPoly": 6
+        }, {
+            "vertex": [320, 1472],
+            "backPoly": 5
+        }, {
+            "vertex": [192, 1472],
+            "lowerTex": "METAL2",
+            "backPoly": 6
         }]
     }],
     "locations": [{

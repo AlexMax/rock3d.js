@@ -27,10 +27,17 @@ import FLAT14 from '../../asset/FLAT14.png';
 import FLAT2 from '../../asset/FLAT2.png';
 import FLOOR4_8 from '../../asset/FLOOR4_8.png';
 import GRASS1 from '../../asset/GRASS1.png';
+import METAL2 from '../../asset/METAL2.png';
+import PLAT1 from '../../asset/PLAT1.png';
+import RROCK03 from '../../asset/RROCK03.png';
 import RROCK18 from '../../asset/RROCK18.png';
 import SKY1 from '../../asset/SKY1.png';
 import STARTAN3 from '../../asset/STARTAN3.png';
+import STEP1 from '../../asset/STEP1.png';
+import STEP2 from '../../asset/STEP2.png';
 import STEP3 from '../../asset/STEP3.png';
+import SW1MET2 from '../../asset/SW1MET2.png';
+import SW2MET2 from '../../asset/SW2MET2.png';
 
 // Sprites
 import PLAYA1 from '../../asset/PLAYA1.png';
@@ -85,10 +92,17 @@ export const loadAssets = async (renderer: RenderContext) => {
         textureLoader('FLAT2', FLAT2),
         textureLoader('FLOOR4_8', FLOOR4_8),
         textureLoader('GRASS1', GRASS1),
+        textureLoader('METAL2', METAL2),
+        textureLoader('PLAT1', PLAT1),
+        textureLoader('RROCK03', RROCK03),
         textureLoader('RROCK18', RROCK18),
         textureLoader('SKY1', SKY1),
         textureLoader('STARTAN3', STARTAN3),
+        textureLoader('STEP1', STEP1),
+        textureLoader('STEP2', STEP2),
         textureLoader('STEP3', STEP3),
+        textureLoader('SW1MET2', SW1MET2),
+        textureLoader('SW2MET2', SW2MET2),
     ]);
 
     // Load our textures into the atlas.
