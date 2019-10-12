@@ -117,7 +117,7 @@ export class Simulation {
             });
 
             // Predict frame.
-            tickSnapshot(target, current, commands, this.period);
+            tickSnapshot(target, current, commands, this.level, this.period);
 
             // Our target is now our current for the next loop.
             copySnapshot(current, target);

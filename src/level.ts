@@ -76,6 +76,8 @@ interface Edge {
     normalCache?: vec2;
 }
 
+export type EdgeOverlay = Partial<Polygon>;
+
 const toEdge = (data: EdgeData): Edge => {
     return {
         vertex: vec2.fromValues(data.vertex[0], data.vertex[1]),
@@ -97,6 +99,8 @@ export interface Polygon {
     floorCacheInds: number[];
     ceilCacheInds: number[];
 }
+
+export type PolygonOverlay = Partial<Polygon>;
 
 const toPolygon = (data: PolygonData): Polygon => {
     return {

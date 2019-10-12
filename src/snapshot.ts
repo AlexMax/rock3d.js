@@ -23,7 +23,11 @@ import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig
 } from './entity';
-import { cartesianToPolar } from './math';
+import { EdgeOverlay, Level, PolygonOverlay } from './level';
+import {
+    Mutator, serializeMutator, SerializedMutator, unserializeMutator,
+    liftConfig
+} from './mutator';
 
 export interface Snapshot {
     /**
@@ -42,17 +46,44 @@ export interface Snapshot {
     nextEntityID: number,
 
     /**
+     * Complete set of mutators for this tick.
+     */
+    mutators: Map<number, Mutator>;
+
+    /**
+     * Next Mutator ID to use.
+     */
+    nextMutatorID: number,
+
+    /**
      * Complete set of ingame players for this tick.
      * 
      * Key is client ID, value is the current entity ID commands should go to.
      */
     players: Map<number, number>;
+
+    /**
+     * Complete set of polygon overlays for this tick.
+     *
+     * Key is polygon ID, value is ovarlaid polygon data.
+     */
+    polyOverlays: Map<number, PolygonOverlay>;
+
+    /**
+     * Complete set of edge overlays for this tick.
+     *
+     * Key is a string of polygon and edge ID separated by underscore,
+     * value is overlaid edge data.
+     */
+    edgeOverlays: Map<number, EdgeOverlay>;
 }
 
 export interface SerializedSnapshot {
     clock: number,
     entities: { [key: number]: SerializedEntity },
     nextEntityID: number,
+    mutators: { [key: number]: SerializedMutator },
+    nextMutatorID: number,
     players: { [key: number]: number }
 }
 
@@ -64,7 +95,11 @@ export const createSnapshot = (): Snapshot =>  {
         clock: 0,
         entities: new Map(),
         nextEntityID: 1,
+        mutators: new Map(),
+        nextMutatorID: 1,
         players: new Map(),
+        polyOverlays: new Map(),
+        edgeOverlays: new Map(),
     }
 }
 
@@ -78,6 +113,10 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
     for (let [k, v] of snap.entities) {
         serEntities[k] = serializeEntity(v);
     }
+    const serMutators: { [key: number]: SerializedMutator } = {};
+    for (let [k, v] of snap.mutators) {
+        serMutators[k] = serializeMutator(v);
+    }
     const serPlayers: { [key: number]: number } = {};
     for (let [k, v] of snap.players) {
         serPlayers[k] = v;
@@ -86,6 +125,8 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
         clock: snap.clock,
         entities: serEntities,
         nextEntityID: snap.nextEntityID,
+        mutators: serMutators,
+        nextMutatorID: snap.nextMutatorID,
         players: serPlayers,
     };
 }
@@ -102,6 +143,12 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         const v = snap.entities[key];
         snapEntities.set(k, unserializeEntity(v));
     }
+    const snapMutators: Map<number, Mutator> = new Map();
+    for (let key in snap.mutators) {
+        const k = Number(key);
+        const v = snap.mutators[key];
+        snapMutators.set(k, unserializeMutator(v));
+    }
     const snapPlayers: Map<number, number> = new Map();
     for (let key in snap.players) {
         const k = Number(key);
@@ -112,7 +159,11 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         clock: snap.clock,
         entities: snapEntities,
         nextEntityID: snap.nextEntityID,
+        mutators: snapMutators,
+        nextMutatorID: snap.nextMutatorID,
         players: snapPlayers,
+        polyOverlays: new Map(), // TODO: Implement.
+        edgeOverlays: new Map(), // TODO: Implement.
     };
 }
 
@@ -181,6 +232,16 @@ const handleInput = (
         entity = forceRelativeXY(entity, force);
         target.entities.set(entityID, entity);
     }
+
+    // Handle "use" button.
+    if (cmd.checkButton(input, cmd.Button.Use)) {
+        // Create a new mutator for the lift.
+        target.mutators.set(target.nextMutatorID, {
+            config: liftConfig,
+            activated: target.clock,
+        });
+        target.nextMutatorID += 1;
+    }
 }
 
 const handlePlayer = (
@@ -216,8 +277,18 @@ const handlePlayer = (
     }
 }
 
-const handlePhysics = (
-    target: Snapshot, current: Readonly<Snapshot>, period: number
+const tickMutators = (
+    target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
+    period: number
+): void => {
+    for (let [mutatorID, mutator] of target.mutators) {
+        console.log(mutator);
+    }
+}
+
+const tickEntities = (
+    target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
+    period: number
 ): void => {
     for (let [entityID, entity] of target.entities) {
         if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
@@ -237,7 +308,7 @@ const handlePhysics = (
  */
 export const tickSnapshot = (
     target: Snapshot, current: Readonly<Snapshot>,
-    commands: Readonly<cmd.Command[]>, period: number
+    commands: Readonly<cmd.Command[]>, level: Readonly<Level>, period: number
 ): Snapshot  => {
     // Copy our current snapshot into our target snapshot.
     copySnapshot(target, current);
@@ -257,8 +328,9 @@ export const tickSnapshot = (
             }
     }
 
-    // Run one tick worth of physics.
-    handlePhysics(target, current, period);
+    // Tick our mutators and entities, in that order.
+    tickMutators(target, current, level, period);
+    tickEntities(target, current, level, period);
 
     return target;
 }

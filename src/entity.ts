@@ -102,8 +102,8 @@ export const playerConfig: EntityConfig = {
 }
 
 /**
- * An entity is a dynamic in-game object that is not considered part of
- * the geometry of the level.
+ * An entity is an in-game object represented by a sprite that is not
+ * considered part of the geometry of the level.
  */
 export interface Entity {
 
@@ -197,8 +197,7 @@ export const forceRelativeXY = (
 }
 
 /**
- * Return a new camera object that is rotated relative to the current camera
- * direction.
+ * Return a new entity that is rotated relative to its current rotation.
  * 
  * @param entity Entity to modify.
  * @param x Amount to roll by.
