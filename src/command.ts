@@ -33,9 +33,14 @@ export enum Button {
 
 interface MutableInput {
     /**
-     * Currently pressed buttons as a bitfield.
+     * Newly-pressed buttons as a bitfield.
      */
-    buttons: number;
+    pressed: number;
+
+    /**
+     * Newly-released buttons as a bitfield.
+     */
+    released: number;
 
     /**
      * Current pitch axis.
@@ -67,34 +72,45 @@ export enum CommandTypes {
  */
 export const createInput = (): Input => {
     return {
-        buttons: 0, pitch: 0, yaw: 0
+        pressed: 0, released: 0, pitch: 0, yaw: 0
     };
+}
+
+/**
+ * Clone an input object into a new object.
+ * 
+ * @param input Input object to clone.
+ */
+export const cloneInput = (input: Input): MutableInput => {
+    return {...input};
 }
 
 /**
  * Set buttons on an Input.
  * 
- * @param input Input to work from.
+ * @param out Input to mutate.
+ * @param input Source input.
  * @param set Button to set.
  */
-export const setButton = (input: Input, set: Button): Input => {
-    return {
-        ...input,
-        buttons: input.buttons | (1 << set),
-    };
+export const setButton = (
+    out: MutableInput, input: Input, set: Button
+): MutableInput => {
+    out.pressed = input.pressed | (1 << set);
+    return out;
 }
 
 /**
  * Unset buttons on an Input.
  * 
+ * @param out Input to mutate.
  * @param input Input to work from.
  * @param unset Button to unset.
  */
-export const unsetButton = (input: Input, unset: Button): Input => {
-    return {
-        ...input,
-        buttons: input.buttons & ~(1 << unset),
-    };
+export const unsetButton = (
+    out: MutableInput, input: Input, unset: Button
+): MutableInput => {
+    out.released = input.released | (1 << unset);
+    return out;
 }
 
 /**
@@ -103,30 +119,56 @@ export const unsetButton = (input: Input, unset: Button): Input => {
  * @param input Input to check.
  * @param button Button to check.
  */
-export const checkButton = (input: Input, button: number): boolean => {
-    return (input.buttons & (1 << button)) > 0 ? true : false;
+export const checkPressed = (input: Input, button: number): boolean => {
+    return (input.pressed & (1 << button)) > 0 ? true : false;
+}
+
+/**
+ * Check to see if a particular button is released.
+ * 
+ * @param input Input to check.
+ * @param button Button to check.
+ */
+export const checkReleased = (input: Input, button: number): boolean => {
+    return (input.pressed & (1 << button)) > 0 ? true : false;
+}
+
+/**
+ * Clear buttons on an Input.
+ * 
+ * @param out Input to mutate.
+ */
+export const clearButtons = (out: MutableInput): MutableInput => {
+    out.pressed = 0;
+    out.released = 0;
+    return out;
 }
 
 /**
  * Accumulate the axis on an Input.
+ * 
+ * @param out Input to mutate.
+ * @param input Input to work from.
+ * @param pitch Pitch to accumulate.
+ * @param yaw Yaw to accumulate.
  */
-export const setAxis = (input: Input, pitch: number, yaw: number): Input => {
-    return {
-        ...input,
-        pitch: input.pitch + pitch,
-        yaw: input.yaw + yaw,
-    };
+export const setAxis = (
+    out: MutableInput, input: Input, pitch: number, yaw: number
+): MutableInput => {
+    out.pitch = input.pitch + pitch;
+    out.yaw = input.yaw + yaw;
+    return out;
 }
 
 /**
  * Clear axis on an Input.
+ * 
+ * @param out Input to mutate.
  */
-export const clearAxis = (input: Input): Input => {
-    return {
-        ...input,
-        pitch: 0,
-        yaw: 0,
-    };
+export const clearAxis = (out: MutableInput): MutableInput => {
+    out.pitch = 0;
+    out.yaw = 0;
+    return out;
 }
 
 export interface InputCommand {
