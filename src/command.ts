@@ -35,17 +35,17 @@ interface MutableInput {
     /**
      * Currently pressed buttons as a bitfield.
      */
-    buttons: number,
+    buttons: number;
 
     /**
      * Current pitch axis.
      */
-    pitch: number,
+    pitch: number;
 
     /**
      * Current yaw axis.
      */
-    yaw: number,
+    yaw: number;
 }
 
 export type Input = Readonly<MutableInput>;
