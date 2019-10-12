@@ -139,7 +139,7 @@ export class SocketClient implements Client {
     /**
      * Current input state.
      */
-    input: cmd.Input;
+    input: cmd.MutableInput;
 
     /**
      * PID controller for health.
@@ -245,8 +245,8 @@ export class SocketClient implements Client {
         // Save a demo frame.
         this.connection.saveDemoFrame(this.sim.clock - 1, this.input);
 
-        // Pitch and yaw are per-tick accumulators, reset them.
-        this.input = cmd.clearAxis(this.input);
+        // Create a new set of inputs for next tick.
+        this.input = cmd.createInput();
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }

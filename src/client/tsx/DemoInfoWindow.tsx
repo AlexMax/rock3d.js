@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { Input, checkButton, Button } from "../../command";
+import { Button, Input, checkPressed, checkReleased } from "../../command";
 import { DemoTick } from "../demo";
 import {
     ServerMessage, ServerHello, ServerPing, ServerSnapshot, ServerMessageType
@@ -70,26 +70,47 @@ const readCapture = (msgs: ServerMessage[]) => {
 
 const inputCapture = (input: Input) => {
     const buttons: string[] = [];
-    if (checkButton(input, Button.WalkForward)) {
-        buttons.push('WalkForward');
+    if (checkPressed(input, Button.WalkForward)) {
+        buttons.push('+WalkForward');
     }
-    if (checkButton(input, Button.WalkBackward)) {
-        buttons.push('WalkBackward');
+    if (checkReleased(input, Button.WalkForward)) {
+        buttons.push('-WalkForward');
     }
-    if (checkButton(input, Button.StrafeLeft)) {
-        buttons.push('StrafeLeft');
+    if (checkPressed(input, Button.WalkBackward)) {
+        buttons.push('+WalkBackward');
     }
-    if (checkButton(input, Button.StrafeRight)) {
-        buttons.push('StrafeRight');
+    if (checkReleased(input, Button.WalkBackward)) {
+        buttons.push('-WalkBackward');
     }
-    if (checkButton(input, Button.Attack)) {
-        buttons.push('Attack');
+    if (checkPressed(input, Button.StrafeLeft)) {
+        buttons.push('+StrafeLeft');
     }
-    if (checkButton(input, Button.Jump)) {
-        buttons.push('Jump');
+    if (checkReleased(input, Button.StrafeLeft)) {
+        buttons.push('-StrafeLeft');
     }
-    if (checkButton(input, Button.Use)) {
-        buttons.push('Use');
+    if (checkPressed(input, Button.StrafeRight)) {
+        buttons.push('+StrafeRight');
+    }
+    if (checkReleased(input, Button.StrafeRight)) {
+        buttons.push('-StrafeRight');
+    }
+    if (checkPressed(input, Button.Attack)) {
+        buttons.push('+Attack');
+    }
+    if (checkReleased(input, Button.Attack)) {
+        buttons.push('-Attack');
+    }
+    if (checkPressed(input, Button.Jump)) {
+        buttons.push('+Jump');
+    }
+    if (checkReleased(input, Button.Jump)) {
+        buttons.push('-Jump');
+    }
+    if (checkPressed(input, Button.Use)) {
+        buttons.push('+Use');
+    }
+    if (checkReleased(input, Button.Use)) {
+        buttons.push('-Use');
     }
     if (buttons.length === 0) {
         buttons.push('None');

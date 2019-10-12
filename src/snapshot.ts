@@ -36,6 +36,13 @@ export interface Snapshot {
     clock: number,
 
     /**
+     * Currently held buttons.
+     * 
+     * Key is client ID, value is button bitfield.
+     */
+    heldButtons: Map<number, number>;
+
+    /**
      * Complete set of entities for this tick.
      */
     entities: Map<number, Entity>;
@@ -84,7 +91,8 @@ export interface SerializedSnapshot {
     nextEntityID: number,
     mutators: { [key: number]: SerializedMutator },
     nextMutatorID: number,
-    players: { [key: number]: number }
+    players: { [key: number]: number },
+    heldButtons: { [key: number]: number },
 }
 
 /**
@@ -98,6 +106,7 @@ export const createSnapshot = (): Snapshot =>  {
         mutators: new Map(),
         nextMutatorID: 1,
         players: new Map(),
+        heldButtons: new Map(),
         polyOverlays: new Map(),
         edgeOverlays: new Map(),
     }
@@ -121,6 +130,10 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
     for (let [k, v] of snap.players) {
         serPlayers[k] = v;
     }
+    const serHeldButtons: { [key: number]: number } = {};
+    for (let [k, v] of snap.players) {
+        serHeldButtons[k] = v;
+    }
     return {
         clock: snap.clock,
         entities: serEntities,
@@ -128,6 +141,7 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
         mutators: serMutators,
         nextMutatorID: snap.nextMutatorID,
         players: serPlayers,
+        heldButtons: serHeldButtons,
     };
 }
 
@@ -155,6 +169,12 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         const v = snap.players[key];
         snapPlayers.set(k, v);
     }
+    const snapHeldButtons: Map<number, number> = new Map();
+    for (let key in snap.players) {
+        const k = Number(key);
+        const v = snap.players[key];
+        snapHeldButtons.set(k, v);
+    }
     return {
         clock: snap.clock,
         entities: snapEntities,
@@ -162,6 +182,7 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         mutators: snapMutators,
         nextMutatorID: snap.nextMutatorID,
         players: snapPlayers,
+        heldButtons: snapHeldButtons,
         polyOverlays: new Map(), // TODO: Implement.
         edgeOverlays: new Map(), // TODO: Implement.
     };
@@ -174,17 +195,34 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
  * @param src Source snapshot.
  */
 export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
-    // Shallow copy our entities Map.
     dst.clock = src.clock;
+    dst.nextEntityID = src.nextEntityID;
+    dst.nextMutatorID = src.nextMutatorID;
+
+    // Shallow copy our entities Map.
     dst.entities.clear();
     for (let [k, v] of src.entities) {
         dst.entities.set(k, v);
     }
-    dst.nextEntityID = src.nextEntityID;
+
+    // Shallow copy our mutators Map.
+    dst.mutators.clear();
+    for (let [k, v] of src.mutators) {
+        dst.mutators.set(k, v);
+    }
+
+    // Shallow copy our players Map.
     dst.players.clear();
     for (let [k, v] of src.players) {
         dst.players.set(k, v);
     }
+
+    // Shallow copy our held buttons Map.
+    dst.heldButtons.clear();
+    for (let [k, v] of src.heldButtons) {
+        dst.heldButtons.set(k, v);
+    }
+
     return dst;
 }
 
@@ -195,6 +233,12 @@ const handleInput = (
     // Get entity ID for player entity.
     const entityID = target.players.get(command.clientID);
     if (entityID === undefined) {
+        return;
+    }
+
+    // Get current held buttons for player entity.
+    let heldButtons = target.heldButtons.get(command.clientID);
+    if (heldButtons === undefined) {
         return;
     }
 
@@ -211,21 +255,25 @@ const handleInput = (
         target.entities.set(entityID, entity);
     }
 
-    // Use our inputs to calculate desired force.
+    // Modify our held buttons based on our inputs.
+    heldButtons = cmd.updateButtons(heldButtons, input);
+    target.heldButtons.set(command.clientID, heldButtons);
+
+    // Use our held buttons to calculate desired force.
     //
     // Note that we are purposefully handling our axis separately
     // in order to allow straferunning.
     const force = vec2.create();
-    if (cmd.checkButton(input, cmd.Button.WalkForward)) {
+    if (cmd.checkButton(heldButtons, cmd.Button.WalkForward)) {
         force[0] += 8;
     }
-    if (cmd.checkButton(input, cmd.Button.WalkBackward)) {
+    if (cmd.checkButton(heldButtons, cmd.Button.WalkBackward)) {
         force[0] -= 8;
     }
-    if (cmd.checkButton(input, cmd.Button.StrafeLeft)) {
+    if (cmd.checkButton(heldButtons, cmd.Button.StrafeLeft)) {
         force[1] += 8;
     }
-    if (cmd.checkButton(input, cmd.Button.StrafeRight)) {
+    if (cmd.checkButton(heldButtons, cmd.Button.StrafeRight)) {
         force[1] -= 8;
     }
     if (force[0] !== 0 || force[1] !== 0) {
@@ -234,7 +282,7 @@ const handleInput = (
     }
 
     // Handle "use" button.
-    if (cmd.checkButton(input, cmd.Button.Use)) {
+    if (cmd.checkPressed(input, cmd.Button.Use)) {
         // Create a new mutator for the lift.
         target.mutators.set(target.nextMutatorID, {
             config: liftConfig,
@@ -250,8 +298,11 @@ const handlePlayer = (
 ): void => {
     switch (command.action) {
         case 'add':
-            // Add a player to the player array.
+            // Add a player to the player map.
             target.players.set(command.clientID, target.nextEntityID);
+
+            // Create a new set of held buttons for player.
+            target.heldButtons.set(command.clientID, 0);
 
             // Create a new entity for the player.
             target.entities.set(target.nextEntityID, {
@@ -273,6 +324,9 @@ const handlePlayer = (
 
             // Remove a player from the player array.
             target.players.delete(command.clientID);
+
+            // Clear their held buttons.
+            target.heldButtons.delete(command.clientID);
             break;
     }
 }

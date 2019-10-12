@@ -17,7 +17,7 @@
  */
 
 import { render } from './client';
-import { Button, setAxis, setButton, unsetButton } from '../command';
+import { Button, setAxis, setPressed, setReleased, cloneInput } from '../command';
 import { loadAssets } from '../r3d/loader';
 import { RenderContext } from '../r3d/render';
 import { SocketClient } from './socket'; 
@@ -99,32 +99,34 @@ window.addEventListener("load", async () => {
         if (button === undefined) {
             return;
         }
-        client.input = setButton(client.input, button);
+        setPressed(client.input, client.input, button);
     });
     window.addEventListener('keyup', (evt) => {
         const button = keyCodeToButton(evt.keyCode);
         if (button === undefined) {
             return;
         }
-        client.input = unsetButton(client.input, button);
+        setReleased(client.input, client.input, button);
     });
     window.addEventListener('mousemove', (evt) => {
-        client.input = setAxis(client.input,
-            scalePitch(evt.movementY), scaleYaw(evt.movementX));
+        setAxis(
+            client.input, client.input, scalePitch(evt.movementY),
+            scaleYaw(evt.movementX)
+        );
     });
     window.addEventListener('mousedown', (evt) => {
         const button = mouseButtonToButton(evt.button);
         if (button === undefined) {
             return;
         }
-        setButton(client.input, button);
+        setPressed(client.input, client.input, button);
     });
     window.addEventListener('mouseup', (evt) => {
         const button = mouseButtonToButton(evt.button);
         if (button === undefined) {
             return;
         }
-        unsetButton(client.input, button);
+        setReleased(client.input, client.input, button);
     });
 
     // Prevent the context menu from popping up
