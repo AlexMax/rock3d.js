@@ -81,8 +81,7 @@ export const createInput = (): MutableInput => {
         released: 0,
         pitch: 0,
         yaw: 0,
-        __mutable: true
-    };
+    } as MutableInput;
 }
 
 /**
@@ -96,8 +95,7 @@ export const cloneInput = (input: Input): MutableInput => {
         released: input.released,
         pitch: input.pitch,
         yaw: input.yaw,
-        __mutable: true,
-    };
+    } as MutableInput;
 }
 
 /**

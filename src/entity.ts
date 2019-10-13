@@ -146,8 +146,7 @@ export type Entity = Omit<Readonly<MutableEntity>, "__mutable">;
 export const cloneEntity = (entity: Entity): MutableEntity => {
     return {
         ...entity,
-        __mutable: true,
-    };
+    } as MutableEntity;
 };
 
 export interface SerializedEntity {
