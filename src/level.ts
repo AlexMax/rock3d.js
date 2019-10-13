@@ -24,9 +24,14 @@ import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math'
 
 interface Edge {
     /**
-     * First vertex of the edge.  Second vertex is in the next edge.
+     * First vertex of the edge.
      */
     vertex: vec2;
+
+    /**
+     * Second vertex of the edge, as a reference.
+     */
+    nextVertex: vec2;
 
     /**
      * Upper texture.
@@ -78,9 +83,10 @@ interface Edge {
 
 export type EdgeOverlay = Partial<Polygon>;
 
-const toEdge = (data: EdgeData): Edge => {
+const toEdge = (data: EdgeData, v1: vec2, v2: vec2): Edge => {
     return {
-        vertex: vec2.fromValues(data.vertex[0], data.vertex[1]),
+        vertex: v1,
+        nextVertex: v2,
         upperTex: (typeof data.upperTex === 'string') ? data.upperTex : null,
         middleTex: (typeof data.middleTex === 'string') ? data.middleTex : null,
         lowerTex: (typeof data.lowerTex === 'string') ? data.lowerTex : null,
@@ -103,13 +109,20 @@ export interface Polygon {
 export type PolygonOverlay = Partial<Polygon>;
 
 const toPolygon = (data: PolygonData): Polygon => {
+    // Unpack vertexes first, so we can assign them later.
+    const vertexes = data.edges.map((edge) => {
+        return vec2.fromValues(edge.vertex[0], edge.vertex[1]);
+    });
+
     return {
         ceilHeight: data.ceilHeight,
         floorHeight: data.floorHeight,
         ceilTex: data.ceilTex,
         floorTex: data.floorTex,
-        edges: data.edges.map((data) => {
-            return toEdge(data);
+        edges: data.edges.map((edge, index) => {
+            const v1 = vertexes[index];
+            const v2 = vertexes[(index + 1) % data.edges.length];
+            return toEdge(edge, v1, v2);
         }),
         brightness: vec3.fromValues(data.brightness[0], data.brightness[1],
             data.brightness[2]),
@@ -184,7 +197,7 @@ export class Level {
             for (let i = 0;i < poly.edges.length;i++) {
                 // Front vertexes.
                 const frontOne = poly.edges[i].vertex;
-                const frontTwo = poly.edges[(i + 1) % poly.edges.length].vertex;
+                const frontTwo = poly.edges[i].nextVertex;
 
                 // Cache normal vector
                 poly.edges[i].normalCache = vec2.fromValues(
@@ -202,7 +215,7 @@ export class Level {
                 const backPoly = this.polygons[backIndex];
                 for (let j = 0;j < backPoly.edges.length;j++) {
                     const backOne = backPoly.edges[j].vertex;
-                    const backTwo = backPoly.edges[(j + 1) % backPoly.edges.length].vertex;
+                    const backTwo = backPoly.edges[j].nextVertex;
 
                     if (vec2.equals(frontOne, backTwo) && vec2.equals(frontTwo, backOne)) {
                         poly.edges[i].backEdgeCache = j;
@@ -414,7 +427,7 @@ export const hitscan = (
         }
 
         const v32 = poly.edges[i].vertex;
-        const v42 = poly.edges[(i + 1) % poly.edges.length].vertex;
+        const v42 = poly.edges[i].nextVertex;
         const v3 = vec3.fromValues(v32[0], v32[1], poly.floorHeight);
         const v4 = vec3.fromValues(v42[0], v42[1], poly.ceilHeight);
         const v5 = vec3.fromValues(v42[0], v42[1], poly.floorHeight);

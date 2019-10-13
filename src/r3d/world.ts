@@ -445,20 +445,19 @@ export class WorldContext {
         // Draw walls of the polygon
         for (let i = 0;i < polygon.edges.length;i++) {
             const edge = polygon.edges[i];
-            const nextVert = polygon.edges[(i + 1) % polygon.edges.length].vertex;
 
             // Is this a one-sided wall or a portal?
             if (typeof edge.backPoly === 'number') {
                 const backPoly = polygons[edge.backPoly];
                 if (polygon.ceilHeight > backPoly.ceilHeight && edge.upperTex !== null ) {
-                    this.addWall(edge.vertex, nextVert, backPoly.ceilHeight, polygon.ceilHeight, edge.upperTex, polygon.brightness);
+                    this.addWall(edge.vertex, edge.nextVertex, backPoly.ceilHeight, polygon.ceilHeight, edge.upperTex, polygon.brightness);
                 }
                 if (polygon.floorHeight < backPoly.floorHeight && edge.lowerTex !== null ) {
-                    this.addWall(edge.vertex, nextVert, polygon.floorHeight, backPoly.floorHeight, edge.lowerTex, polygon.brightness);
+                    this.addWall(edge.vertex, edge.nextVertex, polygon.floorHeight, backPoly.floorHeight, edge.lowerTex, polygon.brightness);
                 }
             } else {
                 if (edge.middleTex !== null) {
-                    this.addWall(edge.vertex, nextVert, polygon.floorHeight, polygon.ceilHeight, edge.middleTex, polygon.brightness);
+                    this.addWall(edge.vertex, edge.nextVertex, polygon.floorHeight, polygon.ceilHeight, edge.middleTex, polygon.brightness);
                 }
             }
         }

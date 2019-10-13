@@ -143,7 +143,7 @@ const edgeToBoundingBox = (
 ) => {
     const source = level.polygons[poly]
     const first = source.edges[edge].vertex;
-    const second = source.edges[(edge + 1) % source.edges.length].vertex;
+    const second = source.edges[edge].nextVertex;
 
     const verts: vec3[] = [
         vec3.fromValues(first[0], first[1], source.floorHeight),

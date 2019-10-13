@@ -176,17 +176,16 @@ export class RenderContext {
         data.polygons.forEach((polygon) => {
             for (let i = 0;i < polygon.edges.length;i++) {
                 const edge = polygon.edges[i];
-                const nextVert = polygon.edges[(i + 1) % polygon.edges.length].vertex;
 
                 if (i === 0) {
-                    let v = vec2.create();
+                    const v = vec2.create();
                     vec2.transformMat3(v, edge.vertex, cameraMat);
                     vec2.transformMat3(v, v, this.canvasProject);
                     ctx.moveTo(crisp(v[0]), crisp(v[1]));
                 }
 
-                let v = vec2.create();
-                vec2.transformMat3(v, nextVert, cameraMat);
+                const v = vec2.create();
+                vec2.transformMat3(v, edge.nextVertex, cameraMat);
                 vec2.transformMat3(v, v, this.canvasProject);
                 ctx.lineTo(crisp(v[0]), crisp(v[1]));
             }
