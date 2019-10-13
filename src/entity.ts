@@ -201,11 +201,28 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
  * @param out Entity to mutate.
  * @param entity Entity to use as input.
  * @param force Force to apply in camera space.
+ * @param cap Cap on force applied in camera space.
  */
 export const forceRelativeXY = (
-    out: MutableEntity, entity: Entity, force: vec2
+    out: MutableEntity, entity: Entity, force: vec2, cap: vec2
 ): MutableEntity => {
-    const newVelocity = vec3.fromValues(force[0], force[1], 0);
+    // Constrain our force to the cap.  We can always apply force up to
+    // the cap, but if we're going faster than the cap we don't want to
+    // slow down.
+    const invRotation = quat.invert(quat.create(), entity.rotation);
+    const currentVelocity = vec3.transformQuat(
+        vec3.create(), entity.velocity, invRotation
+    );
+    const newVelocity = vec3.create();
+    newVelocity[0] = constrain(
+        currentVelocity[0] + force[0], -cap[0], cap[0]
+    ) - currentVelocity[0];
+    newVelocity[1] = constrain(
+        currentVelocity[1] + force[1], -cap[1], cap[1]
+    ) - currentVelocity[1];
+    console.log(currentVelocity, newVelocity);
+
+    // Now that we have our desired new velocity, apply it.
     vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
     vec3.add(newVelocity, newVelocity, entity.velocity);
     out.velocity = newVelocity;

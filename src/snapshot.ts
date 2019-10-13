@@ -227,8 +227,8 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
 }
 
 const handleInput = (
-    target: Snapshot, current: Readonly<Snapshot>,
-    command: Readonly<cmd.InputCommand>, period: number
+    target: Snapshot, command: Readonly<cmd.InputCommand>,
+    period: number
 ): void => {
     // Get entity ID for player entity.
     const entityID = target.players.get(command.clientID);
@@ -263,26 +263,30 @@ const handleInput = (
     heldButtons = cmd.updateButtons(heldButtons, input);
     target.heldButtons.set(command.clientID, heldButtons);
 
+    // Maximum force is based on the period.
+    const maxSpeed = (1024 * period) / 1000;
+    const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
+
     // Use our held buttons to calculate desired force.
     //
     // Note that we are purposefully handling our axis separately
     // in order to allow straferunning.
     const force = vec2.create();
     if (cmd.checkButton(heldButtons, cmd.Button.WalkForward)) {
-        force[0] += 8;
+        force[0] = maxSpeed / 4;
     }
     if (cmd.checkButton(heldButtons, cmd.Button.WalkBackward)) {
-        force[0] -= 8;
+        force[0] = -maxSpeed / 4;
     }
     if (cmd.checkButton(heldButtons, cmd.Button.StrafeLeft)) {
-        force[1] += 8;
+        force[1] = maxSpeed / 4;
     }
     if (cmd.checkButton(heldButtons, cmd.Button.StrafeRight)) {
-        force[1] -= 8;
+        force[1] = -maxSpeed / 4;
     }
     if (force[0] !== 0 || force[1] !== 0) {
         const newEntity = forceRelativeXY(
-            cloneEntity(entity), entity, force
+            cloneEntity(entity), entity, force, forceCap
         );
         target.entities.set(entityID, newEntity);
         entity = newEntity;
@@ -300,8 +304,7 @@ const handleInput = (
 }
 
 const handlePlayer = (
-    target: Snapshot, current: Readonly<Snapshot>,
-    command: Readonly<cmd.PlayerCommand>, period: number
+    target: Snapshot, command: Readonly<cmd.PlayerCommand>
 ): void => {
     switch (command.action) {
         case 'add':
@@ -340,24 +343,23 @@ const handlePlayer = (
 }
 
 const tickMutators = (
-    target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
-    period: number
+    target: Snapshot, level: Readonly<Level>, period: number
 ): void => {
     for (const [mutatorID, mutator] of target.mutators) {
-        console.log(mutator);
+        mutator.config.think();
     }
 }
 
 const tickEntities = (
-    target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
-    period: number
+    target: Snapshot, level: Readonly<Level>, period: number
 ): void => {
     for (const [entityID, entity] of target.entities) {
         if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
             target.entities.set(entityID, {
                 ...entity,
+                velocity: vec3.scale(vec3.create(), entity.velocity, 0.9),
                 position: vec3.add(vec3.create(), entity.position, entity.velocity),
-            })
+            });
         }
     }
 }
@@ -380,10 +382,10 @@ export const tickSnapshot = (
     for (const command of commands) {
         switch (command.type) {
             case cmd.CommandTypes.Input:
-                handleInput(target, current, command, period);
+                handleInput(target, command, period);
                 break;
             case cmd.CommandTypes.Player:
-                handlePlayer(target, current, command, period);
+                handlePlayer(target, command);
                 break;
             default:
                 throw new Error('Unknown message');
@@ -391,8 +393,8 @@ export const tickSnapshot = (
     }
 
     // Tick our mutators and entities, in that order.
-    tickMutators(target, current, level, period);
-    tickEntities(target, current, level, period);
+    tickMutators(target, level, period);
+    tickEntities(target, level, period);
 
     return target;
 }
