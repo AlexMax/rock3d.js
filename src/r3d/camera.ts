@@ -19,7 +19,7 @@
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
 import { Entity } from '../entity';
-import { constrain, rectOverlap, toEuler } from '../math';
+import { constrain, rectOverlap, quatToEuler } from '../math';
 import { flood, Level } from '../level';
 
 export interface Camera {
@@ -88,7 +88,7 @@ export const moveRelative = (
 export const rotateEuler = (
     camera: Camera, x: number, y: number, z: number
 ): Camera => {
-    const euler = toEuler(vec3.create(), camera.dir);
+    const euler = quatToEuler(vec3.create(), camera.dir);
     euler[0] += x;
     euler[1] = constrain(euler[1] + y, -89.999, 89.999);
     euler[2] += z;

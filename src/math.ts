@@ -66,30 +66,30 @@ export const distanceOrigin = (x: number, y: number): number => {
  * Compute the point, if any, where two lines intersect.
  * 
  * @param out Output vector.
- * @param p First point of first line.
- * @param q Second point of first line.
- * @param r First point of second line.
- * @param s Second point of second line.
+ * @param a First point of first line.
+ * @param b Second point of first line.
+ * @param c First point of second line.
+ * @param d Second point of second line.
  */
 export const intersectLines = (
-    out: vec2, p: vec2, q: vec2, r: vec2, s: vec2
+    out: vec2, a: vec2, b: vec2, c: vec2, d: vec2
 ): vec2 | null => {
-    const dx12 = q[0] - p[0];
-    const dy12 = q[1] - p[1];
-    const dx34 = s[0] - r[0];
-    const dy34 = s[1] - r[1];
+    const dxab = b[0] - a[0];
+    const dyab = b[1] - a[1];
+    const dxcd = d[0] - c[0];
+    const dycd = d[1] - c[1];
 
     // Solve for t1 and t2
-    const denominator = (dy12 * dx34 - dx12 * dy34);
+    const denominator = dyab * dxcd - dxab * dycd;
     if (denominator === 0) {
         // The lines don't intersect.
         return null;
     }
 
-    const t1 = ((p[0] - r[0]) * dy34 + (r[1] - p[1]) * dx34) / denominator;
+    const t = ((a[0] - c[0]) * dycd + (c[1] - a[1]) * dxcd) / denominator;
 
     // Find the point of intersection.
-    vec2.set(out, p[0] + dx12 * t1, p[1] + dy12 * t1);
+    vec2.set(out, a[0] + dxab * t, a[1] + dyab * t);
     return out;
 }
 
@@ -97,82 +97,59 @@ export const intersectLines = (
  * Compute the point, if any, where a line intersects a plane.
  * 
  * @param out Output vector.
- * @param p First point of line.
- * @param q Second point of line.
- * @param r A plane in the form of Ax + By + Cz + D = 0 where r is ABCD.
+ * @param a First point of line.
+ * @param b Second point of line.
+ * @param P A plane in the form of Ax + By + Cz + D = 0 where r is ABCD.
  */
 export const intersectPlane = (
-    out: vec3, p: vec3, q: vec3, r: vec4
+    out: vec3, a: vec3, b: vec3, P: vec4
 ): vec3 | null => {
-    const dx = q[0] - p[0];
-    const dy = q[1] - p[1];
-    const dz = q[2] - p[2];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const dz = b[2] - a[2];
 
-    const denominator = r[0] * dx + r[1] * dy + r[2] * dz;
+    const denominator = P[0] * dx + P[1] * dy + P[2] * dz;
     if (denominator === 0) {
         return null;
     }
 
-    const common = r[0] * p[0] + r[1] * p[1] + r[2] * p[2] + r[3];
+    const common = P[0] * a[0] + P[1] * a[1] + P[2] * a[2] + P[3];
 
     vec3.set(out,
-        p[0] - ((dx * common) / denominator),
-        p[1] - ((dy * common) / denominator),
-        p[2] - ((dz * common) / denominator)
+        a[0] - ((dx * common) / denominator),
+        a[1] - ((dy * common) / denominator),
+        a[2] - ((dz * common) / denominator)
     );
     return out;
 }
 
 /**
- * Round a number to the nearest multiple.
- * 
- * @param num Number to round.
- * @param multi Multiple to round by.
- */
-export const roundMultiple = (num: number, multi: number): number => {
-    return Math.round(num / multi) * multi;
-}
-
-/**
  * Check if point is inside circle.
  * 
- * @param p Point to check.
- * @param q Origin point of circle.
+ * @param a Point to check.
+ * @param b Origin point of circle.
  * @param r Radius of circle.
  */
-export const pointInCircle = (p: vec2, q: vec2, r: number): boolean => {
-    return (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < r ** 2;
+export const pointInCircle = (a: vec2, b: vec2, r: number): boolean => {
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 < r ** 2;
 }
 
 /**
  * Check if point is inside cube.
  * 
  * The two points on the rectangle can be passed using any orientation.
+ * 
+ * @param p Point to check.
+ * @param a Origin point of cube.
+ * @param b Opposite point of cube.
  */
-export const pointInCube = (p: vec3, q: vec3, r: vec3): boolean => {
-    if (q[0] < r[0]) {
-        var minX = q[0];
-        var maxX = r[0];
-    } else {
-        var maxX = q[0];
-        var minX = r[0];
-    }
-
-    if (q[1] < r[1]) {
-        var minY = q[1];
-        var maxY = r[1];
-    } else {
-        var maxY = q[1];
-        var minY = r[1];
-    }
-
-    if (q[2] < r[2]) {
-        var minZ = q[2];
-        var maxZ = r[2];
-    } else {
-        var maxZ = q[2];
-        var minZ = r[2];
-    }
+export const pointInCube = (p: vec3, a: vec3, b: vec3): boolean => {
+    const minX = Math.min(a[0], b[0]);
+    const maxX = Math.max(a[0], b[0]);
+    const minY = Math.min(a[1], b[1]);
+    const maxY = Math.max(a[1], b[1]);
+    const minZ = Math.min(a[2], b[2]);
+    const maxZ = Math.max(a[2], b[2]);
 
     if (p[0] < minX || p[0] > maxX) {
         return false;
@@ -183,6 +160,7 @@ export const pointInCube = (p: vec3, q: vec3, r: vec3): boolean => {
     if (p[2] < minZ || p[2] > maxZ) {
         return false;
     }
+
     return true;
 }
 
@@ -190,20 +168,20 @@ export const pointInCube = (p: vec3, q: vec3, r: vec3): boolean => {
  * Figure out if a checked point is in the axis-aligned bounding box defined
  * by an origin point and direction.
  * 
- * @param p Origin point we're comparing against.
- * @param q Origin direction.  Note that the length of (p, q) is irrelevant,
+ * @param a Origin point we're comparing against.
+ * @param b Origin direction.  Note that the length of (p, q) is irrelevant,
  *          only the direction.
- * @param r Point we are checking.
+ * @param p Point we are checking.
  */
-export const pointInDirection2 = (p: vec2, q: vec2, r: vec2): boolean => {
-    if (q[0] > 0 && r[0] < p[0]) {
+export const pointInDirection2 = (a: vec2, b: vec2, p: vec2): boolean => {
+    if (b[0] > 0 && p[0] < a[0]) {
         return false; // Direction is +X, intersection is -X
-    } else if (q[0] < 0 && r[0] > p[0]) {
+    } else if (b[0] < 0 && p[0] > a[0]) {
         return false; // Direction is -X, intersection is +X
     }
-    if (q[1] > 0 && r[1] < p[1]) {
+    if (b[1] > 0 && p[1] < a[1]) {
         return false; // Direction is +Y, intersection is -Y
-    } else if (q[1] < 0 && r[1] > p[1]) {
+    } else if (b[1] < 0 && p[1] > a[1]) {
         return false; // Direction is -Y, intersection is +Y
     }
     return true;
@@ -213,25 +191,25 @@ export const pointInDirection2 = (p: vec2, q: vec2, r: vec2): boolean => {
  * Figure out if a checked point is in the axis-aligned bounding box defined
  * by an origin point and direction.
  * 
- * @param p Origin point we're comparing against.
- * @param q Origin direction.  Note that the length of (p, q) is irrelevant,
+ * @param a Origin point we're comparing against.
+ * @param b Origin direction.  Note that the length of (p, q) is irrelevant,
  *          only the direction.
- * @param r Point we are checking.
+ * @param p Point we are checking.
  */
-export const pointInDirection3 = (p: vec3, q: vec3, r: vec3): boolean => {
-    if (q[0] > 0 && r[0] < p[0]) {
+export const pointInDirection3 = (a: vec3, b: vec3, p: vec3): boolean => {
+    if (b[0] > 0 && p[0] < a[0]) {
         return false; // Direction is +X, intersection is -X
-    } else if (q[0] < 0 && r[0] > p[0]) {
+    } else if (b[0] < 0 && p[0] > a[0]) {
         return false; // Direction is -X, intersection is +X
     }
-    if (q[1] > 0 && r[1] < p[1]) {
+    if (b[1] > 0 && p[1] < a[1]) {
         return false; // Direction is +Y, intersection is -Y
-    } else if (q[1] < 0 && r[1] > p[1]) {
+    } else if (b[1] < 0 && p[1] > a[1]) {
         return false; // Direction is -Y, intersection is +Y
     }
-    if (q[2] > 0 && r[2] < p[2]) {
+    if (b[2] > 0 && p[2] < a[2]) {
         return false; // Direction is +Z, intersection is -Z
-    } else if (q[2] < 0 && r[2] > p[2]) {
+    } else if (b[2] < 0 && p[2] > a[2]) {
         return false; // Direction is -Z, intersection is +Z
     }
     return true;
@@ -243,25 +221,14 @@ export const pointInDirection3 = (p: vec3, q: vec3, r: vec3): boolean => {
  * The two points on the rectangle can be passed using any orientation.
  * 
  * @param p Point to check.
- * @param q Origin point of rectangle. 
- * @param r Opposite point of rectangle.
+ * @param a Origin point of rectangle. 
+ * @param b Opposite point of rectangle.
  */
-export const pointInRect = (p: vec2, q: vec2, r: vec2): boolean => {
-    if (q[0] < r[0]) {
-        var minX = q[0];
-        var maxX = r[0];
-    } else {
-        var maxX = q[0];
-        var minX = r[0];
-    }
-
-    if (q[1] < r[1]) {
-        var minY = q[1];
-        var maxY = r[1];
-    } else {
-        var maxY = q[1];
-        var minY = r[1];
-    }
+export const pointInRect = (p: vec2, a: vec2, b: vec2): boolean => {
+    const minX = Math.min(a[0], b[0]);
+    const maxX = Math.max(a[0], b[0]);
+    const minY = Math.min(a[1], b[1]);
+    const maxY = Math.max(a[1], b[1]);
 
     if (p[0] < minX || p[0] > maxX) {
         return false;
@@ -269,6 +236,7 @@ export const pointInRect = (p: vec2, q: vec2, r: vec2): boolean => {
     if (p[1] < minY || p[1] > maxY) {
         return false;
     }
+
     return true;
 }
 
@@ -290,52 +258,39 @@ export const polarToCartesian = <T extends vec2 | vec3>(
 /**
  * Check if rectangle is partly overlapping another rectangle.
  *
- * @param p Origin point of rectangle.
- * @param q Opposite point of rectangle.
- * @param r Origin point of other rectangle.
- * @param s Opposite point of other rectangle.
+ * @param a Origin point of rectangle.
+ * @param b Opposite point of rectangle.
+ * @param c Origin point of other rectangle.
+ * @param d Opposite point of other rectangle.
  */
-export const rectOverlap = (p: vec2, q: vec2, r: vec2, s: vec2): boolean => {
-    if (p[0] < q[0]) {
-        var aMinX = p[0];
-        var aMaxX = q[0];
-    } else {
-        var aMaxX = p[0];
-        var aMinX = q[0];
-    }
+export const rectOverlap = (a: vec2, b: vec2, c: vec2, d: vec2): boolean => {
+    const abMinX = Math.min(a[0], b[0]);
+    const abMaxX = Math.max(a[0], b[0]);
+    const abMinY = Math.min(a[1], b[1]);
+    const abMaxY = Math.max(a[1], b[1]);
+    const cdMinX = Math.min(c[0], d[0]);
+    const cdMaxX = Math.max(c[0], d[0]);
+    const cdMinY = Math.min(c[1], d[1]);
+    const cdMaxY = Math.max(c[1], d[1]);
 
-    if (p[1] < q[1]) {
-        var aMinY = p[1];
-        var aMaxY = q[1];
-    } else {
-        var aMaxY = p[1];
-        var aMinY = q[1];
-    }
-
-    if (r[0] < s[0]) {
-        var bMinX = r[0];
-        var bMaxX = s[0];
-    } else {
-        var bMaxX = r[0];
-        var bMinX = s[0];
-    }
-
-    if (r[1] < s[1]) {
-        var bMinY = r[1];
-        var bMaxY = s[1];
-    } else {
-        var bMaxY = r[1];
-        var bMinY = s[1];
-    }
-
-    if (aMinX >= bMaxX || aMaxX <= bMinX) {
+    if (abMinX >= cdMaxX || abMaxX <= cdMinX) {
         return false;
     }
-    if (aMinY >= bMaxY || aMaxY <= bMinY) {
+    if (abMinY >= cdMaxY || abMaxY <= cdMinY) {
         return false;
     }
 
     return true;
+}
+
+/**
+ * Round a number to the nearest multiple.
+ * 
+ * @param num Number to round.
+ * @param multi Multiple to round by.
+ */
+export const roundMultiple = (num: number, multi: number): number => {
+    return Math.round(num / multi) * multi;
 }
 
 /**
@@ -359,24 +314,22 @@ export const sphereToCartesian = (
 /**
  * Convert quaternion to euler angles.
  *
- * @param p Quaternion to convert.
+ * @param out Output vector.
+ * @param q Quaternion to convert.
  */
-export const toEuler = (out: vec3, p: quat): vec3 => {
-    const xY = 2 * (p[3] * p[0] + p[1] * p[2]);
-    const xX = 1 - 2 * (p[0] * p[0] + p[1] * p[1]);
+export const quatToEuler = (out: vec3, q: quat): vec3 => {
+    const xY = 2 * (q[3] * q[0] + q[1] * q[2]);
+    const xX = 1 - 2 * (q[0] * q[0] + q[1] * q[1]);
     const xRad = Math.atan2(xY, xX);
 
-    const yX = 2 * (p[3] * p[1] - p[2] * p[0]);
-    if (yX >= 1) {
-        var yRad = Math.PI / 2; // Clamp at 90 degrees.
-    } else if (yX <= -1) {
-        var yRad = -(Math.PI / 2); // Clamp at -90 degrees.
-    } else {
-        var yRad = Math.asin(yX);
-    }
+    const yX = 2 * (q[3] * q[1] - q[2] * q[0]);
+    const yRad =
+        (yX >= 1) ? Math.PI / 2 : // Clamp at 90 degrees.
+        (yX <= -1) ? -(Math.PI / 2) : // Clamp at -90 degrees.
+        Math.asin(yX);
 
-    const zY = 2 * (p[3] * p[2] + p[0] * p[1]);
-    const zX = 1 - 2 * (p[1] * p[1] + p[2] * p[2]);
+    const zY = 2 * (q[3] * q[2] + q[0] * q[1]);
+    const zX = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
     const zRad = Math.atan2(zY, zX);
 
     // Convert to degrees.
@@ -391,16 +344,16 @@ export const toEuler = (out: vec3, p: quat): vec3 => {
  * Turn a series of vertexes into a plane.
  * 
  * @param out Output vector.
- * @param p First point of plane.
- * @param q Second point of plane.
- * @param r Third point of plane.
+ * @param a First point of plane.
+ * @param b Second point of plane.
+ * @param c Third point of plane.
  */
-export const toPlane = (out: vec4, p: vec3, q: vec3, r: vec3): vec4 => {
-    const AB = vec3.sub(vec3.create(), q, p);
-    const AC = vec3.sub(vec3.create(), r, p);
+export const toPlane = (out: vec4, a: vec3, b: vec3, c: vec3): vec4 => {
+    const AB = vec3.sub(vec3.create(), b, a);
+    const AC = vec3.sub(vec3.create(), c, a);
 
     const cross = vec3.cross(vec3.create(), AB, AC);
-    const w = -(cross[0] * p[0] + cross[1] * p[1] + cross[2] * p[2]);
+    const w = -(cross[0] * a[0] + cross[1] * a[1] + cross[2] * a[2]);
 
     vec4.set(out, cross[0], cross[1], cross[2], w);
     return out;

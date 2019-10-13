@@ -18,7 +18,7 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { toEuler, constrain } from './math';
+import { constrain, quatToEuler } from './math';
 
 /**
  * A single frame of animation.
@@ -241,7 +241,7 @@ export const forceRelativeXY = (
 export const rotateEuler = (
     out: MutableEntity, entity: Entity, x: number, y: number, z: number
 ): MutableEntity => {
-    const euler = toEuler(vec3.create(), entity.rotation);
+    const euler = quatToEuler(vec3.create(), entity.rotation);
     euler[0] += x;
     euler[1] = constrain(euler[1] + y, -89.999, 89.999);
     euler[2] += z;

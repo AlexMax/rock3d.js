@@ -19,10 +19,10 @@
 import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
 import { Atlas } from '../atlas';
-import { Camera, create as createCamera, getViewMatrix, rotateEuler } from './camera';
+import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { cacheFlats, Polygon } from '../level';
-import { constrain, sphereToCartesian, toEuler } from '../math';
+import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
 
@@ -489,8 +489,8 @@ export class WorldContext {
         }
 
         // Determine which sprite to use.
-        const camAngle = toEuler(vec3.create(), cam.dir);
-        const entAngle = toEuler(vec3.create(), entity.rotation);
+        const camAngle = quatToEuler(vec3.create(), cam.dir);
+        const entAngle = quatToEuler(vec3.create(), entity.rotation);
         const sprIndex = spriteRot(camAngle[2], entAngle[2]);
         var flipped = false;
         switch (sprIndex) {
@@ -552,7 +552,7 @@ export class WorldContext {
             spriteCenter[2] += Math.ceil(texEntry.texture.height / 2);
 
             // Only billboard yaw axis.
-            const euler = toEuler(vec3.create(), cam.dir);
+            const euler = quatToEuler(vec3.create(), cam.dir);
             const newDir = quat.fromEuler(quat.create(), 0, 0, euler[2]);
             var view = getViewMatrix({
                 pos: cam.pos,
