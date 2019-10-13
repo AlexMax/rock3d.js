@@ -355,8 +355,24 @@ const tickEntities = (
     target: Snapshot, level: Readonly<Level>, period: number
 ): void => {
     for (const [entityID, entity] of target.entities) {
-        if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
-            const newVelocity = vec3.scale(vec3.create(), entity.velocity, 0.9);
+        const newVelocity = vec3.clone(entity.velocity);
+
+        // If entity isn't on the ground, add gravity.
+        const poly = level.polygons[entity.polygon];
+        if (entity.config.grounded && entity.position[2] >= poly.floorHeight) {
+            newVelocity[2] -= 1;
+        } else {
+            newVelocity[2] = 0;
+        }
+
+        // If we have velocity, apply it.
+        if (!vec3.equals(newVelocity, [0, 0, 0])) {
+            // Any velocity we have in the X or Y direction is subject to
+            // friction.
+            newVelocity[0] *= 0.9;
+            newVelocity[1] *= 0.9;
+
+            // Quantize our velocity, if necessary.
             quantize(newVelocity, newVelocity);
             target.entities.set(entityID, {
                 ...entity,
