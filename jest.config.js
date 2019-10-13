@@ -1,16 +1,16 @@
 module.exports = {
     roots: [
-        "<rootDir>/__tests__/",
+        "<rootDir>/tests/",
         "<rootDir>/src/" // No tests, but needed for coverage.
     ],
     transform: {
         "^.+\\.ts$": "ts-jest"
     },
     setupFilesAfterEnv: [
-        "<rootDir>/__tests__/matchers.ts"
+        "<rootDir>/tests/matchers.ts"
     ],
     testMatch: [
-        "**/__tests__/**/*test.[jt]s?(x)"
+        "**/tests/**/*test.[jt]s?(x)"
     ],
     collectCoverage: true,
     collectCoverageFrom: [
