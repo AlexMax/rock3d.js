@@ -170,9 +170,9 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         snapPlayers.set(k, v);
     }
     const snapHeldButtons: Map<number, number> = new Map();
-    for (let key in snap.players) {
+    for (let key in snap.heldButtons) {
         const k = Number(key);
-        const v = snap.players[key];
+        const v = snap.heldButtons[key];
         snapHeldButtons.set(k, v);
     }
     return {
