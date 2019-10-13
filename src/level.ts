@@ -101,9 +101,9 @@ export interface Polygon {
     ceilTex: string;
     floorTex: string;
     brightness: vec3;
-    cacheVerts: number[];
-    floorCacheInds: number[];
-    ceilCacheInds: number[];
+    vertsCache: number[];
+    floorIndsCache: number[];
+    ceilIndsCache: number[];
 }
 
 export type PolygonOverlay = Partial<Polygon>;
@@ -126,9 +126,9 @@ const toPolygon = (data: PolygonData): Polygon => {
         }),
         brightness: vec3.fromValues(data.brightness[0], data.brightness[1],
             data.brightness[2]),
-        cacheVerts: [],
-        floorCacheInds: [],
-        ceilCacheInds: [],
+        vertsCache: [],
+        floorIndsCache: [],
+        ceilIndsCache: [],
     };
 }
 
@@ -144,9 +144,9 @@ export const cacheFlats = (poly: Polygon): void => {
         verts.push(vert[0]);
         verts.push(vert[1]);
     }
-    poly.cacheVerts = verts;
-    poly.floorCacheInds = earcut(verts);
-    poly.ceilCacheInds = poly.floorCacheInds.slice().reverse();
+    poly.vertsCache = verts;
+    poly.floorIndsCache = earcut(verts);
+    poly.ceilIndsCache = poly.floorIndsCache.slice().reverse();
 }
 
 export interface Location {

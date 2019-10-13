@@ -463,13 +463,17 @@ export class WorldContext {
         }
 
         // Draw the floor and ceiling of the polygon
-        if (polygon.cacheVerts.length === 0) {
+        if (polygon.vertsCache.length === 0) {
             cacheFlats(polygon);
         }
-        this.addFlatTessellation(polygon.cacheVerts, polygon.floorCacheInds,
-            polygon.floorHeight, polygon.floorTex, polygon.brightness);
-        this.addFlatTessellation(polygon.cacheVerts, polygon.ceilCacheInds,
-            polygon.ceilHeight, polygon.ceilTex, polygon.brightness);
+        this.addFlatTessellation(
+            polygon.vertsCache, polygon.floorIndsCache,
+            polygon.floorHeight, polygon.floorTex, polygon.brightness
+        );
+        this.addFlatTessellation(
+            polygon.vertsCache, polygon.ceilIndsCache,
+            polygon.ceilHeight, polygon.ceilTex, polygon.brightness
+        );
     }
 
     /**
