@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { quat, vec2, vec3, vec4 } from 'gl-matrix';
+import { ArrayTypes, glMatrix, quat, vec2, vec3, vec4 } from 'gl-matrix';
 
 /**
  * Polar coordinates as radius, angle (in radians) pair.
@@ -337,6 +337,23 @@ export const quatToEuler = (out: vec3, q: quat): vec3 => {
     out[1] = yRad * (180 / Math.PI);
     out[2] = zRad * (180 / Math.PI);
 
+    return out;
+}
+
+/**
+ * Quantize a array of numbers to some reduced precision.
+ * 
+ * @param out Output array.
+ * @param a Input array.
+ */
+export const quantize = <T extends ArrayTypes>(out: T, a: Readonly<T>): T => {
+    for (let i = 0;i < a.length;i++) {
+        if (glMatrix.equals(a[i], 0.0)) {
+            out[i] = 0;
+        } else {
+            out[i] = a[i];
+        }
+    }
     return out;
 }
 

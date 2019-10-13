@@ -21,9 +21,10 @@ import { quat, vec2, vec3 } from 'gl-matrix';
 import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
-    forceRelativeXY, rotateEuler, playerConfig, cloneEntity, MutableEntity
+    forceRelativeXY, rotateEuler, playerConfig, cloneEntity
 } from './entity';
 import { EdgeOverlay, Level, PolygonOverlay } from './level';
+import { quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
@@ -355,9 +356,11 @@ const tickEntities = (
 ): void => {
     for (const [entityID, entity] of target.entities) {
         if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
+            const newVelocity = vec3.scale(vec3.create(), entity.velocity, 0.9);
+            quantize(newVelocity, newVelocity);
             target.entities.set(entityID, {
                 ...entity,
-                velocity: vec3.scale(vec3.create(), entity.velocity, 0.9),
+                velocity: newVelocity,
                 position: vec3.add(vec3.create(), entity.position, entity.velocity),
             });
         }
