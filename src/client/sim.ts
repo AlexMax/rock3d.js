@@ -18,7 +18,7 @@
 
 import * as cmd from '../command';
 import { Level } from '../level';
-import { LevelData } from '../leveldata';
+import { LevelData } from '../levelData';
 import { copySnapshot, createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
 
 /**

@@ -44,7 +44,7 @@ export class Atlas {
         this.shelves = [];
     }
 
-    add(texName: string, tex: HTMLImageElement) {
+    add(texName: string, tex: HTMLImageElement): void {
         // Add padding on each side of the texture.
         const actualWidth = tex.width + 2;
         const actualHeight = tex.height + 2;
@@ -60,7 +60,7 @@ export class Atlas {
             if (actualHeight <= shelf.height) {
                 // Is there space on the shelf?
                 if (actualWidth <= this.length - shelf.width) {
-                    // There is!  Put the altas entry there, then adjust the shelf.
+                    // There is!  Put the atlas entry there, then adjust the shelf.
                     this.atlas[texName] = {
                         texture: tex,
                         xPos: shelf.width + 1,
@@ -101,8 +101,8 @@ export class Atlas {
      * 
      * @param p Function that actually does the persisting to the GPU.
      */
-    persist(p: PersistProc) {
-        for (let texName in this.atlas) {
+    persist(p: PersistProc): void {
+        for (const texName in this.atlas) {
             const tex = this.atlas[texName];
             p(tex.texture, tex.xPos, tex.yPos);
         }

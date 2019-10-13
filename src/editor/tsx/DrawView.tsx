@@ -27,11 +27,11 @@ import { MutLevel } from '../mutlevel';
 import { StatusBar } from '../../tsx/StatusBar';
 import { Toolbar } from '../../tsx/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
-import { mround } from '../../math';
+import { roundMultiple } from '../../math';
 
 export interface Props {
     level: MutLevel;
-};
+}
 
 interface State {
     /**
@@ -78,49 +78,49 @@ export class DrawView extends React.Component<Props, State> {
         }
     }
 
-    panUp() {
+    panUp(): void {
         this.setState({ camera: cameraPan(this.state.camera, 0, 64) });
     }
 
-    panDown() {
+    panDown(): void {
         this.setState({ camera: cameraPan(this.state.camera, 0, -64) });
     }
 
-    panLeft() {
+    panLeft(): void {
         this.setState({ camera: cameraPan(this.state.camera, -64, 0) });
     }
 
-    panRight() {
+    panRight(): void {
         this.setState({ camera: cameraPan(this.state.camera, 64, 0) });
     }
 
-    zoomIn() {
+    zoomIn(): void {
         this.setState({ camera: cameraZoom(this.state.camera, 2) });
     }
 
-    zoomOut() {
+    zoomOut(): void {
         this.setState({ camera: cameraZoom(this.state.camera, 0.5) });
     }
 
-    gridIn() {
+    gridIn(): void {
         const gridSize = Math.max(1, this.state.gridSize * 0.5);
         this.setState({ gridSize: gridSize });
     }
 
-    gridOut() {
+    gridOut(): void {
         const gridSize = Math.min(1024, this.state.gridSize * 2);
         this.setState({ gridSize: gridSize });
     }
 
-    levelPos(levelPos: vec2 | null) {
+    levelPos(levelPos: vec2 | null): void {
         if (levelPos !== null) {
             this.setState({ levelPos: vec2.fromValues(levelPos[0], levelPos[1]) });
 
             // Moving the mouse also adjusts our drawling line, if it exists.
             if (this.state.drawLines.length > 0) {
                 const snapped = vec2.fromValues(
-                    mround(levelPos[0], this.state.gridSize),
-                    mround(levelPos[1], this.state.gridSize));
+                    roundMultiple(levelPos[0], this.state.gridSize),
+                    roundMultiple(levelPos[1], this.state.gridSize));
                 const newLines = this.state.drawLines.slice(0);
                 newLines[newLines.length - 1] = snapped;
                 this.setState({ drawLines: newLines });
@@ -130,12 +130,12 @@ export class DrawView extends React.Component<Props, State> {
         }
     }
 
-    levelClick(levelPos: vec2) {
+    levelClick(levelPos: vec2): void {
         // Snap to grid.
         const snapped = vec2.fromValues(
-            mround(levelPos[0], this.state.gridSize),
-            mround(levelPos[1], this.state.gridSize));
-    
+            roundMultiple(levelPos[0], this.state.gridSize),
+            roundMultiple(levelPos[1], this.state.gridSize));
+
         const drawLines = [...this.state.drawLines, snapped];
         this.setState({ drawLines: drawLines });
     }
@@ -159,4 +159,4 @@ export class DrawView extends React.Component<Props, State> {
                 gridIn={this.gridIn} gridOut={this.gridOut}/>
         </>;
     }
-};
+}

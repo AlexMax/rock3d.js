@@ -19,7 +19,7 @@
 import { vec2 } from 'gl-matrix';
 
 import { Level } from '../level';
-import { LevelData } from '../leveldata';
+import { LevelData } from '../levelData';
 
 interface VertexPolys {
     /**

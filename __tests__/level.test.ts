@@ -21,7 +21,7 @@ import { vec3 } from 'gl-matrix';
 import {
     flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level
 } from '../src/level';
-import { isLevelData } from '../src/leveldata';
+import { isLevelData } from '../src/levelData';
 
 import TESTMAP from './TESTMAP.json';
 
@@ -55,7 +55,7 @@ test('Hitscan Polygon (looking south, hits a flat wall)', () => {
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Edge);
     expect((actual as HitEdge).position).toEqualVec3([0, -64, 48]);
-    expect((actual as HitEdge).polyNum).toEqual(0);
+    expect((actual as HitEdge).polygonID).toEqual(0);
 });
 
 test('Hitscan Polygon (looking north, goes through polys, hits wall)', () => {
@@ -66,7 +66,7 @@ test('Hitscan Polygon (looking north, goes through polys, hits wall)', () => {
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Edge);
     expect((actual as HitEdge).position).toEqualVec3([0, 768, 48]);
-    expect((actual as HitEdge).polyNum).toEqual(4);
+    expect((actual as HitEdge).polygonID).toEqual(4);
 });
 
 test('Hitscan Polygon (looking north, hits the floor)', () => {
@@ -77,7 +77,7 @@ test('Hitscan Polygon (looking north, hits the floor)', () => {
     expect(actual).not.toBeNull();
     expect((actual as Hit).type).toBe(HitType.Floor);
     expect((actual as HitFloor).position).toEqualVec3([0, 48, 0]);
-    expect((actual as HitFloor).polyNum).toEqual(0);
+    expect((actual as HitFloor).polygonID).toEqual(0);
 });
 
 test('Hitscan Polygon (looking north, hits the ceiling)', () => {
@@ -88,7 +88,7 @@ test('Hitscan Polygon (looking north, hits the ceiling)', () => {
     expect(actual).not.toBeNull();
     expect((actual as HitCeiling).type).toBe(HitType.Ceiling);
     expect((actual as HitCeiling).position).toEqualVec3([0, 80, 128]);
-    expect((actual as HitCeiling).polyNum).toEqual(0);
+    expect((actual as HitCeiling).polygonID).toEqual(0);
 });
 
 test('Hitscan Polygon (outside of the polygon)', () => {

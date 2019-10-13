@@ -53,7 +53,7 @@ export interface Mutator {
 export interface SerializedMutator {
     config: string;
     activated: number;
-};
+}
 
 /**
  * Convert native mutator into JSON-friendly serialized mutator.

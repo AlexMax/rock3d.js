@@ -19,7 +19,7 @@
 import * as cmd from '../command';
 import { createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
 import { Level } from '../level';
-import { LevelData } from '../leveldata';
+import { LevelData } from '../levelData';
 
 const SNAPSHOT_MAX = 32;
 

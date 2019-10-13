@@ -129,7 +129,7 @@ export const intersectPlane = (
  * @param num Number to round.
  * @param multi Multiple to round by.
  */
-export const mround = (num: number, multi: number) => {
+export const roundMultiple = (num: number, multi: number): number => {
     return Math.round(num / multi) * multi;
 }
 

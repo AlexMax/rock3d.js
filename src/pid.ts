@@ -23,32 +23,32 @@ export interface PID {
     /**
      * Proportional multiplier.
      */
-    p: number,
+    p: number;
 
     /**
      * Integral multiplier.
      */
-    i: number,
+    i: number;
 
     /**
      * Derivative multiplier.
      */
-    d: number,
+    d: number;
 
     /**
      * Proportional error - always the most recent error.
      */
-    pError: number,
+    pError: number;
 
     /**
      * Integral error - accumulates over time.
      */
-    iError: number,
+    iError: number;
 
     /**
      * Derivative error - difference between two most recent error values.
      */
-    dError: number,
+    dError: number;
 }
 
 /**

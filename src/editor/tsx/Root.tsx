@@ -20,7 +20,7 @@ import React from 'react';
 
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
-import { isLevelData } from '../../leveldata';
+import { isLevelData } from '../../levelData';
 import { MutLevel } from '../mutlevel';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';

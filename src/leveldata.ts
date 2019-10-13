@@ -97,10 +97,10 @@ const isPolygonData = (data: PolygonData): data is PolygonData => {
 }
 
 export interface LocationData {
-    type: string,
-    polygon: number,
-    position: number[],
-    rotation: number[],
+    type: string;
+    polygon: number;
+    position: number[];
+    rotation: number[];
 }
 
 const isLocationData = (data: LocationData): data is LocationData => {
@@ -138,7 +138,7 @@ const isLocationData = (data: LocationData): data is LocationData => {
 export interface LevelData {
     polygons: PolygonData[];
     locations: LocationData[];
-};
+}
 
 export const isLevelData = (data: LevelData): data is LevelData => {
     if (!Array.isArray(data.polygons)) {

@@ -87,7 +87,7 @@ export class Timer {
     /**
      * Start the timer.
      */
-    start() {
+    start(): void {
         this.cursor = this.msTimeFn();
         this.timer = setTimeout(this.tick, 0);
     }
@@ -95,7 +95,7 @@ export class Timer {
     /**
      * Stop the timer.
      */
-    stop() {
+    stop(): void {
         if (this.timer !== undefined) {
             clearTimeout(this.timer);
         }
@@ -104,17 +104,17 @@ export class Timer {
     /**
      * Set scale on period.
      */
-    setScale(scale: number) {
+    setScale(scale: number): void {
         this.scale = scale;
     }
 
-    private tick() {
+    private tick(): void {
         if (this.cursor === undefined) {
             throw new Error('Timer was not started');
         }
 
         // Figure out our target time.
-        let target = this.cursor + (this.period * this.scale);
+        const target = this.cursor + (this.period * this.scale);
 
         // Run tick function.
         this.tickFn(this.lastTickID);
@@ -125,12 +125,10 @@ export class Timer {
 
         // Wait for our next tick.
         const now = this.msTimeFn();
+        let wait = 0;
         if (now < target) {
             // Wait the normal amount of time.
-            var wait = target - now;
-        } else {
-            // We overshot our target, try and catch up.
-            var wait = 0;
+            wait = target - now;
         }
 
         this.timer = setTimeout(this.tick, wait);

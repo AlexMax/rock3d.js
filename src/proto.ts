@@ -40,26 +40,26 @@ export enum ClientMessageType {
 }
 
 export interface ClientHello {
-    type: ClientMessageType.Hello,
+    type: ClientMessageType.Hello;
 
     /**
      * Name of the player.
      */
-    name: string,
+    name: string;
 }
 
 export interface ClientInput {
-    type: ClientMessageType.Input,
+    type: ClientMessageType.Input;
 
     /**
      * Predicted clock of client message.
      */
-    clock: number,
+    clock: number;
 
     /**
      * Input of client.
      */
-    input: Input,
+    input: Input;
 }
 
 export type ClientMessage = ClientHello | ClientInput;
@@ -105,35 +105,35 @@ export enum ServerMessageType {
 }
 
 export interface ServerHello {
-    type: ServerMessageType.Hello,
+    type: ServerMessageType.Hello;
 
     /**
      * Entity ID.
      */
-    clientID: number,
+    clientID: number;
 }
 
 export interface ServerPing {
-    type: ServerMessageType.Ping,
+    type: ServerMessageType.Ping;
 
     /**
      * Round-trip-time, in milliseconds.
      */
-    rtt: number,
+    rtt: number;
 }
 
 export interface ServerSnapshot {
-    type: ServerMessageType.Snapshot,
+    type: ServerMessageType.Snapshot;
 
     /**
      * Snapshot data.
      */
-    snapshot: SerializedSnapshot,
+    snapshot: SerializedSnapshot;
 
     /**
      * Commands used to create this snapshot.
      */
-    commands: Readonly<Command[]>,
+    commands: Readonly<Command[]>;
 
     /**
      * How "even" the client's commands are with the server.
@@ -142,7 +142,7 @@ export interface ServerSnapshot {
      * indicate input buffer starvation, positive numbers indicate buffer
      * bloat, null means we don't have any inputs to tell yet.
      */
-    health: number | null,
+    health: number | null;
 }
 
 export type ServerMessage = ServerHello | ServerPing | ServerSnapshot;

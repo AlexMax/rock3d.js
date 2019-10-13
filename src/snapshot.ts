@@ -33,7 +33,7 @@ export interface Snapshot {
     /**
      * Game clock of the snapshot.
      */
-    clock: number,
+    clock: number;
 
     /**
      * Complete set of entities for this tick.
@@ -43,7 +43,7 @@ export interface Snapshot {
     /**
      * Next Entity ID to use.
      */
-    nextEntityID: number,
+    nextEntityID: number;
 
     /**
      * Complete set of mutators for this tick.
@@ -53,7 +53,7 @@ export interface Snapshot {
     /**
      * Next Mutator ID to use.
      */
-    nextMutatorID: number,
+    nextMutatorID: number;
 
     /**
      * Complete set of ingame players for this tick.
@@ -86,13 +86,13 @@ export interface Snapshot {
 }
 
 export interface SerializedSnapshot {
-    clock: number,
-    entities: { [key: number]: SerializedEntity },
-    nextEntityID: number,
-    mutators: { [key: number]: SerializedMutator },
-    nextMutatorID: number,
-    players: { [key: number]: number },
-    heldButtons: { [key: number]: number },
+    clock: number;
+    entities: { [key: number]: SerializedEntity };
+    nextEntityID: number;
+    mutators: { [key: number]: SerializedMutator };
+    nextMutatorID: number;
+    players: { [key: number]: number };
+    heldButtons: { [key: number]: number };
 }
 
 /**
@@ -119,19 +119,19 @@ export const createSnapshot = (): Snapshot =>  {
  */
 export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
     const serEntities: { [key: number]: SerializedEntity } = {};
-    for (let [k, v] of snap.entities) {
+    for (const [k, v] of snap.entities) {
         serEntities[k] = serializeEntity(v);
     }
     const serMutators: { [key: number]: SerializedMutator } = {};
-    for (let [k, v] of snap.mutators) {
+    for (const [k, v] of snap.mutators) {
         serMutators[k] = serializeMutator(v);
     }
     const serPlayers: { [key: number]: number } = {};
-    for (let [k, v] of snap.players) {
+    for (const [k, v] of snap.players) {
         serPlayers[k] = v;
     }
     const serHeldButtons: { [key: number]: number } = {};
-    for (let [k, v] of snap.heldButtons) {
+    for (const [k, v] of snap.heldButtons) {
         serHeldButtons[k] = v;
     }
     return {
@@ -152,25 +152,25 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
  */
 export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
     const snapEntities: Map<number, Entity> = new Map();
-    for (let key in snap.entities) {
+    for (const key in snap.entities) {
         const k = Number(key);
         const v = snap.entities[key];
         snapEntities.set(k, unserializeEntity(v));
     }
     const snapMutators: Map<number, Mutator> = new Map();
-    for (let key in snap.mutators) {
+    for (const key in snap.mutators) {
         const k = Number(key);
         const v = snap.mutators[key];
         snapMutators.set(k, unserializeMutator(v));
     }
     const snapPlayers: Map<number, number> = new Map();
-    for (let key in snap.players) {
+    for (const key in snap.players) {
         const k = Number(key);
         const v = snap.players[key];
         snapPlayers.set(k, v);
     }
     const snapHeldButtons: Map<number, number> = new Map();
-    for (let key in snap.heldButtons) {
+    for (const key in snap.heldButtons) {
         const k = Number(key);
         const v = snap.heldButtons[key];
         snapHeldButtons.set(k, v);
@@ -201,25 +201,25 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
 
     // Shallow copy our entities Map.
     dst.entities.clear();
-    for (let [k, v] of src.entities) {
+    for (const [k, v] of src.entities) {
         dst.entities.set(k, v);
     }
 
     // Shallow copy our mutators Map.
     dst.mutators.clear();
-    for (let [k, v] of src.mutators) {
+    for (const [k, v] of src.mutators) {
         dst.mutators.set(k, v);
     }
 
     // Shallow copy our players Map.
     dst.players.clear();
-    for (let [k, v] of src.players) {
+    for (const [k, v] of src.players) {
         dst.players.set(k, v);
     }
 
     // Shallow copy our held buttons Map.
     dst.heldButtons.clear();
-    for (let [k, v] of src.heldButtons) {
+    for (const [k, v] of src.heldButtons) {
         dst.heldButtons.set(k, v);
     }
 
@@ -321,7 +321,7 @@ const handlePlayer = (
             });
             target.nextEntityID += 1;
             break;
-        case 'remove':
+        case 'remove': {
             // Get the Entity ID for the player.
             const entityID = target.players.get(command.clientID);
             if (entityID !== undefined) {
@@ -335,6 +335,7 @@ const handlePlayer = (
             // Clear their held buttons.
             target.heldButtons.delete(command.clientID);
             break;
+        }
     }
 }
 
@@ -342,7 +343,7 @@ const tickMutators = (
     target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
     period: number
 ): void => {
-    for (let [mutatorID, mutator] of target.mutators) {
+    for (const [mutatorID, mutator] of target.mutators) {
         console.log(mutator);
     }
 }
@@ -351,7 +352,7 @@ const tickEntities = (
     target: Snapshot, current: Readonly<Snapshot>, level: Readonly<Level>,
     period: number
 ): void => {
-    for (let [entityID, entity] of target.entities) {
+    for (const [entityID, entity] of target.entities) {
         if (entity.velocity[0] !== 0 || entity.velocity[1] !== 0) {
             target.entities.set(entityID, {
                 ...entity,
