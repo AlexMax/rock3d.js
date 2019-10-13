@@ -131,7 +131,7 @@ export const serializeSnapshot = (snap: Snapshot): SerializedSnapshot => {
         serPlayers[k] = v;
     }
     const serHeldButtons: { [key: number]: number } = {};
-    for (let [k, v] of snap.players) {
+    for (let [k, v] of snap.heldButtons) {
         serHeldButtons[k] = v;
     }
     return {
