@@ -51,9 +51,14 @@ export interface MutableInput {
      * Current yaw axis.
      */
     yaw: number;
+
+    /**
+     * Prevents accidental mutation of Input.
+     */
+    __mutable: true;
 }
 
-export type Input = Readonly<MutableInput>;
+export type Input = Omit<Readonly<MutableInput>, "__mutable">;
 
 export enum CommandTypes {
     /**
@@ -70,9 +75,13 @@ export enum CommandTypes {
 /**
  * Construct a new input object.
  */
-export const createInput = (): Input => {
+export const createInput = (): MutableInput => {
     return {
-        pressed: 0, released: 0, pitch: 0, yaw: 0
+        pressed: 0,
+        released: 0,
+        pitch: 0,
+        yaw: 0,
+        __mutable: true
     };
 }
 
@@ -82,7 +91,13 @@ export const createInput = (): Input => {
  * @param input Input object to clone.
  */
 export const cloneInput = (input: Input): MutableInput => {
-    return {...input};
+    return {
+        pressed: input.pressed,
+        released: input.released,
+        pitch: input.pitch,
+        yaw: input.yaw,
+        __mutable: true,
+    };
 }
 
 /**
@@ -195,17 +210,6 @@ export const updateButtons = (buttons: number, input: Input): number => {
 }
 
 /**
- * Clear buttons on an Input.
- * 
- * @param out Input to mutate.
- */
-export const clearButtons = (out: MutableInput): MutableInput => {
-    out.pressed = 0;
-    out.released = 0;
-    return out;
-}
-
-/**
  * Accumulate the axis on an Input.
  * 
  * @param out Input to mutate.
@@ -222,11 +226,13 @@ export const setAxis = (
 }
 
 /**
- * Clear axis on an Input.
+ * Clear buttons on an Input.
  * 
  * @param out Input to mutate.
  */
-export const clearAxis = (out: MutableInput): MutableInput => {
+export const clearInput = (out: MutableInput): MutableInput => {
+    out.pressed = 0;
+    out.released = 0;
     out.pitch = 0;
     out.yaw = 0;
     return out;

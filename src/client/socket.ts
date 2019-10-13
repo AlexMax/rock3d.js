@@ -172,6 +172,9 @@ export class SocketClient implements Client {
 
         //const start = performance.now();
 
+        // Freeze our input for this tick.
+        const input = cmd.cloneInput(this.input);
+
         // Service incoming network messages.
         let msg: ReturnType<SocketConnection['read']> = null;
         while ((msg = this.connection.read()) !== null) {
@@ -188,7 +191,7 @@ export class SocketClient implements Client {
             type: cmd.CommandTypes.Input,
             clientID: this.id,
             clock: this.sim.clock,
-            input: this.input,
+            input: input,
         });
 
         // Tick the client simulation a single frame.
@@ -239,14 +242,14 @@ export class SocketClient implements Client {
         this.connection.send({
             type: proto.ClientMessageType.Input,
             clock: this.sim.clock - 1,
-            input: this.input,
+            input: input,
         });
 
         // Save a demo frame.
-        this.connection.saveDemoFrame(this.sim.clock - 1, this.input);
+        this.connection.saveDemoFrame(this.sim.clock - 1, input);
 
-        // Create a new set of inputs for next tick.
-        this.input = cmd.createInput();
+        // Our buttons and axes are accumulators, so clear them.
+        cmd.clearInput(this.input);
 
         //console.debug(`frame time: ${performance.now() - start}ms`);
     }

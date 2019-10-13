@@ -36,13 +36,6 @@ export interface Snapshot {
     clock: number,
 
     /**
-     * Currently held buttons.
-     * 
-     * Key is client ID, value is button bitfield.
-     */
-    heldButtons: Map<number, number>;
-
-    /**
      * Complete set of entities for this tick.
      */
     entities: Map<number, Entity>;
@@ -68,6 +61,13 @@ export interface Snapshot {
      * Key is client ID, value is the current entity ID commands should go to.
      */
     players: Map<number, number>;
+
+    /**
+     * Currently held buttons.
+     * 
+     * Key is client ID, value is button bitfield.
+     */
+    heldButtons: Map<number, number>;
 
     /**
      * Complete set of polygon overlays for this tick.
