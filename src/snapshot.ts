@@ -21,7 +21,7 @@ import { quat, vec2, vec3 } from 'gl-matrix';
 import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
-    forceRelativeXY, rotateEuler, playerConfig
+    forceRelativeXY, rotateEuler, playerConfig, cloneEntity, MutableEntity
 } from './entity';
 import { EdgeOverlay, Level, PolygonOverlay } from './level';
 import {
@@ -248,11 +248,15 @@ const handleInput = (
         return;
     }
 
-    // Use inputs to rotate entity rotation.
     const input = command.input;
+
+    // Use inputs to rotate entity rotation.
     if (input.pitch !== 0.0 || input.yaw !== 0.0) {
-        entity = rotateEuler(entity, 0, input.pitch, input.yaw);
-        target.entities.set(entityID, entity);
+        const newEntity = rotateEuler(
+            cloneEntity(entity), entity, 0, input.pitch, input.yaw
+        );
+        target.entities.set(entityID, newEntity);
+        entity = newEntity;
     }
 
     // Modify our held buttons based on our inputs.
@@ -277,8 +281,11 @@ const handleInput = (
         force[1] -= 8;
     }
     if (force[0] !== 0 || force[1] !== 0) {
-        entity = forceRelativeXY(entity, force);
-        target.entities.set(entityID, entity);
+        const newEntity = forceRelativeXY(
+            cloneEntity(entity), entity, force
+        );
+        target.entities.set(entityID, newEntity);
+        entity = newEntity;
     }
 
     // Handle "use" button.

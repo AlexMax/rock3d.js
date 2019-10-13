@@ -18,7 +18,7 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { toEuler, constrain, distanceOrigin } from './math';
+import { toEuler, constrain } from './math';
 
 /**
  * A single frame of animation.
@@ -102,10 +102,9 @@ export const playerConfig: EntityConfig = {
 }
 
 /**
- * An entity is an in-game object represented by a sprite that is not
- * considered part of the geometry of the level.
+ * A mutable Entity.
  */
-export interface Entity {
+export interface MutableEntity {
 
     /**
      * Static config of entity.
@@ -131,7 +130,25 @@ export interface Entity {
      * Velocity.
      */
     velocity: vec3;
+
+    /**
+     * Prevents accidental mutation of Entity.
+     */
+    __mutable: true;
 }
+
+/**
+ * An entity is an in-game object represented by a sprite that is not
+ * considered part of the geometry of the level.
+ */
+export type Entity = Omit<Readonly<MutableEntity>, "__mutable">;
+
+export const cloneEntity = (entity: Entity): MutableEntity => {
+    return {
+        ...entity,
+        __mutable: true,
+    };
+};
 
 export interface SerializedEntity {
     config: string;
@@ -181,39 +198,37 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
 /**
  * Apply a force to an entity relative to its rotation.
  *
- * @param entity Entity to modify.
+ * @param out Entity to mutate.
+ * @param entity Entity to use as input.
  * @param force Force to apply in camera space.
  */
 export const forceRelativeXY = (
-    entity: Readonly<Entity>, force: vec2
-): Entity => {
+    out: MutableEntity, entity: Entity, force: vec2
+): MutableEntity => {
     const newVelocity = vec3.fromValues(force[0], force[1], 0);
     vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
     vec3.add(newVelocity, newVelocity, entity.velocity);
-    return {
-        ...entity,
-        velocity: newVelocity,
-    };
+    out.velocity = newVelocity;
+    return out;
 }
 
 /**
  * Return a new entity that is rotated relative to its current rotation.
  * 
- * @param entity Entity to modify.
+ * @param out Entity to mutate.
+ * @param entity Entity to use as input.
  * @param x Amount to roll by.
  * @param y Amount to pitch by.
  * @param z Amount to yaw by.
  */
 export const rotateEuler = (
-    entity: Readonly<Entity>, x: number, y: number, z: number
-): Entity => {
+    out: MutableEntity, entity: Entity, x: number, y: number, z: number
+): MutableEntity => {
     const euler = toEuler(vec3.create(), entity.rotation);
     euler[0] += x;
     euler[1] = constrain(euler[1] + y, -89.999, 89.999);
     euler[2] += z;
     const newRot = quat.fromEuler(quat.create(), euler[0], euler[1], euler[2]);
-    return {
-        ...entity,
-        rotation: newRot,
-    };
+    out.rotation = newRot;
+    return out;
 }
