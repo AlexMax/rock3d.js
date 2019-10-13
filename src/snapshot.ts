@@ -264,7 +264,7 @@ const handleInput = (
     target.heldButtons.set(command.clientID, heldButtons);
 
     // Maximum force is based on the period.
-    const maxSpeed = (1024 * period) / 1000;
+    const maxSpeed = (512 * period) / 1000;
     const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
 
     // Use our held buttons to calculate desired force.
