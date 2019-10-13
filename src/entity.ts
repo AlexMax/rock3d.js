@@ -219,7 +219,6 @@ export const forceRelativeXY = (
     newVelocity[1] = constrain(
         currentVelocity[1] + force[1], -cap[1], cap[1]
     ) - currentVelocity[1];
-    console.log(currentVelocity, newVelocity);
 
     // Now that we have our desired new velocity, apply it.
     vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
