@@ -21,7 +21,7 @@ import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 import { Atlas } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
-import { cacheFlats, Polygon } from '../level';
+import { Polygon } from '../polygon';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';
@@ -463,9 +463,6 @@ export class WorldContext {
         }
 
         // Draw the floor and ceiling of the polygon
-        if (polygon.vertsCache.length === 0) {
-            cacheFlats(polygon);
-        }
         this.addFlatTessellation(
             polygon.vertsCache, polygon.floorIndsCache,
             polygon.floorHeight, polygon.floorTex, polygon.brightness

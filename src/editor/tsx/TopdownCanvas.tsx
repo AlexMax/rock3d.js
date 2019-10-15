@@ -20,7 +20,7 @@ import { vec2 } from 'gl-matrix';
 import React from 'react';
 
 import { Camera } from '../../r2d/camera';
-import { MutLevel } from '../mutlevel';
+import { EditableLevel } from '../editableLevel';
 import { RenderContext } from '../../r2d/render';
 
 export interface Props {
@@ -42,7 +42,7 @@ export interface Props {
     /**
      * Level data.
      */
-    level: MutLevel;
+    level: EditableLevel;
 
     /**
      * Called when we detect a new mouse position in the level.

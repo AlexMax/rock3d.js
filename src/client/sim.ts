@@ -17,8 +17,7 @@
  */
 
 import * as cmd from '../command';
-import { Level } from '../level';
-import { LevelData } from '../levelData';
+import { Level, SerializedLevel } from '../level';
 import { copySnapshot, createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
 
 /**
@@ -61,10 +60,10 @@ export class Simulation {
      */
     inputs: cmd.InputCommand[];
 
-    constructor(data: LevelData, tickrate: number, snapshot: Snapshot) {
+    constructor(level: SerializedLevel, tickrate: number, snapshot: Snapshot) {
         this.period = 1000 / tickrate;
         this.clock = snapshot.clock;
-        this.level = new Level(data);
+        this.level = new Level(level);
         this.authSnapshot = snapshot;
         this.predictSnapshot = createSnapshot();
         this.authCommands = [];

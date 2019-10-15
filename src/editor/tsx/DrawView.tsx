@@ -23,14 +23,14 @@ import {
     Camera, create as cameraCreate, pan as cameraPan, zoom as cameraZoom
 } from '../../r2d/camera';
 import { DrawInput } from './DrawInput';
-import { MutLevel } from '../mutlevel';
+import { EditableLevel } from '../editableLevel';
 import { StatusBar } from '../../tsx/StatusBar';
 import { Toolbar } from '../../tsx/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
 import { roundMultiple } from '../../math';
 
 export interface Props {
-    level: MutLevel;
+    level: EditableLevel;
 }
 
 interface State {

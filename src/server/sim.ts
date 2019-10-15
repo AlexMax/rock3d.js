@@ -18,8 +18,7 @@
 
 import * as cmd from '../command';
 import { createSnapshot, Snapshot, tickSnapshot } from '../snapshot';
-import { Level } from '../level';
-import { LevelData } from '../levelData';
+import { Level, SerializedLevel } from '../level';
 
 const SNAPSHOT_MAX = 32;
 
@@ -68,10 +67,10 @@ export class Simulation {
      */
     health: Map<number, number | null>;
 
-    constructor(data: LevelData, tickrate: number) {
+    constructor(level: SerializedLevel, tickrate: number) {
         this.period = 1000 / tickrate;
         this.clock = 0;
-        this.level = new Level(data);
+        this.level = new Level(level);
         this.snapshots = [];
         this.commands = [];
         for (let i = 0;i < SNAPSHOT_MAX;i++) {

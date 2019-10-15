@@ -20,7 +20,7 @@ import React from 'react';
 
 import { Atlas } from '../../atlas';
 import { Camera } from '../../r3d/camera';
-import { MutLevel } from '../mutlevel';
+import { EditableLevel } from '../editableLevel';
 import { loadAssets } from '../../r3d/loader';
 import { RenderContext } from '../../r3d/render';
 
@@ -33,7 +33,7 @@ export interface Props {
     /**
      * Level data coming from outside.
      */
-    level: MutLevel;
+    level: EditableLevel;
 };
 
 export class FPCanvas extends React.Component<Props> {

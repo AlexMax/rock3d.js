@@ -16,180 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import earcut from "earcut";
-import { vec2, vec3, vec4, quat } from "gl-matrix";
+import { vec2, vec3, vec4 } from 'gl-matrix';
 
-import { LevelData, LocationData, PolygonData, EdgeData } from "./levelData";
-import { intersectPlane, pointInCube, pointInDirection3, toPlane } from './math';
-
-interface Edge {
-    /**
-     * First vertex of the edge.
-     */
-    vertex: vec2;
-
-    /**
-     * Second vertex of the edge, as a reference.
-     */
-    nextVertex: vec2;
-
-    /**
-     * Upper texture.
-     * 
-     * Used on edge with a backside to texture the wall above the "portal".
-     */
-    upperTex: string | null;
-
-    /**
-     * Middle texture.
-     * 
-     * Used on normal walls with no backside as their primary wall texture
-     * or sides with a backside when you want a texture covering the "portal".
-     */
-    middleTex: string | null;
-
-    /**
-     * Upper texture.
-     * 
-     * Used on sides with a backside to texture the wall below the "portal".
-     */
-    lowerTex: string | null;
-
-    /**
-     * Polygon ID of the polygon on the opposite side of this side.
-     * 
-     * Used if this side should be a portal to another polygon, or null if
-     * the polygon should just be a wall.
-     */
-    backPoly: number | null;
-
-    /**
-     * ID of the edge in the backPoly that matches up with this edge.
-     * 
-     * This ID is calculated at runtime and is used by various functions
-     * like hitscan routines that need to know which Edge is on the opposite
-     * side of this Edge.
-     */
-    backEdgeCache?: number | null;
-
-    /**
-     * Normal vector of Edge.
-     *
-     * Calculated at runtime.  Must be refreshed if current or next vertex
-     * is moved.
-     */
-    normalCache?: vec2;
-}
-
-export type EdgeOverlay = Partial<Polygon>;
-
-const toEdge = (data: EdgeData, v1: vec2, v2: vec2): Edge => {
-    return {
-        vertex: v1,
-        nextVertex: v2,
-        upperTex: (typeof data.upperTex === 'string') ? data.upperTex : null,
-        middleTex: (typeof data.middleTex === 'string') ? data.middleTex : null,
-        lowerTex: (typeof data.lowerTex === 'string') ? data.lowerTex : null,
-        backPoly: (typeof data.backPoly === 'number') ? data.backPoly : null,
-    };
-}
-
-export interface Polygon {
-    edges: Edge[];
-    ceilHeight: number;
-    floorHeight: number;
-    ceilTex: string;
-    floorTex: string;
-    brightness: vec3;
-    vertsCache: number[];
-    floorIndsCache: number[];
-    ceilIndsCache: number[];
-}
-
-export type PolygonOverlay = Partial<Polygon>;
-
-const toPolygon = (data: PolygonData): Polygon => {
-    // Unpack vertexes first, so we can assign them later.
-    const vertexes = data.edges.map((edge) => {
-        return vec2.fromValues(edge.vertex[0], edge.vertex[1]);
-    });
-
-    return {
-        ceilHeight: data.ceilHeight,
-        floorHeight: data.floorHeight,
-        ceilTex: data.ceilTex,
-        floorTex: data.floorTex,
-        edges: data.edges.map((edge, index) => {
-            const v1 = vertexes[index];
-            const v2 = vertexes[(index + 1) % data.edges.length];
-            return toEdge(edge, v1, v2);
-        }),
-        brightness: vec3.fromValues(data.brightness[0], data.brightness[1],
-            data.brightness[2]),
-        vertsCache: [],
-        floorIndsCache: [],
-        ceilIndsCache: [],
-    };
-}
-
-/**
- * Cache a tessellation of the floor
- * 
- * @param poly Polygon to tessellate
- */
-export const cacheFlats = (poly: Polygon): void => {
-    const verts: number[] = [];
-    for (let i = 0;i < poly.edges.length;i++) {
-        const vert = poly.edges[i].vertex;
-        verts.push(vert[0]);
-        verts.push(vert[1]);
-    }
-    poly.vertsCache = verts;
-    poly.floorIndsCache = earcut(verts);
-    poly.ceilIndsCache = poly.floorIndsCache.slice().reverse();
-}
-
-export interface Location {
-    /**
-     * Type of location, as a string.
-     */
-    type: string;
-
-    /**
-     * Polygon that the location is located inside.
-     */
-    polygon: number;
-
-    /**
-     * Position of the location.
-     */
-    position: Readonly<vec3>;
-
-    /**
-     * Rotation of the location.
-     */
-    rotation: Readonly<quat>;
-}
-
-const toLocation = (data: LocationData): Location => {
-    return {
-        type: data.type,
-        polygon: data.polygon,
-        position: vec3.fromValues(data.position[0], data.position[1],
-                                  data.position[2]),
-        rotation: quat.fromEuler(quat.create(), data.rotation[0],
-                                 data.rotation[1], data.rotation[2]),
-    };
-}
+import { MutableEdge } from './edge';
+import {
+    isSerializedLocation, Location, SerializedLocation, unserializeLocation
+} from './location';
+import {
+    intersectPlane, pointInCube, pointInDirection3, toPlane
+} from './math';
+import {
+    isSerializedPolygon, Polygon, SerializedPolygon, unserializePolygon
+} from './polygon';
+import { objectHasKey } from './util';
 
 export class Level {
     polygons: Polygon[];
     locations: Location[];
 
-    constructor(levelData: LevelData) {
+    constructor(level: SerializedLevel) {
         // Polygons are unpacked directly.
-        this.polygons = levelData.polygons.map((data) => {
-            return toPolygon(data);
+        this.polygons = level.polygons.map((data) => {
+            return unserializePolygon(data);
         });
 
         // Cache backPoly edge and normal vector.
@@ -200,7 +48,7 @@ export class Level {
                 const frontTwo = poly.edges[i].nextVertex;
 
                 // Cache normal vector
-                poly.edges[i].normalCache = vec2.fromValues(
+                (poly.edges[i] as MutableEdge).normalCache = vec2.fromValues(
                     frontTwo[1] - frontOne[1],
                     -(frontTwo[0] - frontOne[0])
                 );
@@ -218,7 +66,7 @@ export class Level {
                     const backTwo = backPoly.edges[j].nextVertex;
 
                     if (vec2.equals(frontOne, backTwo) && vec2.equals(frontTwo, backOne)) {
-                        poly.edges[i].backEdgeCache = j;
+                        (poly.edges[i] as MutableEdge).backEdgeCache = j;
                         break;
                     }
                 }
@@ -226,8 +74,8 @@ export class Level {
         }
 
         // Locations are unpacked directly.
-        this.locations = levelData.locations.map((data) => {
-            return toLocation(data);
+        this.locations = level.locations.map((data) => {
+            return unserializeLocation(data);
         });
     }
 }
@@ -503,4 +351,46 @@ export const hitscan = (
 
     // Did not hit polygon.
     return null;
+}
+
+export interface SerializedLevel {
+    polygons: SerializedPolygon[];
+    locations: SerializedLocation[];
+}
+
+export const isSerializedLevel = (
+    level: unknown
+): level is SerializedLevel => {
+    if (typeof level !== 'object' || level === null) {
+        throw new Error('level is not an object');
+    }
+    if (!objectHasKey('polygons', level)) {
+        throw new Error('level does not have polygons');
+    }
+    if (!Array.isArray(level.polygons)) {
+        throw new Error('level polygons is not an Array');
+    }
+    if (level.polygons.length < 1) {
+        throw new Error('level polygons does not have at least one polygon');
+    }
+    for (let i = 0;i < level.polygons.length;i++) {
+        if (!isSerializedPolygon(level.polygons[i])) {
+            return false;
+        }
+    }
+    if (!objectHasKey('locations', level)) {
+        throw new Error('level does not have locations');
+    }
+    if (!Array.isArray(level.locations)) {
+        throw new Error('level locations is not an Array');
+    }
+    if (level.locations.length < 1) {
+        throw new Error('level locations does not have at least one location');
+    }
+    for (let i = 0;i < level.locations.length;i++) {
+        if (!isSerializedLocation(level.locations[i])) {
+            return false;
+        }
+    }
+    return true;
 }

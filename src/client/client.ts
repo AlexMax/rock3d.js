@@ -17,6 +17,7 @@
  */
 
 import { fromEntity } from '../r3d/camera';
+import { isSerializedLevel } from '../level';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { unserializeSnapshot } from '../snapshot';
@@ -57,6 +58,10 @@ const ping = (client: Client, msg: proto.ServerPing) => {
 const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
     const snap = unserializeSnapshot(msg.snapshot);
     if (client.sim === null) {
+        if (!isSerializedLevel(TESTMAP)) {
+            throw new Error('TESTMAP is not valid level data');
+        }
+
         // Start the simulation now that we have snapshot data.
         client.sim = new Simulation(TESTMAP, 32, snap);
     }

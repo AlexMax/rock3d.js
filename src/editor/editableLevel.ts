@@ -18,8 +18,9 @@
 
 import { vec2 } from 'gl-matrix';
 
-import { Level } from '../level';
-import { LevelData } from '../levelData';
+import { SerializedEdge } from '../edge';
+import { isSerializedLevel, Level, SerializedLevel } from '../level';
+import { SerializedPolygon } from '../polygon';
 
 interface VertexPolys {
     /**
@@ -71,15 +72,15 @@ class VertexCache extends Map<String, VertexPolys> {
 }
 
 /**
- * A MutLevel is a Level that has additional fields specifically needed by
- * the editor that are irrelevant for actually playing the game.
+ * A EditableLevel is a Level that has additional fields specifically needed
+ * by the editor that are irrelevant for actually playing the game.
  */
-export class MutLevel extends Level {
+export class EditableLevel extends Level {
 
     vertexCache: VertexCache;
 
-    constructor(levelData: LevelData) {
-        super(levelData);
+    constructor(level: SerializedLevel) {
+        super(level);
         this.vertexCache = new VertexCache(this);
     }
 }

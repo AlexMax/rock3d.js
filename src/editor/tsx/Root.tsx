@@ -20,8 +20,8 @@ import React from 'react';
 
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
-import { isLevelData } from '../../levelData';
-import { MutLevel } from '../mutlevel';
+import { EditableLevel } from '../editableLevel';
+import { isSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 
@@ -33,7 +33,7 @@ export enum Mode {
 };
 
 interface State {
-    level: MutLevel | null;
+    level: EditableLevel | null;
     mode: Mode | null;
     modal: JSX.Element | null;
 };
@@ -61,11 +61,11 @@ export class Root extends React.Component<{}, State> {
     }
 
     openFile() {
-        if (!isLevelData(TESTMAP)) {
+        if (!isSerializedLevel(TESTMAP)) {
             throw new Error('Map data is not valid');
         }
 
-        const level = new MutLevel(TESTMAP);
+        const level = new EditableLevel(TESTMAP);
         this.setState({ level: level, mode: Mode.DrawView });
     }
 

@@ -19,16 +19,18 @@
 import { quat, vec2, vec3 } from 'gl-matrix';
 
 import * as cmd from './command';
+import { EdgeOverlay } from './edge';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig, cloneEntity
 } from './entity';
-import { EdgeOverlay, Level, PolygonOverlay } from './level';
+import { Level } from './level';
 import { quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
 } from './mutator';
+import { PolygonOverlay } from './polygon';
 
 export interface Snapshot {
     /**

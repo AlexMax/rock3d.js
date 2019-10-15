@@ -23,7 +23,7 @@ import {
     rotateEuler as cameraRotateEuler
 } from '../../r3d/camera';
 import { FPCanvas } from './FPCanvas';
-import { MutLevel } from '../mutlevel';
+import { EditableLevel } from '../editableLevel';
 import { StatusBar } from '../../tsx/StatusBar';
 import { VisualInput } from './VisualInput';
 
@@ -31,7 +31,7 @@ export interface Props {
     /**
      * Level data.
      */
-    level: MutLevel;
+    level: EditableLevel;
 };
 
 export interface State {

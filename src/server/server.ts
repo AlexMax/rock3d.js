@@ -21,6 +21,7 @@ import WebSocket, { Server as WSServer } from 'ws';
 
 import { CommandTypes } from '../command';
 import { handleMessage } from './handler';
+import { isSerializedLevel } from '../level';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { serializeSnapshot } from '../snapshot';
@@ -210,6 +211,9 @@ export class Server {
         });
 
         // Load the level.
+        if (!isSerializedLevel(TESTMAP)) {
+            throw new Error('TESTMAP is not valid level data');
+        }
         this.sim = new Simulation(TESTMAP, 32);
 
         // Initialize the timer for the game.

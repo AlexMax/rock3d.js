@@ -19,17 +19,17 @@
 import { vec3 } from 'gl-matrix';
 
 import {
-    flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level
+    flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level,
+    isSerializedLevel
 } from '../src/level';
-import { isLevelData } from '../src/levelData';
 
 import TESTMAP from './TESTMAP.json';
 
 let testLevel: Level;
 
 beforeAll(() => {
-    if (!isLevelData(TESTMAP)) {
-        throw new Error('TESTMAP is not valid LevelData');
+    if (!isSerializedLevel(TESTMAP)) {
+        throw new Error('TESTMAP is not valid level data');
     }
 
     testLevel = new Level(TESTMAP);
