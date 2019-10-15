@@ -139,11 +139,12 @@ interface BoundingBox {
 }
 
 const edgeToBoundingBox = (
-    viewMat: mat4, level: Level, poly: number, edge: number
+    viewMat: mat4, level: Level, poly: number, edgeID: number
 ) => {
     const source = level.polygons[poly]
-    const first = source.edges[edge].vertex;
-    const second = source.edges[edge].nextVertex;
+    const edge = level.edges[edgeID];
+    const first = edge.vertex;
+    const second = edge.nextVertex;
 
     const verts: vec3[] = [
         vec3.fromValues(first[0], first[1], source.floorHeight),

@@ -71,7 +71,7 @@ export class FPCanvas extends React.Component<Props> {
 
         // Draw our map
         for (let i = 0;i < level.polygons.length;i++) {
-            this.renderer.world.addPolygon(level.polygons, i);
+            this.renderer.world.addPolygon(level, i);
         }
 
         // Draw all entity sprites.
@@ -108,7 +108,7 @@ export class FPCanvas extends React.Component<Props> {
         // Redraw our map.
         this.renderer.world.clearWorld();
         for (let i = 0;i < level.polygons.length;i++) {
-            this.renderer.world.addPolygon(level.polygons, i);
+            this.renderer.world.addPolygon(level, i);
         }
 
         // Redraw all our entities.

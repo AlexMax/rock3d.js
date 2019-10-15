@@ -20,7 +20,7 @@ import { vec3 } from 'gl-matrix';
 
 import {
     flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level,
-    isSerializedLevel
+    isSerializedLevel, createLevel
 } from '../src/level';
 
 import TESTMAP from './TESTMAP.json';
@@ -32,7 +32,7 @@ beforeAll(() => {
         throw new Error('TESTMAP is not valid level data');
     }
 
-    testLevel = new Level(TESTMAP);
+    testLevel = createLevel(TESTMAP);
 });
 
 test('Flood-fill that always succeeds', () => {

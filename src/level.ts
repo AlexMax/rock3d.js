@@ -18,7 +18,7 @@
 
 import { vec2, vec3, vec4 } from 'gl-matrix';
 
-import { MutableEdge } from './edge';
+import { cacheNormal, Edge, MutableEdge } from './edge';
 import {
     isSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
@@ -26,58 +26,56 @@ import {
     intersectPlane, pointInCube, pointInDirection3, toPlane
 } from './math';
 import {
-    isSerializedPolygon, Polygon, SerializedPolygon, unserializePolygon
+    cacheTessellation, isSerializedPolygon, Polygon, SerializedPolygon,
+    unserializePolygon
 } from './polygon';
 import { objectHasKey } from './util';
 
-export class Level {
+/**
+ * Mutable version of Level.
+ */
+export interface MutableLevel {
     polygons: Polygon[];
+    edges: Edge[];
     locations: Location[];
+    __mutable: true;
+}
 
-    constructor(level: SerializedLevel) {
-        // Polygons are unpacked directly.
-        this.polygons = level.polygons.map((data) => {
-            return unserializePolygon(data);
-        });
+/**
+ * A Level contains all loaded level data.
+ */
+export type Level = Omit<Readonly<MutableLevel>, "__mutable">;
 
-        // Cache backPoly edge and normal vector.
-        for (const poly of this.polygons) {
-            for (let i = 0;i < poly.edges.length;i++) {
-                // Front vertexes.
-                const frontOne = poly.edges[i].vertex;
-                const frontTwo = poly.edges[i].nextVertex;
+export const createLevel = (level: SerializedLevel): MutableLevel => {
+    // We keep edges in a separate array.
+    const edges: MutableEdge[] = [];
 
-                // Cache normal vector
-                (poly.edges[i] as MutableEdge).normalCache = vec2.fromValues(
-                    frontTwo[1] - frontOne[1],
-                    -(frontTwo[0] - frontOne[0])
-                );
+    // Polygons are unpacked, edges are unpacked into the array at the
+    // same time.
+    const polygons = level.polygons.map((data) => {
+        return unserializePolygon(data, edges);
+    });
 
-                // Check for backPoly
-                const backIndex = poly.edges[i].backPoly;
-                if (backIndex === null) {
-                    continue
-                }
-
-                // Find matching edge in backPoly.
-                const backPoly = this.polygons[backIndex];
-                for (let j = 0;j < backPoly.edges.length;j++) {
-                    const backOne = backPoly.edges[j].vertex;
-                    const backTwo = backPoly.edges[j].nextVertex;
-
-                    if (vec2.equals(frontOne, backTwo) && vec2.equals(frontTwo, backOne)) {
-                        (poly.edges[i] as MutableEdge).backEdgeCache = j;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Locations are unpacked directly.
-        this.locations = level.locations.map((data) => {
-            return unserializeLocation(data);
-        });
+    // Cache polygon tessellation.
+    for (const poly of polygons) {
+        cacheTessellation(poly, edges);
     }
+
+    // Cache edge normal vector.
+    for (const edge of edges) {
+        cacheNormal(edge);
+    }
+
+    // Locations are unpacked directly.
+    const locations = level.locations.map((data) => {
+        return unserializeLocation(data);
+    });
+
+    return {
+        polygons: polygons,
+        edges: edges,
+        locations: locations,
+    } as Level as MutableLevel;
 }
 
 type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
@@ -89,8 +87,8 @@ const floodRecursive = (
 ): void => {
     flooded.add(checkPoly);
     const poly = level.polygons[checkPoly];
-    for (let i = 0;i < poly.edges.length;i++) {
-        const edge = poly.edges[i];
+    for (let i = 0;i < poly.edgeIDs.length;i++) {
+        const edge = level.edges[poly.edgeIDs[i]];
         if (edge.backPoly === null) {
             // There is no polygon to examine.
             continue;
@@ -267,15 +265,18 @@ export const hitscan = (
     let shortestWallDist = Infinity;
 
     const wallInter = vec3.create();
-    for (let i = 0;i < poly.edges.length;i++) {
+    for (let i = 0;i < poly.edgeIDs.length;i++) {
+        // Get our edge.
+        const edge = level.edges[poly.edgeIDs[i]];
+
         // Only consider edges that we can hit the front of.
-        const normal = poly.edges[i].normalCache as vec2;
+        const normal = edge.normalCache as vec2;
         if (vec2.dot([direction[0], direction[1]], normal) >= 0) {
             continue;
         }
 
-        const v32 = poly.edges[i].vertex;
-        const v42 = poly.edges[i].nextVertex;
+        const v32 = edge.vertex;
+        const v42 = edge.nextVertex;
         const v3 = vec3.fromValues(v32[0], v32[1], poly.floorHeight);
         const v4 = vec3.fromValues(v42[0], v42[1], poly.ceilHeight);
         const v5 = vec3.fromValues(v42[0], v42[1], poly.floorHeight);
@@ -327,7 +328,8 @@ export const hitscan = (
         };
     }
     if (isFinite(shortestWallDist)) {
-        const backPolyID = poly.edges[(shortestWall as number)].backPoly;
+        const edge = level.edges[poly.edgeIDs[(shortestWall as number)]];
+        const backPolyID = edge.backPoly;
         if (backPolyID !== null) {
             // Check if our hitscan is in-bounds in the next polygon.
             const backPoly = level.polygons[backPolyID];

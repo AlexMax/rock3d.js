@@ -20,7 +20,7 @@ import React from 'react';
 
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
-import { EditableLevel } from '../editableLevel';
+import { createEditableLevel, EditableLevel } from '../editableLevel';
 import { isSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
@@ -65,7 +65,7 @@ export class Root extends React.Component<{}, State> {
             throw new Error('Map data is not valid');
         }
 
-        const level = new EditableLevel(TESTMAP);
+        const level = createEditableLevel(TESTMAP);
         this.setState({ level: level, mode: Mode.DrawView });
     }
 

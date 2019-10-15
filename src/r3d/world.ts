@@ -21,6 +21,7 @@ import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 import { Atlas } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
+import { Level } from '../level';
 import { Polygon } from '../polygon';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
@@ -154,14 +155,14 @@ export class WorldContext {
         // Polygon vertexes and indexes.
         this.worldVerts = new ArrayBuffer(32768);
         this.worldVertCount = 0;
-        this.worldInds = new Uint16Array(1024);
+        this.worldInds = new Uint16Array(2048);
         this.worldIndCount = 0;
         this.worldProject = mat4.create();
 
         // Sprite vertexes and indexes.
         this.spriteVerts = new ArrayBuffer(32768);
         this.spriteVertCount = 0;
-        this.spriteInds = new Uint16Array(1024);
+        this.spriteInds = new Uint16Array(2048);
         this.spriteIndCount = 0;
 
         // Sky vertexes and indexes.
@@ -436,19 +437,19 @@ export class WorldContext {
     /**
      * Add a complete polygon to the set of things to render.
      * 
-     * @param polygon Set of polygon data to use while rendering.
+     * @param level Set of level data to use while rendering.
      * @param index Polygon index to actually render.
      */
-    addPolygon(polygons: Polygon[], index: number): void {
-        const polygon = polygons[index];
+    addPolygon(level: Level, polyID: number): void {
+        const polygon = level.polygons[polyID];
 
         // Draw walls of the polygon
-        for (let i = 0;i < polygon.edges.length;i++) {
-            const edge = polygon.edges[i];
+        for (let i = 0;i < polygon.edgeIDs.length;i++) {
+            const edge = level.edges[polygon.edgeIDs[i]];
 
             // Is this a one-sided wall or a portal?
             if (typeof edge.backPoly === 'number') {
-                const backPoly = polygons[edge.backPoly];
+                const backPoly = level.polygons[edge.backPoly];
                 if (polygon.ceilHeight > backPoly.ceilHeight && edge.upperTex !== null ) {
                     this.addWall(edge.vertex, edge.nextVertex, backPoly.ceilHeight, polygon.ceilHeight, edge.upperTex, polygon.brightness);
                 }
@@ -479,11 +480,11 @@ export class WorldContext {
      * Entities are represented as sprites that are billboarded towards
      * the camera.
      * 
+     * @param level Level to use when looking up polygon.
      * @param entity Entity to render.
      * @param cam Camera to billboard relative to.
-     * @param polygons Polygons to use when looking up entity positions.
      */
-    addEntity(entity: Entity, cam: Camera, polygons: Polygon[]): void {
+    addEntity(level: Level, entity: Entity, cam: Camera): void {
         if (this.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
@@ -539,7 +540,7 @@ export class WorldContext {
         const vt2 = 1;
 
         // Figure out the brightness of the surrounding polygon.
-        const polygon = polygons[entity.polygon];
+        const polygon = level.polygons[entity.polygon];
         const rBright = polygon.brightness[0] / 256;
         const gBright = polygon.brightness[1] / 256;
         const bBright = polygon.brightness[2] / 256;

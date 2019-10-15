@@ -137,18 +137,18 @@ export const render = (client: Client, ctx: RenderContext) => {
     // Add our geometry to be rendered.
     ctx.world.clearWorld();
     for (let i = 0;i < level.polygons.length;i++) {
-        ctx.world.addPolygon(level.polygons, i);
+        ctx.world.addPolygon(level, i);
     }
 
     // Add our sprites to be rendered.
     ctx.world.clearSprites();
-    for (let [k, v] of snapshot.entities) {
-        if (k === camEntity) {
+    for (let [entityID, entity] of snapshot.entities) {
+        if (entityID === camEntity) {
             // Don't draw your own sprite.
             continue;
         }
 
-        ctx.world.addEntity(v, cam, level.polygons);
+        ctx.world.addEntity(level, entity, cam);
     }
 
     // Render the world.

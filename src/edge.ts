@@ -65,15 +65,6 @@ export interface MutableEdge {
     backPoly: number | null;
 
     /**
-     * ID of the edge in the backPoly that matches up with this edge.
-     * 
-     * This ID is calculated at runtime and is used by various functions
-     * like hitscan routines that need to know which Edge is on the opposite
-     * side of this Edge.
-     */
-    backEdgeCache?: number | null;
-
-    /**
      * Normal vector of Edge.
      *
      * Calculated at runtime.  Must be refreshed if current or next vertex
@@ -100,6 +91,21 @@ export type Edge = Omit<Readonly<MutableEdge>, "__mutable">;
 export type EdgeOverlay = Pick<
     Partial<Edge>, "upperTex" | "middleTex" | "lowerTex"
 > & { original: Edge };
+
+/**
+ * Cache normal vector of edge.
+ */
+export const cacheNormal = (edge: MutableEdge): MutableEdge => {
+    const frontOne = edge.vertex;
+    const frontTwo = edge.nextVertex;
+
+    edge.normalCache = vec2.fromValues(
+        frontTwo[1] - frontOne[1],
+        -(frontTwo[0] - frontOne[0])
+    );
+
+    return edge;
+}
 
 /**
  * An Edge as it would appear in JSON.
@@ -145,7 +151,7 @@ export const isSerializedEdge = (edge: unknown): edge is SerializedEdge => {
  */
 export const unserializeEdge = (
     edge: SerializedEdge, v1: vec2, v2: vec2
-): Edge => {
+): MutableEdge => {
     return {
         vertex: v1,
         nextVertex: v2,
@@ -153,5 +159,5 @@ export const unserializeEdge = (
         middleTex: (typeof edge.middleTex === 'string') ? edge.middleTex : null,
         lowerTex: (typeof edge.lowerTex === 'string') ? edge.lowerTex : null,
         backPoly: (typeof edge.backPoly === 'number') ? edge.backPoly : null,
-    };
+    } as MutableEdge;
 }

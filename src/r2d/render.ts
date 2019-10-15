@@ -163,19 +163,19 @@ export class RenderContext {
     /**
      * Render level data.
      * 
-     * @param data Level data to render.
+     * @param level Level data to render.
      * @param cam Camera of the view.
      */
-    renderLevel(data: Level, cam: Camera): void {
+    renderLevel(level: Level, cam: Camera): void {
         const ctx = this.ctx;
         const cameraMat = getViewMatrix(cam);
 
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'white';
-        data.polygons.forEach((polygon) => {
-            for (let i = 0;i < polygon.edges.length;i++) {
-                const edge = polygon.edges[i];
+        level.polygons.forEach((polygon) => {
+            for (let i = 0;i < polygon.edgeIDs.length;i++) {
+                const edge = level.edges[polygon.edgeIDs[i]];
 
                 if (i === 0) {
                     const v = vec2.create();

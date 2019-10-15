@@ -20,15 +20,15 @@ import earcut from 'earcut';
 import { vec2, vec3 } from 'gl-matrix';
 
 import {
-    Edge, isSerializedEdge, SerializedEdge, unserializeEdge
+    Edge, isSerializedEdge, MutableEdge, SerializedEdge, unserializeEdge
 } from './edge';
 import { isThreeTuple, objectHasKey } from './util';
 
 export interface MutablePolygon {
     /**
-     * Edges of polygon.
+     * Edges of polygon, as ID's.
      */
-    edges: Edge[];
+    edgeIDs: number[];
 
     /**
      * Floor height.
@@ -95,12 +95,14 @@ export type PolygonOverlay = Pick<
  * Cache a tessellation of the floor and ceiling.
  * 
  * @param out Polygon to tessellate.
- * @param edge Edges to tessellate with.
+ * @param edges Edges array.
  */
-const cacheFlats = (out: MutablePolygon, edges: Edge[]): MutablePolygon => {
+export const cacheTessellation = (
+    out: MutablePolygon, edges: Edge[]
+): MutablePolygon => {
     const verts: number[] = [];
-    for (let i = 0;i < edges.length;i++) {
-        const vert = edges[i].vertex;
+    for (let i = 0;i < out.edgeIDs.length;i++) {
+        const vert = edges[out.edgeIDs[i]].vertex;
         verts.push(vert[0]);
         verts.push(vert[1]);
     }
@@ -176,22 +178,31 @@ export const isSerializedPolygon = (poly: unknown): poly is SerializedPolygon =>
     return true;
 }
 
-export const unserializePolygon = (poly: SerializedPolygon): Polygon => {
+export const unserializePolygon = (
+    poly: SerializedPolygon, edges: MutableEdge[]
+): MutablePolygon => {
+    // Keep track of our edges in an array of indexes.
+    const edgeIDs: number[] = [];
+
     // Unpack vertexes first, so we can assign them later.
     const vertexes = poly.edges.map((edge) => {
         return vec2.fromValues(edge.vertex[0], edge.vertex[1]);
     });
 
     // Unpack edges next.
-    const edges = poly.edges.map((edge, index) => {
+    poly.edges.forEach((edge, index) => {
+        // Push our edge ID.
+        const edgeID = edges.length;
+        edgeIDs.push(edgeID);
+
         const v1 = vertexes[index];
         const v2 = vertexes[(index + 1) % poly.edges.length];
-        return unserializeEdge(edge, v1, v2);
+        edges.push(unserializeEdge(edge, v1, v2));
     });
 
     // New polygon object.
     const newPolygon = {
-        edges: edges,
+        edgeIDs: edgeIDs,
         floorHeight: poly.floorHeight,
         ceilHeight: poly.ceilHeight,
         floorTex: poly.floorTex,
@@ -203,9 +214,6 @@ export const unserializePolygon = (poly: SerializedPolygon): Polygon => {
         floorIndsCache: [],
         ceilIndsCache: [],
     } as Polygon as MutablePolygon;
-
-    // Cache flats in our new polygon object.
-    cacheFlats(newPolygon, edges);
 
     return newPolygon;
 }

@@ -19,7 +19,9 @@
 import { vec2 } from 'gl-matrix';
 
 import { SerializedEdge } from '../edge';
-import { isSerializedLevel, Level, SerializedLevel } from '../level';
+import {
+    createLevel, isSerializedLevel, MutableLevel, SerializedLevel
+} from '../level';
 import { SerializedPolygon } from '../polygon';
 
 interface VertexPolys {
@@ -36,18 +38,18 @@ interface VertexPolys {
 
 class VertexCache extends Map<String, VertexPolys> {
 
-    constructor(level: Level) {
+    constructor(level: MutableLevel) {
         super();
         const polys = level.polygons;
         for (let i = 0;i < polys.length;i++) {
             const poly = polys[i];
-            for (let j = 0;j < poly.edges.length;j++) {
-                const side = poly.edges[j];
-                const hash = side.vertex.toString();
+            for (let j = 0;j < poly.edgeIDs.length;j++) {
+                const edge = level.edges[poly.edgeIDs[j]];
+                const hash = edge.vertex.toString();
                 if (!this.has(hash)) {
                     // Vertex does not exist, create a new entity in the cache.
                     this.set(hash, {
-                        vertex: side.vertex,
+                        vertex: edge.vertex,
                         polys: [i],
                     });
                 } else {
@@ -75,12 +77,14 @@ class VertexCache extends Map<String, VertexPolys> {
  * A EditableLevel is a Level that has additional fields specifically needed
  * by the editor that are irrelevant for actually playing the game.
  */
-export class EditableLevel extends Level {
-
+export interface EditableLevel extends MutableLevel {
     vertexCache: VertexCache;
+}
 
-    constructor(level: SerializedLevel) {
-        super(level);
-        this.vertexCache = new VertexCache(this);
-    }
+export const createEditableLevel = (level: SerializedLevel): EditableLevel => {
+    const newLevel = createLevel(level);
+    return {
+        ...newLevel,
+        vertexCache: new VertexCache(newLevel),
+    };
 }
