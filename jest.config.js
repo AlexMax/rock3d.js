@@ -12,7 +12,7 @@ module.exports = {
     testMatch: [
         "**/tests/**/*test.[jt]s?(x)"
     ],
-    collectCoverage: true,
+    collectCoverage: false,
     collectCoverageFrom: [
         "**/*.ts",
     ],
