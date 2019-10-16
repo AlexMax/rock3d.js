@@ -93,10 +93,8 @@ export class Simulation {
         // authoritative snapshot is.
         const targetClock = this.clock + 1;
 
-        // Construct two snapshots and copy the auth into the first current.
-        let current = createSnapshot();
-        let target = createSnapshot();
-        copySnapshot(current, this.authSnapshot);
+        // Copy our authoritative data into a snapshot we can mutate.
+        const current = copySnapshot(createSnapshot(), this.authSnapshot);
 
         while (current.clock < targetClock) {
             // Find the input for our frame.
@@ -104,7 +102,7 @@ export class Simulation {
                 return ele.clock === current.clock;
             }, null);
             if (input === undefined) {
-                throw new Error(`Can't find input for frame ${target.clock}.`);
+                throw new Error(`Can't find input for frame ${current.clock}.`);
             }
 
             // Insert our local input into the list of authoritative commands.
@@ -116,14 +114,14 @@ export class Simulation {
             });
 
             // Predict frame.
-            tickSnapshot(target, current, commands, this.level, this.period);
+            tickSnapshot(
+                this.predictSnapshot, current, commands, this.level, this.period
+            );
 
-            // Our target is now our current for the next loop.
-            copySnapshot(current, target);
+            // Copy our prediction into current for the next tic.
+            // FIXME: This is not necessary on the last tic.
+            copySnapshot(current, this.predictSnapshot);
         }
-
-        // We're done predicting.  Save the result of our prediction.
-        this.predictSnapshot = current;
 
         // Our clock now officially the target.
         this.clock = targetClock;

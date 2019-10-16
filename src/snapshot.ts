@@ -73,9 +73,13 @@ export interface Snapshot {
     heldButtons: Map<number, number>;
 
     /**
-     * Cache of level after effects of mutator.
+     * Level state for snapshot.
+     *
+     * This is generated from the original level data based on mutators
+     * run during the tick.  It is not serialized and starts out with a
+     * fresh copy of the original level data at the start of every tick.
      */
-    mutatedLevelCache: MutableLevel;
+    level: MutableLevel;
 }
 
 /**
@@ -90,7 +94,7 @@ export const createSnapshot = (): Snapshot =>  {
         nextMutatorID: 1,
         players: new Map(),
         heldButtons: new Map(),
-        mutatedLevelCache: createEmptyLevel(),
+        level: createEmptyLevel(),
     }
 }
 
@@ -265,11 +269,12 @@ const handlePlayer = (
  * Tick mutators in snapshot.
  * 
  * @param snap Snapshot frame to tick.
+ * @param level Original level to use as a base.
  * @param period Amount of time to tick in milliseconds.
  */
-const tickMutators = (snap: Snapshot, period: number): void => {
+const tickMutators = (snap: Snapshot, level: Level, period: number): void => {
     for (const [mutatorID, mutator] of snap.mutators) {
-        mutator.config.think(snap);
+        mutator.config.think(snap, level, period);
     }
 }
 
@@ -284,7 +289,7 @@ const tickEntities = (snap: Snapshot, period: number): void => {
         const newVelocity = vec3.clone(entity.velocity);
 
         // If entity isn't on the ground, add gravity.
-        const poly = snap.mutatedLevelCache.polygons[entity.polygon];
+        const poly = snap.level.polygons[entity.polygon];
         if (entity.config.grounded && entity.position[2] >= poly.floorHeight) {
             newVelocity[2] -= 1;
         } else {
@@ -327,7 +332,7 @@ export const tickSnapshot = (
     out.clock = snap.clock + 1;
 
     // Use passed level data to initialize mutated level cache.
-    copyLevel(out.mutatedLevelCache, level);
+    copyLevel(out.level, level);
 
     // Run our commands against the current frame, in the specified order.
     for (const command of commands) {
@@ -344,7 +349,7 @@ export const tickSnapshot = (
     }
 
     // Tick our mutators and entities, in that order.
-    tickMutators(out, period);
+    tickMutators(out, level, period);
     tickEntities(out, period);
 
     return out;
@@ -431,6 +436,6 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         nextMutatorID: snap.nextMutatorID,
         players: snapPlayers,
         heldButtons: snapHeldButtons,
-        mutatedLevelCache: createEmptyLevel(),
+        level: createEmptyLevel(),
     };
 }

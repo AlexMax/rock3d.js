@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Level } from "./level";
 import { Snapshot } from "./snapshot";
 
 export interface MutatorConfig {
@@ -27,7 +28,7 @@ export interface MutatorConfig {
     /**
      * Thinker function.
      */
-    think: (snap: Snapshot) => void;
+    think: (snap: Snapshot, level: Level, period: number) => void;
 }
 
 /**
@@ -35,8 +36,11 @@ export interface MutatorConfig {
  */
 export const liftConfig: MutatorConfig = {
     name: "Lift",
-    think: (snap) => {
-
+    think: (snap, level, period) => {
+        snap.level.polygons[7] = {
+            ...level.polygons[7],
+            floorHeight: 24,
+        }
     }
 }
 

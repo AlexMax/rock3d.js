@@ -128,7 +128,7 @@ export const render = (client: Client, ctx: RenderContext) => {
     }
 
     const cam = fromEntity(entity);
-    const level = client.sim.level;
+    const level = snapshot.level;
 
     // Create our sky.
     ctx.world.clearSky();
