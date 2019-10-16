@@ -86,13 +86,6 @@ export interface MutableEdge {
 export type Edge = Omit<Readonly<MutableEdge>, "__mutable">;
 
 /**
- * An Edge with overridden properties.
- */
-export type EdgeOverlay = Pick<
-    Partial<Edge>, "upperTex" | "middleTex" | "lowerTex"
-> & { original: Edge };
-
-/**
  * Cache normal vector of edge.
  */
 export const cacheNormal = (edge: MutableEdge): MutableEdge => {

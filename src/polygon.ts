@@ -84,14 +84,6 @@ export interface MutablePolygon {
 export type Polygon = Omit<Readonly<MutablePolygon>, "__mutable">;
 
 /**
- * A Polygon with overridden properties.
- */
-export type PolygonOverlay = Pick<
-    Partial<Polygon>,
-    "floorHeight" | "ceilHeight" | "floorTex" | "ceilTex" | "brightness"
-> & { original: Polygon };
-
-/**
  * Cache a tessellation of the floor and ceiling.
  * 
  * @param out Polygon to tessellate.

@@ -19,7 +19,6 @@
 import { quat, vec2, vec3 } from 'gl-matrix';
 
 import * as cmd from './command';
-import { EdgeOverlay } from './edge';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig, cloneEntity
@@ -30,7 +29,6 @@ import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
 } from './mutator';
-import { PolygonOverlay } from './polygon';
 
 export interface Snapshot {
     /**
@@ -71,21 +69,6 @@ export interface Snapshot {
      * Key is client ID, value is button bitfield.
      */
     heldButtons: Map<number, number>;
-
-    /**
-     * Complete set of polygon overlays for this tick.
-     *
-     * Key is polygon ID, value is ovarlaid polygon data.
-     */
-    polyOverlays: Map<number, PolygonOverlay>;
-
-    /**
-     * Complete set of edge overlays for this tick.
-     *
-     * Key is a string of polygon and edge ID separated by underscore,
-     * value is overlaid edge data.
-     */
-    edgeOverlays: Map<number, EdgeOverlay>;
 }
 
 export interface SerializedSnapshot {
@@ -110,8 +93,6 @@ export const createSnapshot = (): Snapshot =>  {
         nextMutatorID: 1,
         players: new Map(),
         heldButtons: new Map(),
-        polyOverlays: new Map(),
-        edgeOverlays: new Map(),
     }
 }
 
@@ -186,8 +167,6 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         nextMutatorID: snap.nextMutatorID,
         players: snapPlayers,
         heldButtons: snapHeldButtons,
-        polyOverlays: new Map(), // TODO: Implement.
-        edgeOverlays: new Map(), // TODO: Implement.
     };
 }
 
@@ -346,7 +325,7 @@ const handlePlayer = (
 }
 
 const tickMutators = (
-    target: Snapshot, level: Readonly<Level>, period: number
+    target: Snapshot, level: Level, period: number
 ): void => {
     for (const [mutatorID, mutator] of target.mutators) {
         mutator.config.think();
@@ -354,7 +333,7 @@ const tickMutators = (
 }
 
 const tickEntities = (
-    target: Snapshot, level: Readonly<Level>, period: number
+    target: Snapshot, level: Level, period: number
 ): void => {
     for (const [entityID, entity] of target.entities) {
         const newVelocity = vec3.clone(entity.velocity);
@@ -393,7 +372,7 @@ const tickEntities = (
  */
 export const tickSnapshot = (
     target: Snapshot, current: Readonly<Snapshot>,
-    commands: Readonly<cmd.Command[]>, level: Readonly<Level>, period: number
+    commands: Readonly<cmd.Command[]>, level: Level, period: number
 ): Snapshot  => {
     // Copy our current snapshot into our target snapshot.
     copySnapshot(target, current);

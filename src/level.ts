@@ -46,6 +46,22 @@ export interface MutableLevel {
  */
 export type Level = Omit<Readonly<MutableLevel>, "__mutable">;
 
+/**
+ * Create an empty Level structure.
+ */
+export const createEmptyLevel = (): MutableLevel => {
+    return {
+        polygons: [],
+        edges: [],
+        locations: [],
+    } as Level as MutableLevel;
+}
+
+/**
+ * Create a level from serialized level data.
+ *
+ * @param level Serialized level data.
+ */
 export const createLevel = (level: SerializedLevel): MutableLevel => {
     // We keep edges in a separate array.
     const edges: MutableEdge[] = [];
@@ -76,6 +92,20 @@ export const createLevel = (level: SerializedLevel): MutableLevel => {
         edges: edges,
         locations: locations,
     } as Level as MutableLevel;
+}
+
+/**
+ * Shallow-copy a level to a target mutable level.
+ *
+ * This makes copies of the level data arrays, but the references inside
+ * those arrays remain the same.  You can't mutate those references, but
+ * you can replace the references with brand new ones.
+ */
+export const copyLevel = (out: MutableLevel, level: Level): MutableLevel => {
+    out.polygons.splice(0, level.polygons.length, ...level.polygons);
+    out.edges.splice(0, level.edges.length, ...level.edges);
+    out.locations.splice(0, level.locations.length, ...level.locations);
+    return out;
 }
 
 type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
