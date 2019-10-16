@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Snapshot } from "./snapshot";
+
 export interface MutatorConfig {
     /**
      * Name of the mutator, for informational or debugging purposes.
@@ -25,7 +27,7 @@ export interface MutatorConfig {
     /**
      * Thinker function.
      */
-    think: () => void;
+    think: (snap: Snapshot) => void;
 }
 
 /**
@@ -33,7 +35,7 @@ export interface MutatorConfig {
  */
 export const liftConfig: MutatorConfig = {
     name: "Lift",
-    think: () => {
+    think: (snap) => {
 
     }
 }

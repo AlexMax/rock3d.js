@@ -23,7 +23,9 @@ import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig, cloneEntity
 } from './entity';
-import { Level } from './level';
+import {
+    Level, MutableLevel, createEmptyLevel, copyLevel
+} from './level';
 import { quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
@@ -69,16 +71,11 @@ export interface Snapshot {
      * Key is client ID, value is button bitfield.
      */
     heldButtons: Map<number, number>;
-}
 
-export interface SerializedSnapshot {
-    clock: number;
-    entities: { [key: number]: SerializedEntity };
-    nextEntityID: number;
-    mutators: { [key: number]: SerializedMutator };
-    nextMutatorID: number;
-    players: { [key: number]: number };
-    heldButtons: { [key: number]: number };
+    /**
+     * Cache of level after effects of mutator.
+     */
+    mutatedLevelCache: MutableLevel;
 }
 
 /**
@@ -93,7 +90,274 @@ export const createSnapshot = (): Snapshot =>  {
         nextMutatorID: 1,
         players: new Map(),
         heldButtons: new Map(),
+        mutatedLevelCache: createEmptyLevel(),
     }
+}
+
+/**
+ * Set the contents of destination snapshot to source.
+ * 
+ * @param dst Destination snapshot.
+ * @param src Source snapshot.
+ */
+export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
+    dst.clock = src.clock;
+    dst.nextEntityID = src.nextEntityID;
+    dst.nextMutatorID = src.nextMutatorID;
+
+    // Shallow copy our entities Map.
+    dst.entities.clear();
+    for (const [k, v] of src.entities) {
+        dst.entities.set(k, v);
+    }
+
+    // Shallow copy our mutators Map.
+    dst.mutators.clear();
+    for (const [k, v] of src.mutators) {
+        dst.mutators.set(k, v);
+    }
+
+    // Shallow copy our players Map.
+    dst.players.clear();
+    for (const [k, v] of src.players) {
+        dst.players.set(k, v);
+    }
+
+    // Shallow copy our held buttons Map.
+    dst.heldButtons.clear();
+    for (const [k, v] of src.heldButtons) {
+        dst.heldButtons.set(k, v);
+    }
+
+    return dst;
+}
+
+/**
+ * Handle player joining and leaving.
+ * 
+ * @param snap Snapshot frame to tick.
+ * @param command Input command to handle.
+ * @param period Amount of time to tick in milliseconds.
+ */
+const handleInput = (
+    snap: Snapshot, command: Readonly<cmd.InputCommand>,
+    period: number
+): void => {
+    // Get entity ID for player entity.
+    const entityID = snap.players.get(command.clientID);
+    if (entityID === undefined) {
+        return;
+    }
+
+    // Get current held buttons for player entity.
+    let heldButtons = snap.heldButtons.get(command.clientID);
+    if (heldButtons === undefined) {
+        return;
+    }
+
+    // Get the commend entity.
+    let entity = snap.entities.get(entityID);
+    if (entity === undefined) {
+        return;
+    }
+
+    const input = command.input;
+
+    // Use inputs to rotate entity rotation.
+    if (input.pitch !== 0.0 || input.yaw !== 0.0) {
+        const newEntity = rotateEuler(
+            cloneEntity(entity), entity, 0, input.pitch, input.yaw
+        );
+        snap.entities.set(entityID, newEntity);
+        entity = newEntity;
+    }
+
+    // Modify our held buttons based on our inputs.
+    heldButtons = cmd.updateButtons(heldButtons, input);
+    snap.heldButtons.set(command.clientID, heldButtons);
+
+    // Maximum force is based on the period.
+    const maxSpeed = (512 * period) / 1000;
+    const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
+
+    // Use our held buttons to calculate desired force.
+    //
+    // Note that we are purposefully handling our axis separately
+    // in order to allow straferunning.
+    const force = vec2.create();
+    if (cmd.checkButton(heldButtons, cmd.Button.WalkForward)) {
+        force[0] = maxSpeed / 4;
+    }
+    if (cmd.checkButton(heldButtons, cmd.Button.WalkBackward)) {
+        force[0] = -maxSpeed / 4;
+    }
+    if (cmd.checkButton(heldButtons, cmd.Button.StrafeLeft)) {
+        force[1] = maxSpeed / 4;
+    }
+    if (cmd.checkButton(heldButtons, cmd.Button.StrafeRight)) {
+        force[1] = -maxSpeed / 4;
+    }
+    if (force[0] !== 0 || force[1] !== 0) {
+        const newEntity = forceRelativeXY(
+            cloneEntity(entity), entity, force, forceCap
+        );
+        snap.entities.set(entityID, newEntity);
+        entity = newEntity;
+    }
+
+    // Handle "use" button.
+    if (cmd.checkPressed(input, cmd.Button.Use)) {
+        // Create a new mutator for the lift.
+        snap.mutators.set(snap.nextMutatorID, {
+            config: liftConfig,
+            activated: snap.clock,
+        });
+        snap.nextMutatorID += 1;
+    }
+}
+
+/**
+ * Handle player joining and leaving.
+ * 
+ * @param snap Snapshot frame to tick.
+ * @param command Player command to handle.
+ */
+const handlePlayer = (
+    snap: Snapshot, command: Readonly<cmd.PlayerCommand>
+): void => {
+    switch (command.action) {
+        case 'add':
+            // Add a player to the player map.
+            snap.players.set(command.clientID, snap.nextEntityID);
+
+            // Create a new set of held buttons for player.
+            snap.heldButtons.set(command.clientID, 0);
+
+            // Create a new entity for the player.
+            snap.entities.set(snap.nextEntityID, {
+                config: playerConfig,
+                polygon: 0,
+                position: vec3.fromValues(0, 0, 0),
+                rotation: quat.fromEuler(quat.create(), 0, 0, 90),
+                velocity: vec3.fromValues(0, 0, 0),
+            });
+            snap.nextEntityID += 1;
+            break;
+        case 'remove': {
+            // Get the Entity ID for the player.
+            const entityID = snap.players.get(command.clientID);
+            if (entityID !== undefined) {
+                // Delete the entity.
+                snap.entities.delete(entityID);
+            }
+
+            // Remove a player from the player array.
+            snap.players.delete(command.clientID);
+
+            // Clear their held buttons.
+            snap.heldButtons.delete(command.clientID);
+            break;
+        }
+    }
+}
+
+/**
+ * Tick mutators in snapshot.
+ * 
+ * @param snap Snapshot frame to tick.
+ * @param period Amount of time to tick in milliseconds.
+ */
+const tickMutators = (snap: Snapshot, period: number): void => {
+    for (const [mutatorID, mutator] of snap.mutators) {
+        mutator.config.think(snap);
+    }
+}
+
+/**
+ * Tick entities in snapshot.
+ * 
+ * @param snap Snapshot frame to tick.
+ * @param period Amount of time to tick in milliseconds.
+ */
+const tickEntities = (snap: Snapshot, period: number): void => {
+    for (const [entityID, entity] of snap.entities) {
+        const newVelocity = vec3.clone(entity.velocity);
+
+        // If entity isn't on the ground, add gravity.
+        const poly = snap.mutatedLevelCache.polygons[entity.polygon];
+        if (entity.config.grounded && entity.position[2] >= poly.floorHeight) {
+            newVelocity[2] -= 1;
+        } else {
+            newVelocity[2] = 0;
+        }
+
+        // If we have velocity, apply it.
+        if (!vec3.equals(newVelocity, [0, 0, 0])) {
+            // Any velocity we have in the X or Y direction is subject to
+            // friction.
+            newVelocity[0] *= 0.9;
+            newVelocity[1] *= 0.9;
+
+            // Quantize our velocity, if necessary.
+            quantize(newVelocity, newVelocity);
+            snap.entities.set(entityID, {
+                ...entity,
+                velocity: newVelocity,
+                position: vec3.add(vec3.create(), entity.position, entity.velocity),
+            });
+        }
+    }
+}
+
+/**
+ * Tick a snapshot frame.
+ * 
+ * @param out Target snapshot frame.
+ * @param snap Old snapshot frame to tick.
+ * @param commands Array of commands to process.
+ * @param level Level data to tick snapshot inside.
+ * @param period Amount of time to tick in milliseconds.
+ */
+export const tickSnapshot = (
+    out: Snapshot, snap: Readonly<Snapshot>,
+    commands: Readonly<cmd.Command[]>, level: Level, period: number
+): Snapshot  => {
+    // Copy our current snapshot into our target snapshot.
+    copySnapshot(out, snap);
+    out.clock = snap.clock + 1;
+
+    // Use passed level data to initialize mutated level cache.
+    copyLevel(out.mutatedLevelCache, level);
+
+    // Run our commands against the current frame, in the specified order.
+    for (const command of commands) {
+        switch (command.type) {
+            case cmd.CommandTypes.Input:
+                handleInput(out, command, period);
+                break;
+            case cmd.CommandTypes.Player:
+                handlePlayer(out, command);
+                break;
+            default:
+                throw new Error('Unknown message');
+            }
+    }
+
+    // Tick our mutators and entities, in that order.
+    tickMutators(out, period);
+    tickEntities(out, period);
+
+    return out;
+}
+
+export interface SerializedSnapshot {
+    clock: number;
+    entities: { [key: number]: SerializedEntity };
+    nextEntityID: number;
+    mutators: { [key: number]: SerializedMutator };
+    nextMutatorID: number;
+    players: { [key: number]: number };
+    heldButtons: { [key: number]: number };
 }
 
 /**
@@ -167,234 +431,6 @@ export const unserializeSnapshot = (snap: SerializedSnapshot): Snapshot => {
         nextMutatorID: snap.nextMutatorID,
         players: snapPlayers,
         heldButtons: snapHeldButtons,
+        mutatedLevelCache: createEmptyLevel(),
     };
-}
-
-/**
- * Set the contents of destination snapshot to source.
- * 
- * @param dst Destination snapshot.
- * @param src Source snapshot.
- */
-export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot => {
-    dst.clock = src.clock;
-    dst.nextEntityID = src.nextEntityID;
-    dst.nextMutatorID = src.nextMutatorID;
-
-    // Shallow copy our entities Map.
-    dst.entities.clear();
-    for (const [k, v] of src.entities) {
-        dst.entities.set(k, v);
-    }
-
-    // Shallow copy our mutators Map.
-    dst.mutators.clear();
-    for (const [k, v] of src.mutators) {
-        dst.mutators.set(k, v);
-    }
-
-    // Shallow copy our players Map.
-    dst.players.clear();
-    for (const [k, v] of src.players) {
-        dst.players.set(k, v);
-    }
-
-    // Shallow copy our held buttons Map.
-    dst.heldButtons.clear();
-    for (const [k, v] of src.heldButtons) {
-        dst.heldButtons.set(k, v);
-    }
-
-    return dst;
-}
-
-const handleInput = (
-    target: Snapshot, command: Readonly<cmd.InputCommand>,
-    period: number
-): void => {
-    // Get entity ID for player entity.
-    const entityID = target.players.get(command.clientID);
-    if (entityID === undefined) {
-        return;
-    }
-
-    // Get current held buttons for player entity.
-    let heldButtons = target.heldButtons.get(command.clientID);
-    if (heldButtons === undefined) {
-        return;
-    }
-
-    // Get the commend entity.
-    let entity = target.entities.get(entityID);
-    if (entity === undefined) {
-        return;
-    }
-
-    const input = command.input;
-
-    // Use inputs to rotate entity rotation.
-    if (input.pitch !== 0.0 || input.yaw !== 0.0) {
-        const newEntity = rotateEuler(
-            cloneEntity(entity), entity, 0, input.pitch, input.yaw
-        );
-        target.entities.set(entityID, newEntity);
-        entity = newEntity;
-    }
-
-    // Modify our held buttons based on our inputs.
-    heldButtons = cmd.updateButtons(heldButtons, input);
-    target.heldButtons.set(command.clientID, heldButtons);
-
-    // Maximum force is based on the period.
-    const maxSpeed = (512 * period) / 1000;
-    const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
-
-    // Use our held buttons to calculate desired force.
-    //
-    // Note that we are purposefully handling our axis separately
-    // in order to allow straferunning.
-    const force = vec2.create();
-    if (cmd.checkButton(heldButtons, cmd.Button.WalkForward)) {
-        force[0] = maxSpeed / 4;
-    }
-    if (cmd.checkButton(heldButtons, cmd.Button.WalkBackward)) {
-        force[0] = -maxSpeed / 4;
-    }
-    if (cmd.checkButton(heldButtons, cmd.Button.StrafeLeft)) {
-        force[1] = maxSpeed / 4;
-    }
-    if (cmd.checkButton(heldButtons, cmd.Button.StrafeRight)) {
-        force[1] = -maxSpeed / 4;
-    }
-    if (force[0] !== 0 || force[1] !== 0) {
-        const newEntity = forceRelativeXY(
-            cloneEntity(entity), entity, force, forceCap
-        );
-        target.entities.set(entityID, newEntity);
-        entity = newEntity;
-    }
-
-    // Handle "use" button.
-    if (cmd.checkPressed(input, cmd.Button.Use)) {
-        // Create a new mutator for the lift.
-        target.mutators.set(target.nextMutatorID, {
-            config: liftConfig,
-            activated: target.clock,
-        });
-        target.nextMutatorID += 1;
-    }
-}
-
-const handlePlayer = (
-    target: Snapshot, command: Readonly<cmd.PlayerCommand>
-): void => {
-    switch (command.action) {
-        case 'add':
-            // Add a player to the player map.
-            target.players.set(command.clientID, target.nextEntityID);
-
-            // Create a new set of held buttons for player.
-            target.heldButtons.set(command.clientID, 0);
-
-            // Create a new entity for the player.
-            target.entities.set(target.nextEntityID, {
-                config: playerConfig,
-                polygon: 0,
-                position: vec3.fromValues(0, 0, 0),
-                rotation: quat.fromEuler(quat.create(), 0, 0, 90),
-                velocity: vec3.fromValues(0, 0, 0),
-            });
-            target.nextEntityID += 1;
-            break;
-        case 'remove': {
-            // Get the Entity ID for the player.
-            const entityID = target.players.get(command.clientID);
-            if (entityID !== undefined) {
-                // Delete the entity.
-                target.entities.delete(entityID);
-            }
-
-            // Remove a player from the player array.
-            target.players.delete(command.clientID);
-
-            // Clear their held buttons.
-            target.heldButtons.delete(command.clientID);
-            break;
-        }
-    }
-}
-
-const tickMutators = (
-    target: Snapshot, level: Level, period: number
-): void => {
-    for (const [mutatorID, mutator] of target.mutators) {
-        mutator.config.think();
-    }
-}
-
-const tickEntities = (
-    target: Snapshot, level: Level, period: number
-): void => {
-    for (const [entityID, entity] of target.entities) {
-        const newVelocity = vec3.clone(entity.velocity);
-
-        // If entity isn't on the ground, add gravity.
-        const poly = level.polygons[entity.polygon];
-        if (entity.config.grounded && entity.position[2] >= poly.floorHeight) {
-            newVelocity[2] -= 1;
-        } else {
-            newVelocity[2] = 0;
-        }
-
-        // If we have velocity, apply it.
-        if (!vec3.equals(newVelocity, [0, 0, 0])) {
-            // Any velocity we have in the X or Y direction is subject to
-            // friction.
-            newVelocity[0] *= 0.9;
-            newVelocity[1] *= 0.9;
-
-            // Quantize our velocity, if necessary.
-            quantize(newVelocity, newVelocity);
-            target.entities.set(entityID, {
-                ...entity,
-                velocity: newVelocity,
-                position: vec3.add(vec3.create(), entity.position, entity.velocity),
-            });
-        }
-    }
-}
-
-/**
- * Tick a snapshot frame.
- * 
- * @param target Target snapshot frame.
- * @param current Current snapshot frame to tick.
- */
-export const tickSnapshot = (
-    target: Snapshot, current: Readonly<Snapshot>,
-    commands: Readonly<cmd.Command[]>, level: Level, period: number
-): Snapshot  => {
-    // Copy our current snapshot into our target snapshot.
-    copySnapshot(target, current);
-    target.clock = current.clock + 1;
-
-    // Run our commands against the current frame, in the specified order.
-    for (const command of commands) {
-        switch (command.type) {
-            case cmd.CommandTypes.Input:
-                handleInput(target, command, period);
-                break;
-            case cmd.CommandTypes.Player:
-                handlePlayer(target, command);
-                break;
-            default:
-                throw new Error('Unknown message');
-            }
-    }
-
-    // Tick our mutators and entities, in that order.
-    tickMutators(target, level, period);
-    tickEntities(target, level, period);
-
-    return target;
 }
