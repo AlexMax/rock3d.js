@@ -26,7 +26,7 @@ import {
 import {
     Level, MutableLevel, createEmptyLevel, copyLevel
 } from './level';
-import { quantize } from './math';
+import { circleTouchesLine, quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
@@ -305,10 +305,31 @@ const tickEntities = (snap: Snapshot, period: number): void => {
 
             // Quantize our velocity, if necessary.
             quantize(newVelocity, newVelocity);
+
+            // Initial position.
+            const newPos = vec3.add(
+                vec3.create(), entity.position, entity.velocity
+            );
+
+            // Collide the new position with walls of the current polygon.
+            const touches = vec2.create();
+            const edges = snap.level.polygons[entity.polygon].edgeIDs;
+            for (let i = 0;i < edges.length;i++) {
+                const edge = snap.level.edges[edges[i]];
+                if (circleTouchesLine(
+                    touches, edge.vertex, edge.nextVertex,
+                    entity.position, 16
+                ) !== null) {
+                    // We hit a wall, undo our move and stop in in our tracks.
+                    vec2.set(newVelocity, 0, 0);
+                    vec2.copy(newPos, entity.position);
+                }
+            }
+
             snap.entities.set(entityID, {
                 ...entity,
                 velocity: newVelocity,
-                position: vec3.add(vec3.create(), entity.position, entity.velocity),
+                position: newPos,
             });
         }
     }

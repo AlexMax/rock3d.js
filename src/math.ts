@@ -53,6 +53,50 @@ export const constrain = (x: number, min: number, max: number): number => {
 }
 
 /**
+ * Detect where on a line a circle is touching.
+ * 
+ * Returns the point on the line where the circle is touching it, or null
+ * if the circle does not touch the line.
+ * 
+ * @param out Output vector.  Only updated if circle touches line.
+ * @param a First vertex of line.
+ * @param b Second vertex of line.
+ * @param c Point of circle.
+ * @param r Radius of circle.
+ */
+export const circleTouchesLine = (
+    out: vec2, a: vec2, b: vec2, c: vec2, r: number
+): vec2 | null => {
+    // First we must get the length of the line.
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+
+    // Intermediate step to finding closest point on the line.
+    const R = (((c[0] - a[0]) * (b[0] - a[0])) + ((c[1] - a[1]) * (b[1] - a[1]))) / L ** 2;
+
+    // Actually find the closest point on the line
+    const Px = a[0] + (R * (b[0] - a[0]));
+    const Py = a[1] + (R * (b[1] - a[1]));
+
+    // Check to see if the closest point is on the line segment.
+    if (Px < Math.min(a[0], b[0]) || Px > Math.max(a[0], b[0])) {
+        return null;
+    }
+    if (Py < Math.min(a[1], b[1]) || Py > Math.max(a[1], b[1])) {
+        return null;
+    }
+
+    // Figure out if our circle is close enough to actually touch the line.
+    if (Math.hypot(Px - c[0], Py - c[1]) > r) {
+        return null;
+    }
+
+    // We have our point.
+    out[0] = Px;
+    out[1] = Py;
+    return out;
+}
+
+/**
  * Distance from origin to (x, y).
  *
  * @param x X coordinate.
