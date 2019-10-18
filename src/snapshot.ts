@@ -317,8 +317,7 @@ const tickEntities = (snap: Snapshot, period: number): void => {
             for (let i = 0;i < edges.length;i++) {
                 const edge = snap.level.edges[edges[i]];
                 if (circleTouchesLine(
-                    touches, edge.vertex, edge.nextVertex,
-                    entity.position, 16
+                    touches, edge.vertex, edge.nextVertex, newPos, 16
                 ) !== null) {
                     // We hit a wall, undo our move and stop in in our tracks.
                     vec2.set(newVelocity, 0, 0);
