@@ -50,7 +50,7 @@ export const fromEntity = (entity: Entity): Camera => {
         pos: vec3.fromValues(
             entity.position[0],
             entity.position[1],
-            entity.position[2] + entity.config.cameraZ),
+            entity.position[2] + entity.config.cameraHeight),
         dir: quat.clone(entity.rotation),
     };
 }

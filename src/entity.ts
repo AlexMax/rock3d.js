@@ -55,9 +55,19 @@ interface EntityConfig {
     name: string;
 
     /**
+     * Radius of the entity.
+     */
+    radius: number;
+
+    /**
+     * Height of the entity.
+     */
+    height: number;
+
+    /**
      * How high off the ground the camera is.
      */
-    cameraZ: number;
+    cameraHeight: number;
 
     /**
      * Prefix string that all animations for this entity share.
@@ -81,7 +91,9 @@ interface EntityConfig {
  */
 export const playerConfig: EntityConfig = {
     name: 'Player',
-    cameraZ: 48,
+    radius: 16,
+    height: 56,
+    cameraHeight: 48,
     spritePrefix: 'PLAY',
     grounded: true,
     animations: {

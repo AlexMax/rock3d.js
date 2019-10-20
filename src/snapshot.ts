@@ -311,13 +311,22 @@ const tickEntities = (snap: Snapshot, period: number): void => {
                 vec3.create(), entity.position, entity.velocity
             );
 
+            // Collide the new position with floors and ceilings.
+            const poly = snap.level.polygons[entity.polygon];
+            if (newPos[2] > poly.ceilHeight - entity.config.height) {
+                newPos[2] = poly.ceilHeight - entity.config.height;
+            }
+            if (newPos[2] < poly.floorHeight) {
+                newPos[2] = poly.floorHeight;
+            }
+
             // Collide the new position with walls of the current polygon.
             const touches = vec2.create();
-            const edges = snap.level.polygons[entity.polygon].edgeIDs;
+            const edges = poly.edgeIDs;
             for (let i = 0;i < edges.length;i++) {
                 const edge = snap.level.edges[edges[i]];
                 if (circleTouchesLine(
-                    touches, edge.vertex, edge.nextVertex, newPos, 16
+                    touches, edge.vertex, edge.nextVertex, newPos, entity.config.radius
                 ) !== null) {
                     // We hit a wall, undo our move and stop in in our tracks.
                     vec2.set(newVelocity, 0, 0);
