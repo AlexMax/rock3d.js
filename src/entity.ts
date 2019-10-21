@@ -19,6 +19,7 @@
 import { quat, vec2, vec3 } from 'gl-matrix';
 
 import { constrain, quatToEuler } from './math';
+import { Snapshot } from './snapshot';
 
 /**
  * A single frame of animation.
@@ -204,6 +205,19 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
         rotation: quat.fromValues(...entity.rotation),
         velocity: vec3.fromValues(...entity.velocity),
     };
+}
+
+/**
+ * Check to see if this entity is touching the floor.
+ *
+ * @param entity Entity to check.
+ */
+export const touchesFloor = (entity: Entity, snap: Snapshot): boolean => {
+    const poly = snap.level.polygons[entity.polygon];
+    if (entity.config.grounded && entity.position[2] <= poly.floorHeight) {
+        return true;
+    }
+    return false;
 }
 
 /**

@@ -21,12 +21,15 @@ import { quat, vec2, vec3 } from 'gl-matrix';
 import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
-    forceRelativeXY, rotateEuler, playerConfig, cloneEntity
+    forceRelativeXY, rotateEuler, playerConfig, cloneEntity, touchesFloor,
+    MutableEntity
 } from './entity';
 import {
     Level, MutableLevel, createEmptyLevel, copyLevel
 } from './level';
-import { circleTouchesLine, quantize } from './math';
+import {
+    cartesianToPolar, circleTouchesLine, polarToCartesian, quantize
+} from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
@@ -164,16 +167,19 @@ const handleInput = (
     if (entity === undefined) {
         return;
     }
+    let newEntity: undefined | MutableEntity = undefined;
 
+    // Get our input
     const input = command.input;
 
     // Use inputs to rotate entity rotation.
     if (input.pitch !== 0.0 || input.yaw !== 0.0) {
-        const newEntity = rotateEuler(
-            cloneEntity(entity), entity, 0, input.pitch, input.yaw
+        if (newEntity === undefined) {
+            newEntity = cloneEntity(entity);
+        }
+        rotateEuler(
+            newEntity, entity, 0, input.pitch, input.yaw
         );
-        snap.entities.set(entityID, newEntity);
-        entity = newEntity;
     }
 
     // Modify our held buttons based on our inputs.
@@ -182,6 +188,7 @@ const handleInput = (
 
     // Maximum force is based on the period.
     const maxSpeed = (512 * period) / 1000;
+    const jumpSpeed = (512 * period) / 1000;
     const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
 
     // Use our held buttons to calculate desired force.
@@ -202,11 +209,22 @@ const handleInput = (
         force[1] = -maxSpeed / 4;
     }
     if (force[0] !== 0 || force[1] !== 0) {
-        const newEntity = forceRelativeXY(
-            cloneEntity(entity), entity, force, forceCap
+        if (newEntity === undefined) {
+            newEntity = cloneEntity(entity);
+        }
+        forceRelativeXY(
+            newEntity, entity, force, forceCap
         );
-        snap.entities.set(entityID, newEntity);
-        entity = newEntity;
+    }
+
+    // Handle jumping.
+    if (cmd.checkButton(heldButtons, cmd.Button.Jump)) {
+        if (touchesFloor(entity, snap)) {
+            if (newEntity === undefined) {
+                newEntity = cloneEntity(entity);
+            }
+            newEntity.velocity[2] = jumpSpeed;
+        }
     }
 
     // Handle "use" button.
@@ -217,6 +235,11 @@ const handleInput = (
             activated: snap.clock,
         });
         snap.nextMutatorID += 1;
+    }
+
+    // If our entity was updated, set it in our snapshot.
+    if (newEntity !== undefined) {
+        snap.entities.set(entityID, newEntity);
     }
 }
 
@@ -285,23 +308,28 @@ const tickMutators = (snap: Snapshot, level: Level, period: number): void => {
  * @param period Amount of time to tick in milliseconds.
  */
 const tickEntities = (snap: Snapshot, period: number): void => {
+    // Avoid garbage while iterating our entities.
+    const polarVelocity: [number, number] = [0, 0];
+    const touches = vec2.create();
+
     for (const [entityID, entity] of snap.entities) {
         const newVelocity = vec3.clone(entity.velocity);
 
         // If entity isn't on the ground, add gravity.
-        const poly = snap.level.polygons[entity.polygon];
-        if (entity.config.grounded && entity.position[2] >= poly.floorHeight) {
-            newVelocity[2] -= 1;
-        } else {
+        if (touchesFloor(entity, snap)) {
             newVelocity[2] = 0;
+        } else {
+            newVelocity[2] -= 1;
         }
 
         // If we have velocity, apply it.
         if (!vec3.equals(newVelocity, [0, 0, 0])) {
             // Any velocity we have in the X or Y direction is subject to
-            // friction.
-            newVelocity[0] *= 0.9;
-            newVelocity[1] *= 0.9;
+            // friction.  In order to properly calculate this lost speed
+            // we need to work in polar coordinates.
+            cartesianToPolar(polarVelocity, newVelocity[0], newVelocity[1]);
+            polarVelocity[0] *= 0.9;
+            polarToCartesian(newVelocity, polarVelocity[0], polarVelocity[1]);
 
             // Quantize our velocity, if necessary.
             quantize(newVelocity, newVelocity);
@@ -321,7 +349,6 @@ const tickEntities = (snap: Snapshot, period: number): void => {
             }
 
             // Collide the new position with walls of the current polygon.
-            const touches = vec2.create();
             const edges = poly.edgeIDs;
             for (let i = 0;i < edges.length;i++) {
                 const edge = snap.level.edges[edges[i]];
