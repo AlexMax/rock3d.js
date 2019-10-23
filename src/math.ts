@@ -36,7 +36,7 @@ export const arrayRandom = <T>(array: T[]): T => {
  * Convert cartesian to polar coordinates.
  */
 export const cartesianToPolar = (out: polar, x: number, y: number): polar => {
-    out[0] = Math.sqrt(x ** 2 + y ** 2);
+    out[0] = Math.hypot(x, y);
     out[1] = Math.atan2(y, x);
     return out;
 }
@@ -94,16 +94,6 @@ export const circleTouchesLine = (
     out[0] = Px;
     out[1] = Py;
     return out;
-}
-
-/**
- * Distance from origin to (x, y).
- *
- * @param x X coordinate.
- * @param y Y coordinate.
- */
-export const distanceOrigin = (x: number, y: number): number => {
-    return Math.sqrt(x ** 2 + y ** 2);
 }
 
 /**
