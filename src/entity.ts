@@ -18,7 +18,8 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { constrain, quatToEuler } from './math';
+import { Level } from './level';
+import { constrain, quatToEuler, circleTouchesLine } from './math';
 import { Snapshot } from './snapshot';
 
 /**
@@ -271,5 +272,48 @@ export const rotateEuler = (
     euler[2] += z;
     const newRot = quat.fromEuler(quat.create(), euler[0], euler[1], euler[2]);
     out.rotation = newRot;
+    return out;
+}
+
+/**
+ * Apply stored velocity to entity.
+ * 
+ * @param out Entity to mutate.
+ * @param entity Entity to use as input.
+ * @param level Level data to apply velocity inside.
+ */
+export const applyVelocity = (
+    out: MutableEntity, entity: Entity, level: Level
+): MutableEntity => {
+    const touches = vec2.create();
+
+    // Our new position, according to our velocity.
+    const newPos = vec3.add(
+        vec3.create(), entity.position, entity.velocity
+    );
+
+    // Collide the new position with floors and ceilings.
+    const poly = level.polygons[entity.polygon];
+    if (newPos[2] > poly.ceilHeight - entity.config.height) {
+        newPos[2] = poly.ceilHeight - entity.config.height;
+    }
+    if (newPos[2] < poly.floorHeight) {
+        newPos[2] = poly.floorHeight;
+    }
+
+    // Collide the new position with walls of the current polygon.
+    const edges = poly.edgeIDs;
+    for (let i = 0;i < edges.length;i++) {
+        const edge = level.edges[edges[i]];
+        if (circleTouchesLine(
+            touches, edge.vertex, edge.nextVertex, newPos, entity.config.radius
+        ) !== null) {
+            // We hit a wall, undo our move and stop in in our tracks.
+            vec2.set(out.velocity, 0, 0);
+            vec2.copy(newPos, entity.position);
+        }
+    }
+
+    out.position = newPos;
     return out;
 }

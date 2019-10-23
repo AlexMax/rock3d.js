@@ -22,14 +22,10 @@ import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
     forceRelativeXY, rotateEuler, playerConfig, cloneEntity, touchesFloor,
-    MutableEntity
+    MutableEntity, applyVelocity
 } from './entity';
-import {
-    Level, MutableLevel, createEmptyLevel, copyLevel
-} from './level';
-import {
-    cartesianToPolar, circleTouchesLine, polarToCartesian, quantize
-} from './math';
+import { Level, MutableLevel, createEmptyLevel, copyLevel } from './level';
+import { cartesianToPolar, polarToCartesian, quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
@@ -310,20 +306,15 @@ const tickMutators = (snap: Snapshot, level: Level, period: number): void => {
 const tickEntities = (snap: Snapshot, period: number): void => {
     // Avoid garbage while iterating our entities.
     const polarVelocity: [number, number] = [0, 0];
-    const touches = vec2.create();
 
     for (const [entityID, entity] of snap.entities) {
         const newVelocity = vec3.clone(entity.velocity);
 
-        // If entity isn't on the ground, add gravity.
-        if (touchesFloor(entity, snap)) {
-            newVelocity[2] = 0;
-        } else {
-            newVelocity[2] -= 1;
-        }
-
         // If we have velocity, apply it.
         if (!vec3.equals(newVelocity, [0, 0, 0])) {
+            // Apply our velocity.
+            const newEntity = applyVelocity(cloneEntity(entity), entity, snap.level);
+
             // Any velocity we have in the X or Y direction is subject to
             // friction.  In order to properly calculate this lost speed
             // we need to work in polar coordinates.
@@ -331,41 +322,19 @@ const tickEntities = (snap: Snapshot, period: number): void => {
             polarVelocity[0] *= 0.9;
             polarToCartesian(newVelocity, polarVelocity[0], polarVelocity[1]);
 
+            // If entity isn't on the ground, add gravity.
+            if (touchesFloor(entity, snap)) {
+                newVelocity[2] = 0;
+            } else {
+                newVelocity[2] -= 1;
+            }
+
             // Quantize our velocity, if necessary.
             quantize(newVelocity, newVelocity);
 
-            // Initial position.
-            const newPos = vec3.add(
-                vec3.create(), entity.position, entity.velocity
-            );
-
-            // Collide the new position with floors and ceilings.
-            const poly = snap.level.polygons[entity.polygon];
-            if (newPos[2] > poly.ceilHeight - entity.config.height) {
-                newPos[2] = poly.ceilHeight - entity.config.height;
-            }
-            if (newPos[2] < poly.floorHeight) {
-                newPos[2] = poly.floorHeight;
-            }
-
-            // Collide the new position with walls of the current polygon.
-            const edges = poly.edgeIDs;
-            for (let i = 0;i < edges.length;i++) {
-                const edge = snap.level.edges[edges[i]];
-                if (circleTouchesLine(
-                    touches, edge.vertex, edge.nextVertex, newPos, entity.config.radius
-                ) !== null) {
-                    // We hit a wall, undo our move and stop in in our tracks.
-                    vec2.set(newVelocity, 0, 0);
-                    vec2.copy(newPos, entity.position);
-                }
-            }
-
-            snap.entities.set(entityID, {
-                ...entity,
-                velocity: newVelocity,
-                position: newPos,
-            });
+            // Save our entities to the snapshot.
+            newEntity.velocity = newVelocity;
+            snap.entities.set(entityID, newEntity);
         }
     }
 }
