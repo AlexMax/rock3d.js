@@ -173,7 +173,7 @@ export const checkPressed = (input: Input, button: number): boolean => {
  * @param button Button to check.
  */
 export const checkReleased = (input: Input, button: number): boolean => {
-    return (input.pressed & (1 << button)) > 0 ? true : false;
+    return (input.released & (1 << button)) > 0 ? true : false;
 }
 
 const updateButton = (

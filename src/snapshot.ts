@@ -308,32 +308,33 @@ const tickEntities = (snap: Snapshot, period: number): void => {
     const polarVelocity: [number, number] = [0, 0];
 
     for (const [entityID, entity] of snap.entities) {
-        const newVelocity = vec3.clone(entity.velocity);
-
         // If we have velocity, apply it.
-        if (!vec3.equals(newVelocity, [0, 0, 0])) {
+        if (!vec3.equals(entity.velocity, [0, 0, 0])) {
             // Apply our velocity.
             const newEntity = applyVelocity(cloneEntity(entity), entity, snap.level);
 
             // Any velocity we have in the X or Y direction is subject to
             // friction.  In order to properly calculate this lost speed
             // we need to work in polar coordinates.
-            cartesianToPolar(polarVelocity, newVelocity[0], newVelocity[1]);
+            cartesianToPolar(
+                polarVelocity, newEntity.velocity[0], newEntity.velocity[1]
+            );
             polarVelocity[0] *= 0.9;
-            polarToCartesian(newVelocity, polarVelocity[0], polarVelocity[1]);
+            polarToCartesian(
+                newEntity.velocity, polarVelocity[0], polarVelocity[1]
+            );
 
             // If entity isn't on the ground, add gravity.
-            if (touchesFloor(entity, snap)) {
-                newVelocity[2] = 0;
+            if (touchesFloor(newEntity, snap)) {
+                newEntity.velocity[2] = 0;
             } else {
-                newVelocity[2] -= 1;
+                newEntity.velocity[2] -= 1;
             }
 
             // Quantize our velocity, if necessary.
-            quantize(newVelocity, newVelocity);
+            quantize(newEntity.velocity, newEntity.velocity);
 
             // Save our entities to the snapshot.
-            newEntity.velocity = newVelocity;
             snap.entities.set(entityID, newEntity);
         }
     }
