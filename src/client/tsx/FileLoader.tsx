@@ -35,7 +35,7 @@ export class FileLoader extends React.Component<Props> {
         this.onChange = this.onChange.bind(this);
     }
 
-    async onChange(event: React.ChangeEvent<HTMLInputElement>) {
+    async onChange(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
         const files = event.target.files;
         if (files === null) {
             return;
@@ -45,7 +45,7 @@ export class FileLoader extends React.Component<Props> {
         this.props.onLoad(data);
     }
 
-    render() {
+    render(): JSX.Element {
         return <input type="file" onChange={this.onChange}/>;
     }
 }

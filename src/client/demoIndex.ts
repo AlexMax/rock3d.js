@@ -21,7 +21,7 @@ import ReactDOM from 'react-dom';
 
 import { DemoRoot } from './tsx/DemoRoot';
 
-window.addEventListener("load", async () => {
+window.addEventListener("load", () => {
     // Get our player element.
     const root = document.getElementById('player');
     if (root === null) {

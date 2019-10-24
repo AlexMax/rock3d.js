@@ -105,7 +105,7 @@ export class DemoClient implements Client {
         this.demoTimer = new Timer(this.tick, now, 32);
     }
 
-    private tick() {
+    private tick(): void {
         if (this.pos + 1 >= this.demo.ticks.length) {
             return;
         }
@@ -113,7 +113,7 @@ export class DemoClient implements Client {
         const tick = this.demo.ticks[this.pos];
 
         // Service network messages for demo tick.
-        for (let msg of tick.readCapture) {
+        for (const msg of tick.readCapture) {
             handleMessage(this, msg);
         }
 
@@ -138,7 +138,7 @@ export class DemoClient implements Client {
     /**
      * Rewind back to the first tick.
      */
-    first() {
+    first(): void {
         this.id = null;
         this.rtt = null;
         this.sim = null;
@@ -149,7 +149,7 @@ export class DemoClient implements Client {
     /**
      * Rewind to the last tick.
      */
-    previous() {
+    previous(): void {
         const target = Math.max(0, this.pos - 1);
         this.first();
         while (this.pos < target) {
@@ -160,35 +160,35 @@ export class DemoClient implements Client {
     /**
      * Get current tick information.
      */
-    getTick() {
+    getTick(): DemoTick {
         return this.demo.ticks[this.pos];
     }
 
     /**
      * Go to the next tick.
      */
-    next() {
+    next(): void {
         this.tick();
     }
 
     /**
      * Pause the demo.
      */
-    pause() {
+    pause(): void {
         this.demoTimer.stop();
     }
 
     /**
      * Run the demo in normal time.
      */
-    play() {
+    play(): void {
         this.demoTimer.start();
     }
 
     /**
      * Go to the end of the demo.
      */
-    end() {
+    end(): void {
         const target = this.demo.ticks.length - 1;
         while (this.pos < target) {
             this.tick();

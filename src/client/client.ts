@@ -47,15 +47,15 @@ export interface Client {
     sim: Simulation | null;
 }
 
-const hello = (client: Client, msg: proto.ServerHello) => {
+const hello = (client: Client, msg: proto.ServerHello): void => {
     client.id = msg.clientID;
 }
 
-const ping = (client: Client, msg: proto.ServerPing) => {
+const ping = (client: Client, msg: proto.ServerPing): void => {
     client.rtt = msg.rtt;
 }
 
-const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
+const snapshot = (client: Client, msg: proto.ServerSnapshot): void => {
     const snap = unserializeSnapshot(msg.snapshot);
     if (client.sim === null) {
         if (!isSerializedLevel(TESTMAP)) {
@@ -82,7 +82,7 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot) => {
  * @param client Client that is handling message.
  * @param msg Message contents.
  */
-export const handleMessage = (client: Client, msg: proto.ServerMessage) => {
+export const handleMessage = (client: Client, msg: proto.ServerMessage): void => {
     // [AM] As far as I know, there's no easier way to do dynamic dispatch
     //      where each handler function is aware of its own message type.
     //      But I don't know for certain, patches welcome.
@@ -107,7 +107,7 @@ export const handleMessage = (client: Client, msg: proto.ServerMessage) => {
  * This is _not_ handled inside the main game loop, it should usually
  * be called from an endless loop of requestAnimationFrame.
  */
-export const render = (client: Client, ctx: RenderContext) => {
+export const render = (client: Client, ctx: RenderContext): void => {
     if (client.id === null || client.sim === null) {
         return;
     }
@@ -142,7 +142,7 @@ export const render = (client: Client, ctx: RenderContext) => {
 
     // Add our sprites to be rendered.
     ctx.world.clearSprites();
-    for (let [entityID, entity] of snapshot.entities) {
+    for (const [entityID, entity] of snapshot.entities) {
         if (entityID === camEntity) {
             // Don't draw your own sprite.
             continue;

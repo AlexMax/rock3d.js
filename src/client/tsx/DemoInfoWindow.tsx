@@ -25,19 +25,19 @@ import {
 } from "../../proto";
 import { Window } from  '../../tsx/Window';
 
-const helloMessage = (key: number, hello: ServerHello) => {
+const helloMessage = (key: number, hello: ServerHello): JSX.Element => {
     return <div key={key}>
         <strong>Hello Message</strong> Client ID: {hello.clientID}
     </div>;
 }
 
-const pingMessage = (key: number, ping: ServerPing) => {
+const pingMessage = (key: number, ping: ServerPing): JSX.Element => {
     return <div key={key}>
         <strong>Ping Message</strong> RTT: {ping.rtt}
     </div>;
 }
 
-const snapshotMessage = (key: number, snap: ServerSnapshot) => {
+const snapshotMessage = (key: number, snap: ServerSnapshot): JSX.Element => {
     return <div key={key}>
         <strong>Snapshot Message</strong><br/>
         Snapshot: <code>{JSON.stringify(snap.snapshot)}</code><br/>
@@ -46,10 +46,10 @@ const snapshotMessage = (key: number, snap: ServerSnapshot) => {
     </div>;
 }
 
-const readCapture = (msgs: ServerMessage[]) => {
+const readCapture = (msgs: ServerMessage[]): JSX.Element => {
     const eles: JSX.Element[] = [];
 
-    for (let [idx, msg] of msgs.entries()) {
+    for (const [idx, msg] of msgs.entries()) {
         switch (msg.type) {
         case ServerMessageType.Hello:
             eles.push(helloMessage(idx, msg));
@@ -68,7 +68,7 @@ const readCapture = (msgs: ServerMessage[]) => {
     </div>;
 }
 
-const inputCapture = (input: Input) => {
+const inputCapture = (input: Input): JSX.Element => {
     const buttons: string[] = [];
     if (checkPressed(input, Button.WalkForward)) {
         buttons.push('+WalkForward');
@@ -130,7 +130,7 @@ export interface Props {
     tick: DemoTick;
 }
 
-export const DemoInfoWindow = (props: Props) => {
+export const DemoInfoWindow = (props: Props): JSX.Element => {
     return <Window title="Demo Info">
         <table style={{fontSize: '80%', margin: '1em', width: '320px', whiteSpace: 'normal' }}>
             <tbody>

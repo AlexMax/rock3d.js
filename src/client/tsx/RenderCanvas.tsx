@@ -27,7 +27,7 @@ export interface Props {
     /**
      * Client to render.
      */
-    client: DemoClient | null,
+    client: DemoClient | null;
 }
 
 export class RenderCanvas extends React.Component<Props> {
@@ -44,7 +44,7 @@ export class RenderCanvas extends React.Component<Props> {
         this.canvas = React.createRef();
     }
 
-    async componentDidMount() {
+    async componentDidMount(): Promise<void> {
         const canvas = this.canvas.current;
         if (canvas === null) {
             throw new Error('Canvas is inaccessible');
@@ -61,25 +61,25 @@ export class RenderCanvas extends React.Component<Props> {
         this.timer = window.requestAnimationFrame(this.draw);
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         if (typeof this.timer === 'number') {
             cancelAnimationFrame(this.timer);
         }
     }
 
-    shouldComponentUpdate() {
+    shouldComponentUpdate(): boolean {
         // We have a canvas, never update ourselves.
         return false;
     }
 
-    private draw() {
+    private draw(): void {
         if (this.props.client !== null && this.renderer !== undefined) {
             render(this.props.client, this.renderer);
         }
         this.timer = window.requestAnimationFrame(this.draw);
     }
 
-    render() {
+    render(): JSX.Element {
         return <canvas width={640} height={480} ref={this.canvas}/>;
     }
 }

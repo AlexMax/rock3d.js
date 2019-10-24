@@ -32,12 +32,10 @@ export interface Props {
     onEnd: () => void;
 }
 
-export const DemoControlWindow = (props: Readonly<Props>) => {
-    if (props.isPlaying) {
-        var playPauseButton = <button onClick={props.onPause}>&#9208;</button>;
-    } else {
-        var playPauseButton = <button onClick={props.onPlay}>&#9205;</button>;
-    }
+export const DemoControlWindow = (props: Readonly<Props>): JSX.Element => {
+    const playPauseButton = props.isPlaying ?
+        <button onClick={props.onPause}>&#9208;</button> :
+        <button onClick={props.onPlay}>&#9205;</button>;
 
     return <Window title="Demo Controls">
         <FileLoader onLoad={props.onFileLoad}/>

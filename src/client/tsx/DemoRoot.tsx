@@ -29,27 +29,27 @@ interface State {
     /**
      * Current demo client.
      */
-    client: DemoClient | null,
+    client: DemoClient | null;
 
     /**
      * Current tick data.
      */
-    tick: DemoTick | null,
+    tick: DemoTick | null;
 
     /**
      * Current snapshot data.
      */
-    snapshot: Snapshot | null,
+    snapshot: Snapshot | null;
 
     /**
      * Current number of predicted frames.
      */
-    predicted: number | null,
+    predicted: number | null;
 
     /**
      * True if the demo is playing, otherwise false.
      */
-    isPlaying: boolean,
+    isPlaying: boolean;
 }
 
 export class DemoRoot extends React.Component<{}, State> {
@@ -74,7 +74,7 @@ export class DemoRoot extends React.Component<{}, State> {
         }
     }
 
-    private onFileLoad(data: string) {
+    private onFileLoad(data: string): void {
         const client = new DemoClient(data);
         this.setState({
             client: client,
@@ -89,7 +89,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    private onStart() {
+    private onStart(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -105,7 +105,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    private onPrevious() {
+    private onPrevious(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -121,7 +121,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    private onPlay() {
+    private onPlay(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -130,7 +130,7 @@ export class DemoRoot extends React.Component<{}, State> {
         this.setState({ isPlaying: true });
     }
 
-    private onPause() {
+    private onPause(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -149,7 +149,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    private onNext() {
+    private onNext(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -165,7 +165,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    private onEnd() {
+    private onEnd(): void {
         const client = this.state.client;
         if (client === null) {
             return;
@@ -181,7 +181,7 @@ export class DemoRoot extends React.Component<{}, State> {
         });
     }
 
-    render() {
+    render(): JSX.Element {
         // Only render the info window if we have a tick to render.
         let demoInfo: JSX.Element | null = null;
         if (this.state.tick !== null) {

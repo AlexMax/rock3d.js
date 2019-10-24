@@ -87,7 +87,7 @@ export class Simulation {
     /**
      * Tick one clientside frame, starting from the authoritative snapshot.
      */
-    tick() {
+    tick(): void {
         // The client's clock always travels forwards.  Only the amount of
         // time that we have to predict changes based on how old our
         // authoritative snapshot is.
@@ -132,7 +132,7 @@ export class Simulation {
      *
      * @param input The input command to queue.
      */
-    queueLocalInput(input: cmd.InputCommand) {
+    queueLocalInput(input: cmd.InputCommand): void {
         this.inputs.push(input);
     }
 
@@ -141,7 +141,7 @@ export class Simulation {
      *
      * @param cmds Commands to update with.
      */
-    updateCommands(cmds: Readonly<cmd.Command[]>) {
+    updateCommands(cmds: Readonly<cmd.Command[]>): void {
         this.authCommands = cmds;
     }
 
@@ -150,7 +150,7 @@ export class Simulation {
      * 
      * @param snap Snapshot to update with.
      */
-    updateSnapshot(snap: Readonly<Snapshot>) {
+    updateSnapshot(snap: Readonly<Snapshot>): void {
         if (snap.clock <= this.authSnapshot.clock) {
             return;
         }

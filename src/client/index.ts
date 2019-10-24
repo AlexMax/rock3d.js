@@ -17,12 +17,12 @@
  */
 
 import { render } from './client';
-import { Button, setAxis, setPressed, setReleased, cloneInput } from '../command';
+import { Button, setAxis, setPressed, setReleased } from '../command';
 import { loadAssets } from '../r3d/loader';
 import { RenderContext } from '../r3d/render';
 import { SocketClient } from './socket'; 
 
-const keyCodeToButton = (keyCode: number) => {
+const keyCodeToButton = (keyCode: number): Button | undefined => {
     switch (keyCode) {
         case 87: // w
             return Button.WalkForward;
@@ -39,18 +39,18 @@ const keyCodeToButton = (keyCode: number) => {
     }
 }
 
-const mouseButtonToButton = (button: number) => {
+const mouseButtonToButton = (button: number): Button | undefined => {
     switch (button) {
         case 0: // left mouse button
             return Button.Attack;
     }
 }
 
-const scaleYaw = (movement: number) => {
+const scaleYaw = (movement: number): number => {
     return -movement;
 }
 
-const scalePitch = (movement: number) => {
+const scalePitch = (movement: number): number => {
     return movement;
 }
 
@@ -138,7 +138,7 @@ window.addEventListener("load", async () => {
     client.run();
 
     // Start our rendering loop too.
-    const draw = () => {
+    const draw = (): void => {
         render(client, renderer);
         window.requestAnimationFrame(draw);
     }

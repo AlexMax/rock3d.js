@@ -164,7 +164,7 @@ export class SocketClient implements Client {
         this.gameTimer = new Timer(this.tick, now, 32);
     }
 
-    private tick() {
+    private tick(): void {
         if (!this.connection.ready()) {
             // Don't tick with a closed connection.
             return;
@@ -215,21 +215,19 @@ export class SocketClient implements Client {
         this.healthPID = updatePID(this.healthPID, error);
         const calc = calculatePID(this.healthPID);
 
+        let scale = 1;
         if (calc <= -1) {
             // Lower limit.
-            var scale = 0.5;
+            scale = 0.5;
         } else if (calc > -1 && calc < 0) {
             // We're too slow, speed up.
-            var scale = 1 + (calc / 2);
+            scale = 1 + (calc / 2);
         } else if (calc >= 1) {
             // Upper limit.
-            var scale = 2;
+            scale = 2;
         } else if (calc < 1 && calc > 0) {
             // We're too fast, slow down.
-            var scale = 1 + calc;
-        } else {
-            // Just right.
-            var scale = 1;
+            scale = 1 + calc;
         }
 
         const debug = document.getElementById('debug');
@@ -257,14 +255,14 @@ export class SocketClient implements Client {
     /**
      * Start running the game.
      */
-    run() {
+    run(): void {
         this.gameTimer.start();
     }
 
     /**
      * Stop the game.
      */
-    halt() {
+    halt(): void {
         this.gameTimer.stop();
     }
 }

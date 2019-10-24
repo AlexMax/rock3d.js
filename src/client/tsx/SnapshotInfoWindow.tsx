@@ -21,7 +21,7 @@ import React from "react";
 import { Snapshot } from "../../snapshot";
 import { Window } from  '../../tsx/Window';
 
-const entities = (snapshot: Snapshot['entities']) => {
+const entities = (snapshot: Snapshot['entities']): JSX.Element => {
     const snap = Array.from(snapshot.entries());
     return <code>{JSON.stringify(snap)}</code>;
 }
@@ -38,7 +38,7 @@ export interface Props {
     predicted: number;
 }
 
-export const SnapshotInfoWindow = (props: Props) => {
+export const SnapshotInfoWindow = (props: Props): JSX.Element => {
     return <Window title="Snapshot Info">
         <table style={{fontSize: '80%', margin: '1em', width: '320px', whiteSpace: 'normal' }}>
             <tbody>
