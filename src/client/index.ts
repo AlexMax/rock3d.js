@@ -79,6 +79,11 @@ window.addEventListener("load", async () => {
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {
+        if (evt.repeat) {
+            // Don't pay attention to repeated keypresses.
+            return;
+        }
+
         if (evt.keyCode === 192) {
             // User hit tilde, stop the client and dump a packet capture.
             client.halt();
