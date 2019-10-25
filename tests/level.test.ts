@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { vec3 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 
 import {
     flood, Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level,
-    isSerializedLevel, createLevel
+    isSerializedLevel, createLevel, pointInPolygon, findPolygon
 } from '../src/level';
 
 import TESTMAP from './TESTMAP.json';
@@ -38,7 +38,7 @@ beforeAll(() => {
 test('Flood-fill that always succeeds', () => {
     expect(flood(testLevel, 0, () => {
         return true;
-    })).toEqual(new Set([0, 1, 2, 3, 4, 5]));
+    })).toEqual(new Set([0, 1, 2, 3, 4, 5, 6, 7]));
 });
 
 test('Flood-fill that always fails', () => {
@@ -97,4 +97,53 @@ test('Hitscan Polygon (outside of the polygon)', () => {
 
     const actual = hitscan(testLevel, 0, startPos, startDir);
     expect(actual).toBeNull();
+});
+
+describe('Point in Polygon', () => {
+    test('Point is inside polygon', () => {
+        const point = vec2.fromValues(0, 0);
+        const poly = testLevel.polygons[0];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(true);
+    });
+
+    test('Point is on a horizontal edge', () => {
+        const point = vec2.fromValues(0, -64);
+        const poly = testLevel.polygons[0];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(true);
+    });
+
+    test('Point is on a vertical edge', () => {
+        const point = vec2.fromValues(-256, 0);
+        const poly = testLevel.polygons[0];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(true);
+    });
+
+    test('Point is outside polygon on the X axis', () => {
+        const point = vec2.fromValues(-512, 0);
+        const poly = testLevel.polygons[0];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(false);
+    });
+
+    test('Point is outside polygon on the Y axis', () => {
+        const point = vec2.fromValues(0, -256);
+        const poly = testLevel.polygons[0];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(false);
+    });
+});
+
+describe('Find Polygon', () => {
+    test('Point is in the same polygon', () => {
+        const point = vec2.fromValues(0, 0);
+        expect(findPolygon(testLevel, 0, point)).toEqual(0);
+    });
+
+    test('Point is on the opposite side of the map', () => {
+        const point = vec2.fromValues(256, 1568);
+        expect(findPolygon(testLevel, 0, point)).toEqual(6);
+    });
+
+    test('Point is outside the map', () => {
+        const point = vec2.fromValues(0, -256);
+        expect(findPolygon(testLevel, 0, point)).toEqual(null);
+    });
 });

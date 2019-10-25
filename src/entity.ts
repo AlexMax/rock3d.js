@@ -18,7 +18,7 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { Level } from './level';
+import { Level, findPolygon } from './level';
 import { constrain, quatToEuler, circleTouchesLine } from './math';
 import { Snapshot } from './snapshot';
 
@@ -292,8 +292,15 @@ export const applyVelocity = (
         vec3.create(), entity.position, entity.velocity
     );
 
+    // Find out which polygon this new position is inside.
+    const newPolygon = findPolygon(level, entity.polygon, newPos);
+    if (newPolygon === null) {
+        // Lost the entity somehow, assume we can't move.
+        return out;
+    }
+
     // Collide the new position with floors and ceilings.
-    const poly = level.polygons[entity.polygon];
+    const poly = level.polygons[newPolygon];
     if (newPos[2] > poly.ceilHeight - entity.config.height) {
         newPos[2] = poly.ceilHeight - entity.config.height;
     }
@@ -307,7 +314,7 @@ export const applyVelocity = (
         const edge = level.edges[edges[i]];
         if (circleTouchesLine(
             touches, edge.vertex, edge.nextVertex, newPos, entity.config.radius
-        ) !== null) {
+        ) !== null && edge.backPoly === null) {
             // We hit a wall, undo our move and stop in in our tracks.
             vec2.set(out.velocity, 0, 0);
             vec2.copy(newPos, entity.position);
@@ -315,5 +322,6 @@ export const applyVelocity = (
     }
 
     out.position = newPos;
+    out.polygon = newPolygon;
     return out;
 }

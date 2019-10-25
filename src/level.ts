@@ -16,14 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { vec2, vec3, vec4 } from 'gl-matrix';
+import { vec2, vec3, vec4, glMatrix } from 'gl-matrix';
 
 import { cacheNormal, Edge, MutableEdge } from './edge';
 import {
     isSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
 import {
-    intersectPlane, pointInCube, pointInDirection3, toPlane
+    intersectPlane, pointInCube, pointInDirection3, toPlane, intersectLines,
+    pointInRect
 } from './math';
 import {
     cacheTessellation, isSerializedPolygon, Polygon, SerializedPolygon,
@@ -382,6 +383,78 @@ export const hitscan = (
     }
 
     // Did not hit polygon.
+    return null;
+}
+
+/**
+ * Check to see if a point is inside the passed polygon.
+ * 
+ * @param level Level data to traverse.
+ * @param polygon Polygon to check against.
+ * @param point Point to check.
+ */
+export const pointInPolygon = (
+    level: Level, polygon: Polygon, point: vec2
+): boolean => {
+    const origin = vec2.fromValues(-Number.MAX_SAFE_INTEGER, point[1]);
+    const out = vec2.create();
+
+    let count = 0;
+    for (const edgeID of polygon.edgeIDs) {
+        const edge = level.edges[edgeID];
+
+        // Check for an intersection.
+        if (intersectLines(
+            out, origin, point, edge.vertex, edge.nextVertex
+        ) === null) {
+            continue;
+        }
+
+        // Check to see if the intersection is in-bounds of both lines.
+        if (out[0] > point[0] || !glMatrix.equals(out[1], point[1])) {
+            continue;
+        }
+        if (!pointInRect(out, edge.vertex, edge.nextVertex)) {
+            continue;
+        }
+
+        count += 1;
+    }
+
+    return (count % 2 === 0) ? false : true;
+}
+
+/**
+ * Find out which polygon this position is inside, given a starting polygon.
+ * 
+ * @param level Level data to traverse.
+ * @param startPoly Starting polygon index.
+ * @param pos Position to find.
+ */
+export const findPolygon = (
+    level: Level, startPoly: number, pos: vec2
+): number | null => {
+    const checked: Set<number> = new Set();
+    const queue: number[] = [ startPoly ];
+
+    // Breadth-first search of polygons.
+    while (queue.length !== 0) {
+        const polyID = queue.shift() as number;
+        const poly = level.polygons[polyID];
+        if (pointInPolygon(level, poly, pos)) {
+            return polyID;
+        }
+
+        checked.add(polyID);
+
+        for (const edgeID of poly.edgeIDs) {
+            const edge = level.edges[edgeID];
+            if (edge.backPoly !== null && !checked.has(edge.backPoly)) {
+                queue.push(edge.backPoly);
+            }
+        }
+    }
+
     return null;
 }
 
