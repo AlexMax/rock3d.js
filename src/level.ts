@@ -109,50 +109,6 @@ export const copyLevel = (out: MutableLevel, level: Level): MutableLevel => {
     return out;
 }
 
-type ShouldFloodFn = (level: Level, checkPoly: number, checkSide: number,
-    sourcePoly: number | null, sourceSide: number | null) => boolean;
-
-const floodRecursive = (
-    level: Level, checkPoly: number, lastPoly: number | null,
-    lastEdge: number | null, shouldFlood: ShouldFloodFn, flooded: Set<number>
-): void => {
-    flooded.add(checkPoly);
-    const poly = level.polygons[checkPoly];
-    for (let i = 0;i < poly.edgeIDs.length;i++) {
-        const edge = level.edges[poly.edgeIDs[i]];
-        if (edge.backPoly === null) {
-            // There is no polygon to examine.
-            continue;
-        }
-        if (flooded.has(edge.backPoly)) {
-            // We've already looked at this polygon.
-            continue;
-        }
-        if (shouldFlood(level, checkPoly, i, lastPoly, lastEdge) === false) {
-            // We shouldn't flood this polygon.
-            continue;
-        }
-        // Flood into this polygon.
-        floodRecursive(level, edge.backPoly, checkPoly, i, shouldFlood, flooded);
-    }
-}
-
-/**
- * Return all polygons that are reachable from the passed starting polygon.
- *
- * @param level Level to traverse.
- * @param start Starting polygon index.
- * @param shouldFlood A function that returns true if the given polygon
- *                    should be included in the result set, otherwise false.
- */
-export const flood = (
-    level: Level, start: number, shouldFlood: ShouldFloodFn
-): Set<number> => {
-    const flooded: Set<number> = new Set();
-    floodRecursive(level, start, null, null, shouldFlood, flooded);
-    return flooded;
-}
-
 /**
  * Defines possible types of return values from hitscan functions.
  */

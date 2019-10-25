@@ -19,8 +19,8 @@
 import { mat4, quat, vec2, vec3 } from "gl-matrix";
 
 import { Entity } from '../entity';
-import { constrain, rectOverlap, quatToEuler } from '../math';
-import { flood, Level } from '../level';
+import { constrain, quatToEuler } from '../math';
+import { Level } from '../level';
 
 export interface Camera {
     pos: vec3,
@@ -167,50 +167,4 @@ const edgeToBoundingBox = (
             Math.max(verts[0][0], verts[1][0], verts[2][0], verts[3][0]),
             Math.max(verts[0][1], verts[1][1], verts[2][1], verts[3][1])),
     }
-}
-
-/**
- * Determine which polygons are visible from the current camera position.
- * 
- * @param camera Camera to check visibility from.
- * @param project Projection matrix to flatten coordinates.
- * @param level Level to check.
- */
-export const visiblePolygons = (
-    camera: Camera, project: mat4, level: Level
-): number[] => {
-    const viewMat = getViewMatrix(camera);
-    const polyHash: Map<string, BoundingBox> = new Map();
-
-    mat4.multiply(viewMat, project, viewMat);
-
-    const visible = flood(level, 0, (level, checkPoly, checkEdge, sourcePoly, sourceEdge) => {
-        const checkHash = checkPoly + '_' + checkEdge;
-
-        if (sourcePoly === null) {
-            // Create a bounding box from this current edge.
-            polyHash.set(checkHash, edgeToBoundingBox(viewMat, level,
-                checkPoly, checkEdge));
-
-            // We always draw the polygon we're in.
-            return true;
-        }
-
-        // Compare the source with our checked bounding box.
-        const sourceHash = sourcePoly + '_' + sourceEdge;
-        const sourceBox = polyHash.get(sourceHash);
-        if (sourceBox === undefined) {
-            throw new Error('Source polygon/edge is missing.');
-        }
-        const checkBox = edgeToBoundingBox(viewMat, level, checkPoly, checkEdge);
-
-        // Save our checked box in the hash.
-        polyHash.set(checkHash, checkBox);
-
-        // Visibility depends on if bounding boxes for these edges overlap.
-        return rectOverlap(sourceBox.origin, sourceBox.opposite,
-                           checkBox.origin, checkBox.opposite);
-    });
-
-    return Array.from(visible);
 }
