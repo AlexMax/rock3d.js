@@ -20,7 +20,7 @@ import { vec2, vec3 } from 'gl-matrix';
 
 declare global {
     namespace jest {
-        interface Matchers<R> {
+        interface Matchers<R, T> {
             toEqualVec2(expected: [number, number]): R
             toEqualVec3(expected: [number, number, number]): R
         }
