@@ -352,7 +352,8 @@ export const hitscan = (
 export const pointInPolygon = (
     level: Level, polygon: Polygon, point: vec2
 ): boolean => {
-    const origin = vec2.fromValues(-Number.MAX_SAFE_INTEGER, point[1]);
+    // FIXME: Origin should probably use polygon bounding box.
+    const origin = vec2.fromValues(-32768, point[1]);
     const out = vec2.create();
 
     let count = 0;
@@ -390,8 +391,8 @@ export const pointInPolygon = (
 export const findPolygon = (
     level: Level, startPoly: number, pos: vec2
 ): number | null => {
-    const checked: Set<number> = new Set();
     const queue: number[] = [ startPoly ];
+    const checked: Set<number> = new Set(queue);
 
     // Breadth-first search of polygons.
     while (queue.length !== 0) {
@@ -401,12 +402,11 @@ export const findPolygon = (
             return polyID;
         }
 
-        checked.add(polyID);
-
         for (const edgeID of poly.edgeIDs) {
             const edge = level.edges[edgeID];
             if (edge.backPoly !== null && !checked.has(edge.backPoly)) {
                 queue.push(edge.backPoly);
+                checked.add(edge.backPoly);
             }
         }
     }

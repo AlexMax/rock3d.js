@@ -119,6 +119,14 @@ describe('Point in Polygon', () => {
         const poly = testLevel.polygons[0];
         expect(pointInPolygon(testLevel, poly, point)).toEqual(false);
     });
+
+    // This test is from a bug from using -Number.MAX_SAFE_INTEGER as the
+    // origin of the test ray.
+    test('Point does not expose inaccuracies in intersection tests', () => {
+        const point = vec2.fromValues(227.54696655273438, 1027.773681640625);
+        const poly = testLevel.polygons[5];
+        expect(pointInPolygon(testLevel, poly, point)).toEqual(true);
+    });
 });
 
 describe('Find Polygon', () => {
