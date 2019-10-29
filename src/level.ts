@@ -24,7 +24,7 @@ import {
 } from './location';
 import {
     intersectPlane, pointInCube, pointInDirection3, toPlane, intersectLines,
-    pointInRect
+    pointInRect, circleTouchesLine
 } from './math';
 import {
     cacheTessellation, isSerializedPolygon, Polygon, SerializedPolygon,
@@ -412,6 +412,92 @@ export const findPolygon = (
     }
 
     return null;
+}
+
+export interface Touch {
+    /**
+     * Touch coordinates.
+     */
+    position: vec2;
+
+    /**
+     * Distance to touch coordinates.
+     */
+    distance: number;
+
+    /**
+     * Touched Edge ID.
+     */
+    edgeID: number;
+
+    /**
+     * Touched Polygon ID.
+     */
+    polygonID: number;
+}
+
+/**
+ * Find out where in the level a given circle is touching.
+ *
+ * @param level Level to collide against.
+ * @param pos Position of circle to collide with.
+ * @param rad Radius of circle to collide with.
+ * @param startPoly Starting polygon to check.
+ */
+export const circleTouchesLevel = (
+    level: Level, pos: vec2, rad: number, startPoly: number
+): Touch | null => {
+    const queue: number[] = [ startPoly ];
+    const checked: Set<number> = new Set(queue);
+    const touchPos = vec2.create();
+    const touch = {
+        position: vec2.create(),
+        distance: Infinity,
+        edgeID: 0,
+        polygonID: 0,
+    };
+
+    // Breadth-first search of polygons.
+    while (queue.length !== 0) {
+        const polyID = queue.shift() as number;
+        const poly = level.polygons[polyID];
+        for (const edgeID of poly.edgeIDs) {
+            const edge = level.edges[edgeID];
+            if (circleTouchesLine(
+                touchPos, edge.vertex, edge.nextVertex, pos, rad
+            ) !== null) {
+                // Is this a two-sided wall?
+                if (edge.backPoly !== null) {
+                    // Have we checked this backPoly already?
+                    if (!checked.has(edge.backPoly)) {
+                        queue.push(edge.backPoly);
+                        checked.add(edge.backPoly);
+                    }
+
+                    // This is not considered a real "touch".
+                    continue;
+                }
+
+                // Is this touch closer than the last touch we found?
+                const dist = Math.hypot(
+                    touchPos[0] - pos[0], touchPos[1] - pos[1]
+                );
+                if (dist < touch.distance) {
+                    vec2.copy(touch.position, touchPos);
+                    touch.distance = dist;
+                    touch.edgeID = edgeID;
+                    touch.polygonID = polyID;
+                }
+            }
+        }
+    }
+
+    if (!isFinite(touch.distance)) {
+        // No touch was found.
+        return null;
+    }
+
+    return touch;
 }
 
 export interface SerializedLevel {

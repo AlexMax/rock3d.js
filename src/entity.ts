@@ -18,8 +18,8 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { Level, findPolygon } from './level';
-import { constrain, quatToEuler, circleTouchesLine } from './math';
+import { Level, findPolygon, circleTouchesLevel } from './level';
+import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
 
 /**
@@ -300,25 +300,13 @@ export const applyVelocity = (
     }
 
     // Collide the new position with floors and ceilings.
-    const poly = level.polygons[newPolygon];
-    if (newPos[2] > poly.ceilHeight - entity.config.height) {
-        newPos[2] = poly.ceilHeight - entity.config.height;
-    }
-    if (newPos[2] < poly.floorHeight) {
-        newPos[2] = poly.floorHeight;
-    }
-
-    // Collide the new position with walls of the current polygon.
-    const edges = poly.edgeIDs;
-    for (let i = 0;i < edges.length;i++) {
-        const edge = level.edges[edges[i]];
-        if (circleTouchesLine(
-            touches, edge.vertex, edge.nextVertex, newPos, entity.config.radius
-        ) !== null && edge.backPoly === null) {
-            // We hit a wall, undo our move and stop in in our tracks.
-            vec2.set(out.velocity, 0, 0);
-            vec2.copy(newPos, entity.position);
-        }
+    const hitDest = circleTouchesLevel(
+        level, newPos, entity.config.radius, newPolygon
+    );
+    if (hitDest !== null) {
+        // We hit the wall, reset to our original position.
+        vec2.set(out.velocity, 0, 0);
+        vec2.copy(newPos, entity.position);
     }
 
     out.position = newPos;
