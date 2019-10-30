@@ -306,8 +306,7 @@ export const applyVelocity = (
         // will slide the player against it.
         const edge = level.edges[hitDest.edgeID];
         const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
-        // [AM] FIXME: We shouldn't need to add anything to the radius.
-        vec2.scale(normal, normal, entity.config.radius + 1);
+        vec2.scale(normal, normal, entity.config.radius);
         vec2.add(newPos, hitDest.position, normal);
 
         // Test sliding collision.

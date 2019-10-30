@@ -86,7 +86,8 @@ export const circleTouchesLine = (
     }
 
     // Figure out if our circle is close enough to actually touch the line.
-    if (Math.hypot(Px - c[0], Py - c[1]) > r) {
+    const dist = Math.hypot(Px - c[0], Py - c[1]);
+    if (dist > r || glMatrix.equals(dist, r)) {
         return null;
     }
 
