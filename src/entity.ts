@@ -285,8 +285,6 @@ export const rotateEuler = (
 export const applyVelocity = (
     out: MutableEntity, entity: Entity, level: Level
 ): MutableEntity => {
-    const touches = vec2.create();
-
     // Our new position, according to our velocity.
     const newPos = vec3.add(
         vec3.create(), entity.position, entity.velocity
@@ -300,13 +298,26 @@ export const applyVelocity = (
     }
 
     // Collide the new position with floors and ceilings.
-    const hitDest = circleTouchesLevel(
+    let hitDest = circleTouchesLevel(
         level, newPos, entity.config.radius, newPolygon
     );
     if (hitDest !== null) {
-        // We hit the wall, reset to our original position.
-        vec2.set(out.velocity, 0, 0);
-        vec2.copy(newPos, entity.position);
+        // We hit the wall, figure out a new position along the wall that
+        // will slide the player against it.
+        const edge = level.edges[hitDest.edgeID];
+        const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
+        // [AM] FIXME: We shouldn't need to add anything to the radius.
+        vec2.scale(normal, normal, entity.config.radius + 1);
+        vec2.add(newPos, hitDest.position, normal);
+
+        // Test sliding collision.
+        hitDest = circleTouchesLevel(
+            level, newPos, entity.config.radius, newPolygon
+        );
+        if (hitDest !== null) {
+            // Slide failed, just stop the move completely.
+            vec2.copy(newPos, entity.position);
+        }
     }
 
     out.position = newPos;
