@@ -19,6 +19,7 @@
 import { vec2, vec3, vec4, glMatrix } from 'gl-matrix';
 
 import { cacheNormal, Edge, MutableEdge } from './edge';
+import { EntityConfig } from './entity';
 import {
     isSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
@@ -436,16 +437,48 @@ export interface Touch {
     polygonID: number;
 }
 
+const entityTouchesFloor = (
+    polygon: Polygon, config: EntityConfig, pos: vec3
+): boolean => {
+    if (config.grounded === true) {
+        if (polygon.floorHeight > pos[2]) {
+            return true;
+        }
+        return false;
+    } else {
+        if (polygon.floorHeight > pos[2] - config.height / 2) {
+            return true;
+        }
+        return false;
+    }
+}
+
+const entityTouchesCeiling = (
+    polygon: Polygon, config: EntityConfig, pos: vec3
+): boolean => {
+    if (config.grounded === true) {
+        if (polygon.ceilHeight < pos[2] + config.height) {
+            return true;
+        }
+        return false;
+    } else {
+        if (polygon.ceilHeight < pos[2] + config.height / 2) {
+            return true;
+        }
+        return false;
+    }
+}
+
 /**
  * Find out where in the level a given circle is touching.
  *
  * @param level Level to collide against.
- * @param pos Position of circle to collide with.
- * @param rad Radius of circle to collide with.
+ * @param config Entity configuration.
+ * @param newPos New position to collide with.
  * @param startPoly Starting polygon to check.
  */
-export const circleTouchesLevel = (
-    level: Level, pos: vec2, rad: number, startPoly: number
+export const entityTouchesLevel = (
+    level: Level, config: EntityConfig, newPos: vec3, startPoly: number
 ): Touch | null => {
     const queue: number[] = [ startPoly ];
     const checked: Set<number> = new Set(queue);
@@ -464,23 +497,31 @@ export const circleTouchesLevel = (
         for (const edgeID of poly.edgeIDs) {
             const edge = level.edges[edgeID];
             if (circleTouchesLine(
-                touchPos, edge.vertex, edge.nextVertex, pos, rad
+                touchPos, edge.vertex, edge.nextVertex, newPos, config.radius
             ) !== null) {
-                // Is this a two-sided wall?
+                // Is this a two-sided edge?
                 if (edge.backPoly !== null) {
-                    // Have we checked this backPoly already?
-                    if (!checked.has(edge.backPoly)) {
-                        queue.push(edge.backPoly);
-                        checked.add(edge.backPoly);
-                    }
+                    // Given our current position, should we consider this
+                    // edge a wall?
+                    const backPoly = level.polygons[edge.backPoly];
+                    if (
+                        !entityTouchesFloor(backPoly, config, newPos) &&
+                        !entityTouchesCeiling(backPoly, config, newPos)
+                    ) {
+                        // Have we checked this backPoly already?
+                        if (!checked.has(edge.backPoly)) {
+                            queue.push(edge.backPoly);
+                            checked.add(edge.backPoly);
+                        }
 
-                    // This is not considered a real "touch".
-                    continue;
+                        // This is not considered a real "touch".
+                        continue;
+                    }
                 }
 
                 // Is this touch closer than the last touch we found?
                 const dist = Math.hypot(
-                    touchPos[0] - pos[0], touchPos[1] - pos[1]
+                    touchPos[0] - newPos[0], touchPos[1] - newPos[1]
                 );
                 if (dist < touch.distance) {
                     vec2.copy(touch.position, touchPos);

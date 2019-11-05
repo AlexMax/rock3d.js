@@ -18,7 +18,7 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { Level, findPolygon, circleTouchesLevel } from './level';
+import { Level, findPolygon, entityTouchesLevel } from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
 
@@ -50,7 +50,7 @@ interface Animations {
 /**
  * Internal entity type definition.
  */
-interface EntityConfig {
+export interface EntityConfig {
     /**
      * Name of the entity, for informational or debugging purposes.
      */
@@ -297,9 +297,9 @@ export const applyVelocity = (
         return out;
     }
 
-    // Collide the new position with floors and ceilings.
-    let hitDest = circleTouchesLevel(
-        level, newPos, entity.config.radius, newPolygon
+    // Collide the new position with the level.
+    let hitDest = entityTouchesLevel(
+        level, entity.config, newPos, newPolygon
     );
     if (hitDest !== null) {
         // We hit the wall, figure out a new position along the wall that
@@ -310,8 +310,8 @@ export const applyVelocity = (
         vec2.add(newPos, hitDest.position, normal);
 
         // Test sliding collision.
-        hitDest = circleTouchesLevel(
-            level, newPos, entity.config.radius, newPolygon
+        hitDest = entityTouchesLevel(
+            level, entity.config, newPos, newPolygon
         );
         if (hitDest !== null) {
             // Slide failed, just stop the move completely.
