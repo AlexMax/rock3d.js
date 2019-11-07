@@ -19,7 +19,7 @@
 import { vec2, vec3, vec4, glMatrix } from 'gl-matrix';
 
 import { cacheNormal, Edge, MutableEdge } from './edge';
-import { EntityConfig } from './entity';
+import { EntityConfig, entityBottom, entityTop } from './entity';
 import {
     isSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
@@ -415,7 +415,23 @@ export const findPolygon = (
     return null;
 }
 
-export interface Touch {
+enum TouchType {
+    Nothing,
+    Edge,
+}
+
+interface TouchNothing {
+    type: TouchType.Nothing;
+
+    /**
+     * Set of polygons the entity is inside.
+     */
+    insidePolys: Set<number>;
+}
+
+interface TouchEdge {
+    type: TouchType.Edge
+
     /**
      * Touch coordinates.
      */
@@ -437,40 +453,74 @@ export interface Touch {
     polygonID: number;
 }
 
-const entityTouchesFloor = (
-    polygon: Polygon, config: EntityConfig, pos: vec3
-): boolean => {
-    if (config.grounded === true) {
-        if (polygon.floorHeight > pos[2]) {
-            return true;
-        }
-        return false;
-    } else {
-        if (polygon.floorHeight > pos[2] - config.height / 2) {
-            return true;
-        }
-        return false;
-    }
+type Touch = TouchNothing | TouchEdge;
+
+export const isTouchNothing = (touch: Touch): touch is TouchNothing => {
+    return touch.type === TouchType.Nothing;
 }
 
-const entityTouchesCeiling = (
-    polygon: Polygon, config: EntityConfig, pos: vec3
-): boolean => {
-    if (config.grounded === true) {
-        if (polygon.ceilHeight < pos[2] + config.height) {
-            return true;
-        }
-        return false;
-    } else {
-        if (polygon.ceilHeight < pos[2] + config.height / 2) {
-            return true;
-        }
-        return false;
-    }
+export const isTouchEdge = (touch: Touch): touch is TouchEdge => {
+    return touch.type === TouchType.Edge;
 }
 
 /**
- * Find out where in the level a given circle is touching.
+ * Check to see if an entity can cross an edge or if the edge should be
+ * considered a wall.
+ */
+const entityCanCrossEdge = (
+    level: Level, polyID: number, edgeID: number, config: EntityConfig,
+    pos: vec3
+): boolean => {
+    const poly = level.polygons[polyID];
+    const edge = level.edges[edgeID];
+
+    if (edge.backPoly === null) {
+        // Edge does not have a backside.
+        return false;
+    }
+
+    const backPoly = level.polygons[edge.backPoly];
+    if (
+        Math.min(poly.ceilHeight, backPoly.ceilHeight) -
+        Math.max(poly.floorHeight, backPoly.floorHeight) < config.height
+    ) {
+        // Entity can't fit through the gap.
+        return false;
+    }
+
+    const top = entityTop(config, pos);
+    if (backPoly.ceilHeight < poly.ceilHeight && top > backPoly.ceilHeight) {
+        // Entity would hit the ceiling "lip" between the two polygons.
+        return false;
+    }
+
+    const bottom = entityBottom(config, pos);
+    if (config.grounded === true) {
+        // Grounded entities can step up on stairs.
+        if (
+            backPoly.floorHeight - 24 > poly.floorHeight &&
+            entityBottom(config, pos) < backPoly.floorHeight
+        ) {
+            // Entity would hit the floor "lip" between the two polygons
+            // which is higher than stair height.
+            return false;
+        }
+    } else {
+        // Floating entities do not consider stairs.
+        if (
+            backPoly.floorHeight > poly.floorHeight &&
+            entityBottom(config, pos) < backPoly.floorHeight
+        ) {
+            // Entity would hit the floor "lip" between the two polygons.
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Find out where in the level a given entity is touching.
  *
  * @param level Level to collide against.
  * @param config Entity configuration.
@@ -479,11 +529,12 @@ const entityTouchesCeiling = (
  */
 export const entityTouchesLevel = (
     level: Level, config: EntityConfig, newPos: vec3, startPoly: number
-): Touch | null => {
+): Touch => {
     const queue: number[] = [ startPoly ];
     const checked: Set<number> = new Set(queue);
     const touchPos = vec2.create();
-    const touch = {
+    const touch: TouchEdge = {
+        type: TouchType.Edge,
         position: vec2.create(),
         distance: Infinity,
         edgeID: 0,
@@ -499,24 +550,22 @@ export const entityTouchesLevel = (
             if (circleTouchesLine(
                 touchPos, edge.vertex, edge.nextVertex, newPos, config.radius
             ) !== null) {
-                // Is this a two-sided edge?
-                if (edge.backPoly !== null) {
-                    // Given our current position, should we consider this
-                    // edge a wall?
-                    const backPoly = level.polygons[edge.backPoly];
-                    if (
-                        !entityTouchesFloor(backPoly, config, newPos) &&
-                        !entityTouchesCeiling(backPoly, config, newPos)
-                    ) {
-                        // Have we checked this backPoly already?
-                        if (!checked.has(edge.backPoly)) {
-                            queue.push(edge.backPoly);
-                            checked.add(edge.backPoly);
-                        }
-
-                        // This is not considered a real "touch".
-                        continue;
+                // Should we consider this edge a wall?
+                if (entityCanCrossEdge(
+                    level, polyID, edgeID, config, newPos
+                )) {
+                    if (edge.backPoly === null) {
+                        throw new Error('edge.backPoly is null');
                     }
+
+                    // Have we checked this backPoly already?
+                    if (!checked.has(edge.backPoly)) {
+                        queue.push(edge.backPoly);
+                        checked.add(edge.backPoly);
+                    }
+
+                    // This is not considered a real "touch".
+                    continue;
                 }
 
                 // Is this touch closer than the last touch we found?
@@ -535,7 +584,10 @@ export const entityTouchesLevel = (
 
     if (!isFinite(touch.distance)) {
         // No touch was found.
-        return null;
+        return {
+            type: TouchType.Nothing,
+            insidePolys: checked
+        } as TouchNothing;
     }
 
     return touch;

@@ -18,7 +18,9 @@
 
 import { quat, vec2, vec3 } from 'gl-matrix';
 
-import { Level, findPolygon, entityTouchesLevel } from './level';
+import {
+    Level, findPolygon, entityTouchesLevel, isTouchEdge, isTouchNothing
+} from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
 
@@ -209,6 +211,32 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
 }
 
 /**
+ * Bottom boundary of an entity.
+ *
+ * @param config Configuration of entity.
+ * @param pos Position of entity.
+ */
+export const entityBottom = (config: EntityConfig, pos: vec3): number => {
+    if (config.grounded === true) {
+        return pos[2];
+    }
+    return pos[2] - config.height / 2;
+}
+
+/**
+ * Top boundary of an entity.
+ *
+ * @param config Configuration of entity.
+ * @param pos Position of entity.
+ */
+export const entityTop = (config: EntityConfig, pos: vec3): number => {
+    if (config.grounded === true) {
+        return pos[2] + config.height;
+    }
+    return pos[2] + config.height / 2;
+}
+
+/**
  * Check to see if this entity is touching the floor.
  *
  * @param entity Entity to check.
@@ -301,7 +329,7 @@ export const applyVelocity = (
     let hitDest = entityTouchesLevel(
         level, entity.config, newPos, newPolygon
     );
-    if (hitDest !== null) {
+    if (isTouchEdge(hitDest)) {
         // We hit the wall, figure out a new position along the wall that
         // will slide the player against it.
         const edge = level.edges[hitDest.edgeID];
@@ -313,9 +341,29 @@ export const applyVelocity = (
         hitDest = entityTouchesLevel(
             level, entity.config, newPos, newPolygon
         );
-        if (hitDest !== null) {
+        if (isTouchEdge(hitDest)) {
             // Slide failed, just stop the move completely.
             vec2.copy(newPos, entity.position);
+        }
+    }
+
+    if (isTouchNothing(hitDest)) {
+        // Our move is valid, but we might need to adjust our entity's
+        // position because of floor/ceiling heights.
+        for (const polyID of hitDest.insidePolys) {
+            const poly = level.polygons[polyID];
+
+            // Push up through floor.
+            const bottom = entityBottom(entity.config, newPos);
+            if (poly.floorHeight > bottom) {
+                newPos[2] = poly.floorHeight;
+            }
+
+            // Push down through ceiling.
+            const top = entityTop(entity.config, newPos);
+            if (poly.ceilHeight < top) {
+                newPos[2] = poly.ceilHeight - entity.config.height;
+            }
         }
     }
 
