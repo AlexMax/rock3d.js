@@ -19,7 +19,8 @@
 import { quat, vec2, vec3 } from 'gl-matrix';
 
 import {
-    Level, findPolygon, entityTouchesLevel, isTouchEdge, isTouchNothing
+    Level, findPolygon, entityTouchesLevel, isTouchNothing, isTouchVoid,
+    isTouchEdge
 } from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
@@ -319,11 +320,7 @@ export const applyVelocity = (
     );
 
     // Find out which polygon this new position is inside.
-    const newPolygon = findPolygon(level, entity.polygon, newPos);
-    if (newPolygon === null) {
-        // Lost the entity somehow, assume we can't move.
-        return out;
-    }
+    let newPolygon = findPolygon(level, entity.polygon, newPos);
 
     // Collide the new position with the level.
     let hitDest = entityTouchesLevel(
@@ -336,14 +333,29 @@ export const applyVelocity = (
         const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
         vec2.scale(normal, normal, entity.config.radius);
         vec2.add(newPos, hitDest.position, normal);
+        newPolygon = findPolygon(level, entity.polygon, newPos);
 
         // Test sliding collision.
         hitDest = entityTouchesLevel(
             level, entity.config, newPos, newPolygon
         );
         if (isTouchEdge(hitDest)) {
-            // Slide failed, just stop the move completely.
-            vec2.copy(newPos, entity.position);
+            // We slid into a wall, try and position our entity in the corner.
+            const edge = level.edges[hitDest.edgeID];
+            const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
+            vec2.scale(normal, normal, entity.config.radius);
+            vec2.add(newPos, hitDest.position, normal);
+            newPolygon = findPolygon(level, entity.polygon, newPos);
+
+            // Test corner collision.
+            hitDest = entityTouchesLevel(
+                level, entity.config, newPos, newPolygon
+            );
+            if (isTouchEdge(hitDest)) {
+                // Stop the move completely.
+                vec2.copy(newPos, entity.position);
+                newPolygon = entity.polygon;
+            }
         }
     }
 
@@ -365,6 +377,17 @@ export const applyVelocity = (
                 newPos[2] = poly.ceilHeight - entity.config.height;
             }
         }
+    }
+
+    if (isTouchVoid(hitDest)) {
+        // We ended up in the void, undo whatever move we made.
+        vec2.copy(newPos, entity.position);
+        newPolygon = entity.polygon;
+    }
+
+    if (newPolygon === null) {
+        // How did we end up here?
+        throw new Error('Entity has left Polygon boundary - I\'m Free!');
     }
 
     out.position = newPos;

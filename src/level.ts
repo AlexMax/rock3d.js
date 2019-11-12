@@ -417,6 +417,7 @@ export const findPolygon = (
 
 enum TouchType {
     Nothing,
+    Void,
     Edge,
 }
 
@@ -427,6 +428,10 @@ interface TouchNothing {
      * Set of polygons the entity is inside.
      */
     insidePolys: Set<number>;
+}
+
+interface TouchVoid {
+    type: TouchType.Void;
 }
 
 interface TouchEdge {
@@ -453,10 +458,14 @@ interface TouchEdge {
     polygonID: number;
 }
 
-type Touch = TouchNothing | TouchEdge;
+type Touch = TouchNothing | TouchVoid | TouchEdge;
 
 export const isTouchNothing = (touch: Touch): touch is TouchNothing => {
     return touch.type === TouchType.Nothing;
+}
+
+export const isTouchVoid = (touch: Touch): touch is TouchVoid => {
+    return touch.type === TouchType.Void;
 }
 
 export const isTouchEdge = (touch: Touch): touch is TouchEdge => {
@@ -528,8 +537,15 @@ const entityCanCrossEdge = (
  * @param startPoly Starting polygon to check.
  */
 export const entityTouchesLevel = (
-    level: Level, config: EntityConfig, newPos: vec3, startPoly: number
+    level: Level, config: EntityConfig, newPos: vec3, startPoly: number | null
 ): Touch => {
+    if (startPoly === null) {
+        // Entity is in the void, any other check would be nonsense.
+        return {
+            type: TouchType.Void
+        } as TouchVoid;
+    }
+
     const queue: number[] = [ startPoly ];
     const checked: Set<number> = new Set(queue);
     const touchPos = vec2.create();
