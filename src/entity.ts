@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { quat, vec2, vec3 } from 'gl-matrix';
+import { glMatrix, quat, vec2, vec3 } from 'gl-matrix';
 
 import {
     Level, findPolygon, entityTouchesLevel, isTouchNothing, isTouchVoid,
@@ -264,20 +264,22 @@ export const forceRelativeXY = (
     // Constrain our force to the cap.  We can always apply force up to
     // the cap, but if we're going faster than the cap we don't want to
     // slow down.
-    const invRotation = quat.invert(quat.create(), entity.rotation);
-    const currentVelocity = vec3.transformQuat(
-        vec3.create(), entity.velocity, invRotation
+    const entityAngle = glMatrix.toRadian(
+        quatToEuler(vec3.create(), entity.rotation)[2]
     );
-    const newVelocity = vec3.create();
+    const newVelocity = vec3.rotateZ(
+        vec3.create(), entity.velocity,
+        vec3.create(), -entityAngle
+    );
     newVelocity[0] = constrain(
-        currentVelocity[0] + force[0], -cap[0], cap[0]
-    ) - currentVelocity[0];
+        newVelocity[0] + force[0], -cap[0], cap[0]
+    ) - newVelocity[0];
     newVelocity[1] = constrain(
-        currentVelocity[1] + force[1], -cap[1], cap[1]
-    ) - currentVelocity[1];
+        newVelocity[1] + force[1], -cap[1], cap[1]
+    ) - newVelocity[1];
 
     // Now that we have our desired new velocity, apply it.
-    vec3.transformQuat(newVelocity, newVelocity, entity.rotation);
+    vec3.rotateZ(newVelocity, newVelocity, vec3.create(), entityAngle);
     vec3.add(newVelocity, newVelocity, entity.velocity);
     out.velocity = newVelocity;
     return out;
