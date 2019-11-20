@@ -34,15 +34,15 @@ export interface Props {
 
 export const DemoControlWindow = (props: Readonly<Props>): JSX.Element => {
     const playPauseButton = props.isPlaying ?
-        <button onClick={props.onPause}>&#9208;</button> :
-        <button onClick={props.onPlay}>&#9205;</button>;
+        <button onClick={props.onPause}>&#x23EF;&#xFE0E;</button> :
+        <button onClick={props.onPlay}>&#x23EF;&#xFE0E;</button>;
 
     return <Window title="Demo Controls">
         <FileLoader onLoad={props.onFileLoad}/>
-        <button onClick={props.onStart}>&#9198;</button>
-        <button onClick={props.onPrevious}>&#9194;&#65038;</button>
+        <button onClick={props.onStart}>&#x23EE;&#xFE0E;</button>
+        <button onClick={props.onPrevious}>&#x23F4;&#xFE0E;</button>
         {playPauseButton}
-        <button onClick={props.onNext}>&#9193;&#65038;</button>
-        <button onClick={props.onEnd}>&#9197;</button>
+        <button onClick={props.onNext}>&#x23F5;&#xFE0E;</button>
+        <button onClick={props.onEnd}>&#x23ED;&#xFE0E;</button>
     </Window>;
 }
