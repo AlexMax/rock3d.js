@@ -12,6 +12,7 @@
         "url": "https://github.com/AlexMax/rock3d.js.git"
     },
     "scripts": {
+        "build-server": "tsc --project ./src/server",
         "build": "webpack",
         "build-watch": "webpack --mode=development --watch",
         "lint": "eslint src --ext .ts,.tsx",

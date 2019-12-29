@@ -843,7 +843,7 @@ declare module 'gl-matrix' {
          * @param a vector to normalize
          * @returns out
          */
-        normalize(out: vec3, a: Readonly<Vec3>): vec3;
+        normalize(out: vec3, a: Readonly<vec3>): vec3;
 
         /**
          * Calculates the dot product of two vec3's
@@ -1059,7 +1059,7 @@ declare module 'gl-matrix' {
          * @param a vector to clone
          * @returns a new 4D vector
          */
-        clone(a: vec4Param): vec4;
+        clone(a: vec4param): vec4;
 
         /**
          * Creates a new vec4 initialized with the given values
@@ -1079,7 +1079,7 @@ declare module 'gl-matrix' {
          * @param a the source vector
          * @returns out
          */
-        copy(out: vec4, a: vec4Param): vec4;
+        copy(out: vec4, a: vec4param): vec4;
 
         /**
          * Set the components of a vec4 to the given values
@@ -1101,7 +1101,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        add(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        add(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Subtracts vector b from vector a
@@ -1111,7 +1111,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        subtract(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        subtract(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Subtracts vector b from vector a
@@ -1121,7 +1121,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        sub(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        sub(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Multiplies two vec4's
@@ -1131,7 +1131,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        multiply(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        multiply(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Multiplies two vec4's
@@ -1141,7 +1141,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        mul(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        mul(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Divides two vec4's
@@ -1151,7 +1151,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        divide(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        divide(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Divides two vec4's
@@ -1161,7 +1161,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        div(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        div(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Math.ceil the components of a vec4
@@ -1170,7 +1170,7 @@ declare module 'gl-matrix' {
          * @param {vec4} a vector to ceil
          * @returns {vec4} out
          */
-        ceil (out: vec4, a: vec4Param): vec4;
+        ceil (out: vec4, a: vec4param): vec4;
 
         /**
          * Math.floor the components of a vec4
@@ -1179,7 +1179,7 @@ declare module 'gl-matrix' {
          * @param {vec4} a vector to floor
          * @returns {vec4} out
          */
-        floor (out: vec4, a: vec4Param): vec4;
+        floor (out: vec4, a: vec4param): vec4;
 
         /**
          * Returns the minimum of two vec4's
@@ -1189,7 +1189,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        min(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        min(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Returns the maximum of two vec4's
@@ -1199,7 +1199,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns out
          */
-        max(out: vec4, a: vec4Param, b: vec4Param): vec4;
+        max(out: vec4, a: vec4param, b: vec4param): vec4;
 
         /**
          * Math.round the components of a vec4
@@ -1208,7 +1208,7 @@ declare module 'gl-matrix' {
          * @param {vec4} a vector to round
          * @returns {vec4} out
          */
-        round (out: vec4, a: vec4Param): vec4;
+        round (out: vec4, a: vec4param): vec4;
 
         /**
          * Scales a vec4 by a scalar number
@@ -1218,7 +1218,7 @@ declare module 'gl-matrix' {
          * @param b amount to scale the vector by
          * @returns out
          */
-        scale(out: vec4, a: vec4Param, b: number): vec4;
+        scale(out: vec4, a: vec4param, b: number): vec4;
 
         /**
          * Adds two vec4's after scaling the second operand by a scalar value
@@ -1229,7 +1229,7 @@ declare module 'gl-matrix' {
          * @param scale the amount to scale b by before adding
          * @returns out
          */
-        scaleAndAdd(out: vec4, a: vec4Param, b: vec4Param, scale: number): vec4;
+        scaleAndAdd(out: vec4, a: vec4param, b: vec4param, scale: number): vec4;
 
         /**
          * Calculates the euclidian distance between two vec4's
@@ -1238,7 +1238,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns distance between a and b
          */
-        distance(a: vec4Param, b: vec4Param): number;
+        distance(a: vec4param, b: vec4param): number;
 
         /**
          * Calculates the euclidian distance between two vec4's
@@ -1247,7 +1247,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns distance between a and b
          */
-        dist(a: vec4Param, b: vec4Param): number;
+        dist(a: vec4param, b: vec4param): number;
 
         /**
          * Calculates the squared euclidian distance between two vec4's
@@ -1256,7 +1256,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns squared distance between a and b
          */
-        squaredDistance(a: vec4Param, b: vec4Param): number;
+        squaredDistance(a: vec4param, b: vec4param): number;
 
         /**
          * Calculates the squared euclidian distance between two vec4's
@@ -1265,7 +1265,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns squared distance between a and b
          */
-        sqrDist(a: vec4Param, b: vec4Param): number;
+        sqrDist(a: vec4param, b: vec4param): number;
 
         /**
          * Calculates the length of a vec4
@@ -1273,7 +1273,7 @@ declare module 'gl-matrix' {
          * @param a vector to calculate length of
          * @returns length of a
          */
-        length(a: vec4Param): number;
+        length(a: vec4param): number;
 
         /**
          * Calculates the length of a vec4
@@ -1281,7 +1281,7 @@ declare module 'gl-matrix' {
          * @param a vector to calculate length of
          * @returns length of a
          */
-        len(a: vec4Param): number;
+        len(a: vec4param): number;
 
         /**
          * Calculates the squared length of a vec4
@@ -1289,7 +1289,7 @@ declare module 'gl-matrix' {
          * @param a vector to calculate squared length of
          * @returns squared length of a
          */
-        squaredLength(a: vec4Param): number;
+        squaredLength(a: vec4param): number;
 
         /**
          * Calculates the squared length of a vec4
@@ -1297,7 +1297,7 @@ declare module 'gl-matrix' {
          * @param a vector to calculate squared length of
          * @returns squared length of a
          */
-        sqrLen(a: vec4Param): number;
+        sqrLen(a: vec4param): number;
 
         /**
          * Negates the components of a vec4
@@ -1306,7 +1306,7 @@ declare module 'gl-matrix' {
          * @param a vector to negate
          * @returns out
          */
-        negate(out: vec4, a: vec4Param): vec4;
+        negate(out: vec4, a: vec4param): vec4;
 
         /**
          * Returns the inverse of the components of a vec4
@@ -1315,7 +1315,7 @@ declare module 'gl-matrix' {
          * @param a vector to invert
          * @returns out
          */
-        inverse(out: vec4, a: vec4Param): vec4;
+        inverse(out: vec4, a: vec4param): vec4;
 
         /**
          * Normalize a vec4
@@ -1324,7 +1324,7 @@ declare module 'gl-matrix' {
          * @param a vector to normalize
          * @returns out
          */
-        normalize(out: vec4, a: Readonly<Vec4>): vec4;
+        normalize(out: vec4, a: Readonly<vec4>): vec4;
 
         /**
          * Calculates the dot product of two vec4's
@@ -1333,7 +1333,7 @@ declare module 'gl-matrix' {
          * @param b the second operand
          * @returns dot product of a and b
          */
-        dot(a: vec4Param, b: vec4Param): number;
+        dot(a: vec4param, b: vec4param): number;
 
         /**
          * Performs a linear interpolation between two vec4's
@@ -1344,7 +1344,7 @@ declare module 'gl-matrix' {
          * @param t interpolation amount between the two inputs
          * @returns out
          */
-        lerp(out: vec4, a: vec4Param, b: vec4Param, t: number): vec4;
+        lerp(out: vec4, a: vec4param, b: vec4param, t: number): vec4;
 
         /**
          * Generates a random unit vector
@@ -1371,7 +1371,7 @@ declare module 'gl-matrix' {
          * @param m matrix to transform with
          * @returns out
          */
-        transformMat4(out: vec4, a: vec4Param, m: mat4param): vec4;
+        transformMat4(out: vec4, a: vec4param, m: mat4param): vec4;
 
         /**
          * Transforms the vec4 with a quat
@@ -1382,7 +1382,7 @@ declare module 'gl-matrix' {
          * @returns out
          */
 
-        transformQuat(out: vec4, a: vec4Param, q: quatparam): vec4;
+        transformQuat(out: vec4, a: vec4param, q: quatparam): vec4;
 
         /**
          * Perform some operation over an array of vec4s.
@@ -1419,7 +1419,7 @@ declare module 'gl-matrix' {
          * @param a vector to represent as a string
          * @returns string representation of the vector
          */
-        str(a: vec4Param): string;
+        str(a: vec4param): string;
 
         /**
          * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
@@ -1428,7 +1428,7 @@ declare module 'gl-matrix' {
          * @param {vec4} b The second vector.
          * @returns {boolean} True if the vectors are equal, false otherwise.
          */
-        exactEquals (a: vec4Param, b: vec4Param): boolean;
+        exactEquals (a: vec4param, b: vec4param): boolean;
 
         /**
          * Returns whether or not the vectors have approximately the same elements in the same position.
@@ -1437,7 +1437,7 @@ declare module 'gl-matrix' {
          * @param {vec4} b The second vector.
          * @returns {boolean} True if the vectors are equal, false otherwise.
          */
-        equals (a: vec4Param, b: vec4Param): boolean;
+        equals (a: vec4param, b: vec4param): boolean;
     }
 
     // mat2

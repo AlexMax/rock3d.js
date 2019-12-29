@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { readFileSync } from 'fs';
+
 import { performance } from 'perf_hooks';
 import WebSocket, { Server as WSServer } from 'ws';
 
@@ -26,8 +28,6 @@ import * as proto from '../proto';
 import { Simulation } from './sim';
 import { serializeSnapshot } from '../snapshot';
 import { Timer } from '../timer';
-
-import TESTMAP from '../../asset/TESTMAP.json';
 
 class Connection {
     /**
@@ -211,10 +211,14 @@ export class Server {
         });
 
         // Load the level.
-        if (!isSerializedLevel(TESTMAP)) {
-            throw new Error('TESTMAP is not valid level data');
+        const mapJSON = readFileSync('asset/map/TESTMAP.json', {
+            encoding: "utf8"
+        });
+        const map = JSON.parse(mapJSON);
+        if (!isSerializedLevel(map)) {
+            throw new Error('TESTMAP.json is not valid level data');
         }
-        this.sim = new Simulation(TESTMAP, 32);
+        this.sim = new Simulation(map, 32);
 
         // Initialize the timer for the game.
         this.gameTimer = new Timer(this.tick, performance.now, 32);
