@@ -61,29 +61,4 @@ const client = {
     }
 };
 
-const server = {
-    name: 'server',
-    entry: './src/server/index.ts',
-    mode: "production",
-    target: 'node',
-    module: {
-        rules: [{
-            exclude: /node_modules/,
-            test: /\.ts$/,
-            use: 'ts-loader'
-        }, {
-            exclude: /node_modules/,
-            test: /\.png$/,
-            use: 'file-loader'
-        }]
-    },
-    output: {
-        filename: 'server.js',
-        path: path.resolve(__dirname, 'dist')
-    },
-    resolve: {
-        extensions: ['.js', '.ts']
-    }
-};
-
-module.exports = [ editor, client, server ];
+module.exports = [ editor, client ];
