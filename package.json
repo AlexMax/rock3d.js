@@ -15,6 +15,7 @@
         "build-server": "tsc --project ./src/server",
         "build-client": "rollup -c rollup.client.config.js",
         "build-editor": "rollup -c rollup.editor.config.js",
+        "build-files": "node ./build-files.js",
         "lint": "eslint src --ext .ts,.tsx",
         "test": "jest",
         "test-watch": "jest --watch",

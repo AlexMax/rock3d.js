@@ -1,5 +1,6 @@
 *.swp
 /.vscode
+/asset/files.json
 /caddy
 /caddy.exe
 /coverage
