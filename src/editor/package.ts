@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import package_json from '../../package.json';
+// FIXME: Can we get this from package.json?
 
-const name = package_json.name;
-const repository_url = package_json.repository.url;
-const version = package_json.version;
+const name = "rock3d";
+const repository_url = "https://github.com/AlexMax/rock3d.js.git";
+const version = "0.0.1";
 
 export { name, repository_url, version };

@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "outDir": "../../public/dist",
+        "rootDir": "..",
+        "target": "ESNext"
+    },
+    "extends": "../../tsconfig.json",
+    "include": [
+        "../**/*.ts", "../**/*.tsx",
+        "../**/*.vert", "../**/*.frag",
+        "../../types/**/*.ts"
+    ]
+}

@@ -6,5 +6,5 @@
         "target": "ES2015"
     },
     "extends": "../../tsconfig.json",
-    "include": ["./*.ts", "../*.ts", "../../types/**/*.ts"],
+    "include": ["./**/*.ts", "../*.ts", "../../types/**/*.ts"]
 }

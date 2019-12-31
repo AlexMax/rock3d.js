@@ -2,3 +2,7 @@
     root public
     log stdout
 }
+*:8080/asset {
+    root asset
+    log stdout
+}

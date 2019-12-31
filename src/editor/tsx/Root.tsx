@@ -25,8 +25,6 @@ import { isSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 
-import TESTMAP from '../../../asset/TESTMAP.json';
-
 export enum Mode {
     DrawView,
     VisualView,
@@ -61,6 +59,8 @@ export class Root extends React.Component<{}, State> {
     }
 
     openFile() {
+        const TESTMAP = '{}'; // FIXME: Stub
+
         if (!isSerializedLevel(TESTMAP)) {
             throw new Error('Map data is not valid');
         }

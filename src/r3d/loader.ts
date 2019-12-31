@@ -19,33 +19,6 @@
 import { Atlas } from '../atlas';
 import { RenderContext } from './render';
 
-// Textures
-import BROWN96 from '../../asset/BROWN96.png';
-import CEIL5_1 from '../../asset/CEIL5_1.png';
-import F_SKY1 from '../../asset/F_SKY1.png';
-import FLAT14 from '../../asset/FLAT14.png';
-import FLAT2 from '../../asset/FLAT2.png';
-import FLOOR4_8 from '../../asset/FLOOR4_8.png';
-import GRASS1 from '../../asset/GRASS1.png';
-import METAL2 from '../../asset/METAL2.png';
-import PLAT1 from '../../asset/PLAT1.png';
-import RROCK03 from '../../asset/RROCK03.png';
-import RROCK18 from '../../asset/RROCK18.png';
-import SKY1 from '../../asset/SKY1.png';
-import STARTAN3 from '../../asset/STARTAN3.png';
-import STEP1 from '../../asset/STEP1.png';
-import STEP2 from '../../asset/STEP2.png';
-import STEP3 from '../../asset/STEP3.png';
-import SW1MET2 from '../../asset/SW1MET2.png';
-import SW2MET2 from '../../asset/SW2MET2.png';
-
-// Sprites
-import PLAYA1 from '../../asset/PLAYA1.png';
-import PLAYA2A8 from '../../asset/PLAYA2A8.png';
-import PLAYA3A7 from '../../asset/PLAYA3A7.png';
-import PLAYA4A6 from '../../asset/PLAYA4A6.png';
-import PLAYA5 from '../../asset/PLAYA5.png';
-
 /**
  * Size of texture atlas.
  */
@@ -85,24 +58,24 @@ export const textureLoader = (name: string, src: string): Promise<Texture> => {
 export const loadAssets = async (renderer: RenderContext) => {
     // Wait to load all of our textures.
     const textures = await Promise.all([
-        textureLoader('BROWN96', BROWN96),
-        textureLoader('CEIL5_1', CEIL5_1),
-        textureLoader('F_SKY1', F_SKY1),
-        textureLoader('FLAT14', FLAT14),
-        textureLoader('FLAT2', FLAT2),
-        textureLoader('FLOOR4_8', FLOOR4_8),
-        textureLoader('GRASS1', GRASS1),
-        textureLoader('METAL2', METAL2),
-        textureLoader('PLAT1', PLAT1),
-        textureLoader('RROCK03', RROCK03),
-        textureLoader('RROCK18', RROCK18),
-        textureLoader('SKY1', SKY1),
-        textureLoader('STARTAN3', STARTAN3),
-        textureLoader('STEP1', STEP1),
-        textureLoader('STEP2', STEP2),
-        textureLoader('STEP3', STEP3),
-        textureLoader('SW1MET2', SW1MET2),
-        textureLoader('SW2MET2', SW2MET2),
+        // textureLoader('BROWN96', BROWN96),
+        // textureLoader('CEIL5_1', CEIL5_1),
+        // textureLoader('F_SKY1', F_SKY1),
+        // textureLoader('FLAT14', FLAT14),
+        // textureLoader('FLAT2', FLAT2),
+        // textureLoader('FLOOR4_8', FLOOR4_8),
+        // textureLoader('GRASS1', GRASS1),
+        // textureLoader('METAL2', METAL2),
+        // textureLoader('PLAT1', PLAT1),
+        // textureLoader('RROCK03', RROCK03),
+        // textureLoader('RROCK18', RROCK18),
+        // textureLoader('SKY1', SKY1),
+        // textureLoader('STARTAN3', STARTAN3),
+        // textureLoader('STEP1', STEP1),
+        // textureLoader('STEP2', STEP2),
+        // textureLoader('STEP3', STEP3),
+        // textureLoader('SW1MET2', SW1MET2),
+        // textureLoader('SW2MET2', SW2MET2),
     ]);
 
     // Load our textures into the atlas.
@@ -117,11 +90,11 @@ export const loadAssets = async (renderer: RenderContext) => {
 
     // Wait to load all of our sprites.
     const sprites = await Promise.all([
-        textureLoader('PLAYA1', PLAYA1),
-        textureLoader('PLAYA2A8', PLAYA2A8),
-        textureLoader('PLAYA3A7', PLAYA3A7),
-        textureLoader('PLAYA4A6', PLAYA4A6),
-        textureLoader('PLAYA5', PLAYA5),
+        // textureLoader('PLAYA1', PLAYA1),
+        // textureLoader('PLAYA2A8', PLAYA2A8),
+        // textureLoader('PLAYA3A7', PLAYA3A7),
+        // textureLoader('PLAYA4A6', PLAYA4A6),
+        // textureLoader('PLAYA5', PLAYA5),
     ]);
 
     // Load our textures into the atlas.

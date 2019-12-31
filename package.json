@@ -13,28 +13,29 @@
     },
     "scripts": {
         "build-server": "tsc --project ./src/server",
-        "build": "webpack",
-        "build-watch": "webpack --mode=development --watch",
+        "build-client": "rollup -c rollup.client.config.js",
+        "build-editor": "rollup -c rollup.editor.config.js",
         "lint": "eslint src --ext .ts,.tsx",
         "test": "jest",
         "test-watch": "jest --watch",
-        "server": "node dist/server.js"
+        "server": "node ./dist/server/index.js"
     },
     "dependencies": {
+        "@rollup/plugin-commonjs": "^11.0.0",
+        "@rollup/plugin-node-resolve": "^6.0.0",
         "@types/earcut": "^2.1.0",
         "@types/react": "^16.9.17",
         "@types/react-dom": "^16.9.4",
         "@types/ws": "^6.0.4",
         "earcut": "^2.2.1",
-        "file-loader": "^4.3.0",
         "gl-matrix": "^3.1.0",
-        "raw-loader": "^3.1.0",
         "react": "^16.12.0",
         "react-dom": "^16.12.0",
+        "rollup": "^1.27.14",
+        "rollup-plugin-string": "^3.0.0",
+        "rollup-plugin-typescript2": "^0.25.3",
         "ts-loader": "^6.2.1",
         "typescript": "^3.7.4",
-        "webpack": "^4.41.5",
-        "webpack-cli": "^3.3.10",
         "ws": "^7.2.1"
     },
     "devDependencies": {

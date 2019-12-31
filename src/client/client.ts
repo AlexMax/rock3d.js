@@ -23,8 +23,6 @@ import { Simulation } from './sim';
 import { unserializeSnapshot } from '../snapshot';
 import { RenderContext } from '../r3d/render';
 
-import TESTMAP from '../../asset/TESTMAP.json';
-
 export interface Client {
     /**
      * Client ID.
@@ -58,6 +56,8 @@ const ping = (client: Client, msg: proto.ServerPing): void => {
 const snapshot = (client: Client, msg: proto.ServerSnapshot): void => {
     const snap = unserializeSnapshot(msg.snapshot);
     if (client.sim === null) {
+        const TESTMAP = '{}'; // FIXME: Stub
+
         if (!isSerializedLevel(TESTMAP)) {
             throw new Error('TESTMAP is not valid level data');
         }
