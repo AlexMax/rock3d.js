@@ -7,7 +7,7 @@ export default {
     input: "src/client/index.ts",
     output: [{
         file: "public/dist/client.js",
-        format: "umd",
+        format: "iife",
         name: "client",
         sourcemap: true
     }],

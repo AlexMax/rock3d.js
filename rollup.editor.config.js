@@ -7,7 +7,7 @@ export default {
     input: "src/editor/index.ts",
     output: [{
         file: "public/dist/editor.js",
-        format: "umd",
+        format: "iife",
         name: "editor",
         sourcemap: true
     }],
