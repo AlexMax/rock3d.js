@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Assets } from '../client/asset';
 import { Atlas } from '../atlas';
 import { RenderContext } from './render';
 
@@ -30,7 +31,7 @@ const ATLAS_SIZE = 512;
 export interface Texture {
     name: string;
     img: HTMLImageElement;
-};
+}
 
 /**
  * Asynchronously load an image and resolves the returned promise when the
@@ -55,28 +56,28 @@ export const textureLoader = (name: string, src: string): Promise<Texture> => {
     });
 }
 
-export const loadAssets = async (renderer: RenderContext) => {
-    // Wait to load all of our textures.
-    const textures = await Promise.all([
-        // textureLoader('BROWN96', BROWN96),
-        // textureLoader('CEIL5_1', CEIL5_1),
-        // textureLoader('F_SKY1', F_SKY1),
-        // textureLoader('FLAT14', FLAT14),
-        // textureLoader('FLAT2', FLAT2),
-        // textureLoader('FLOOR4_8', FLOOR4_8),
-        // textureLoader('GRASS1', GRASS1),
-        // textureLoader('METAL2', METAL2),
-        // textureLoader('PLAT1', PLAT1),
-        // textureLoader('RROCK03', RROCK03),
-        // textureLoader('RROCK18', RROCK18),
-        // textureLoader('SKY1', SKY1),
-        // textureLoader('STARTAN3', STARTAN3),
-        // textureLoader('STEP1', STEP1),
-        // textureLoader('STEP2', STEP2),
-        // textureLoader('STEP3', STEP3),
-        // textureLoader('SW1MET2', SW1MET2),
-        // textureLoader('SW2MET2', SW2MET2),
-    ]);
+export const loadRendererAssets = (
+    renderer: RenderContext,
+    assets: Assets,
+): void => {
+    // Load all of our textures into texture and sprite map.
+    const textures: Texture[] = [];
+    const sprites: Texture[] = [];
+    for (const [key, value] of assets.entries()) {
+        const tMatch = key.match(/texture\/(.+)\..+/);
+        const sMatch = key.match(/sprite\/(.+)\..+/);
+        if (Array.isArray(tMatch) && tMatch.length >= 2 && value.type === 'Image') {
+            textures.push({
+                name: tMatch[1],
+                img: value.data
+            });
+        } else if (Array.isArray(sMatch) && sMatch.length >= 2 && value.type === 'Image') {
+            sprites.push({
+                name: sMatch[1],
+                img: value.data
+            });
+        }
+    }
 
     // Load our textures into the atlas.
     const texAtlas = new Atlas(ATLAS_SIZE);
@@ -88,16 +89,7 @@ export const loadAssets = async (renderer: RenderContext) => {
     // Persist the atlas to the GPU.
     renderer.world.bakeTextureAtlas(texAtlas);
 
-    // Wait to load all of our sprites.
-    const sprites = await Promise.all([
-        // textureLoader('PLAYA1', PLAYA1),
-        // textureLoader('PLAYA2A8', PLAYA2A8),
-        // textureLoader('PLAYA3A7', PLAYA3A7),
-        // textureLoader('PLAYA4A6', PLAYA4A6),
-        // textureLoader('PLAYA5', PLAYA5),
-    ]);
-
-    // Load our textures into the atlas.
+    // Load our sprites into the atlas.
     const spriteAtlas = new Atlas(ATLAS_SIZE);
     for (let i = 0;i < sprites.length;i++) {
         const { name, img } = sprites[i];

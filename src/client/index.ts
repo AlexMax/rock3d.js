@@ -18,7 +18,8 @@
 
 import { render } from './client';
 import { Button, setAxis, setPressed, setReleased } from '../command';
-import { loadAssets } from '../r3d/loader';
+import { loadAssets } from './asset';
+import { loadRendererAssets } from '../r3d/loader';
 import { RenderContext } from '../r3d/render';
 import { SocketClient } from './socket'; 
 
@@ -71,11 +72,12 @@ window.addEventListener("load", async () => {
     const renderer = new RenderContext(canvas);
 
     // Load our assets.
-    await loadAssets(renderer);
+    const assets = await loadAssets("/asset");
+    loadRendererAssets(renderer, assets);
 
     // Create our client.
     const hostname = window.location.hostname;
-    const client = new SocketClient(hostname, 11210);
+    const client = new SocketClient(assets, hostname, 11210);
 
     // Tie input to our client.
     window.addEventListener('keydown', (evt) => {

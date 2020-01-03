@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Assets } from './asset';
 import * as cmd from '../command';
 import { Client, handleMessage } from './client';
 import * as proto from '../proto';
@@ -53,6 +54,10 @@ export const createDemo = (): Demo => {
 };
 
 export class DemoClient implements Client {
+    /**
+     * Assets accessible to client.
+     */
+    readonly assets: Assets;
 
     /**
      * Client ID.
@@ -89,9 +94,10 @@ export class DemoClient implements Client {
      */
     demoTimer: Timer;
 
-    constructor(data: string) {
+    constructor(assets: Assets, data: string) {
         this.tick = this.tick.bind(this);
 
+        this.assets = assets;
         this.id = null;
         this.rtt = null;
         this.health = null;

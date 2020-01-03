@@ -67,7 +67,7 @@ export class FPCanvas extends React.Component<Props> {
         //     this.renderer.world.worldProject, level);
 
         // Create our sky.
-        this.renderer.world.addSky('SKY1');
+        this.renderer.world.addSky('sky/SKY1');
 
         // Draw our map
         for (let i = 0;i < level.polygons.length;i++) {

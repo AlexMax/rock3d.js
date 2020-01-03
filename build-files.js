@@ -38,7 +38,7 @@ const files = crawlDirRecursive(baseDir).map((file) => {
     const trimFile = file.substr(baseDir.length + 1);
     if (sep === '\\') {
         // We always want forward slashes, even on Windows.
-        return trimFile.replace(sep, '/');
+        return trimFile.replace(/\\/g, '/');
     } else {
         return trimFile;
     }

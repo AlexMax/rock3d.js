@@ -2,8 +2,7 @@
     "compilerOptions": {
         "module": "CommonJS",
         "outDir": "../../dist",
-        "rootDir": "..",
-        "target": "ES2015"
+        "rootDir": ".."
     },
     "extends": "../../tsconfig.json",
     "include": ["./**/*.ts", "../*.ts", "../../types/**/*.ts"]

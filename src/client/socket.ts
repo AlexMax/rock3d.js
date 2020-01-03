@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Assets } from './asset';
 import { Client, handleMessage } from './client';
 import * as cmd from '../command';
 import { Demo, createDemo } from './demo';
@@ -100,6 +101,11 @@ class SocketConnection {
 
 export class SocketClient implements Client {
     /**
+     * Client assets.
+     */
+    readonly assets: Assets;
+
+    /**
      * Client ID.
      */
     id: number | null;
@@ -146,9 +152,10 @@ export class SocketClient implements Client {
      */
     healthPID: PID;
 
-    constructor(hostname: string, port: number) {
+    constructor(assets: Assets, hostname: string, port: number) {
         this.tick = this.tick.bind(this);
 
+        this.assets = assets;
         this.id = null;
         this.rtt = null;
         this.health = null;

@@ -2,8 +2,7 @@
     "compilerOptions": {
         "jsx": "react",
         "outDir": "../../public/dist",
-        "rootDir": "..",
-        "target": "ESNext"
+        "rootDir": ".."
     },
     "extends": "../../tsconfig.json",
     "include": [

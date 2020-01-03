@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Assets } from './asset';
 import { fromEntity } from '../r3d/camera';
 import { isSerializedLevel } from '../level';
 import * as proto from '../proto';
@@ -24,6 +25,11 @@ import { unserializeSnapshot } from '../snapshot';
 import { RenderContext } from '../r3d/render';
 
 export interface Client {
+    /**
+     * Assets accessible to client.
+     */
+    readonly assets: Assets;
+
     /**
      * Client ID.
      */
@@ -56,14 +62,20 @@ const ping = (client: Client, msg: proto.ServerPing): void => {
 const snapshot = (client: Client, msg: proto.ServerSnapshot): void => {
     const snap = unserializeSnapshot(msg.snapshot);
     if (client.sim === null) {
-        const TESTMAP = '{}'; // FIXME: Stub
+        // Load the map.
+        const map = client.assets.get('map/TESTMAP.json');
+        if (map === undefined) {
+            throw new Error('TESTMAP does not exist.');
+        } else if (map.type !== 'JSON') {
+            throw new Error('TESTMAP is not JSON.');
+        }
 
-        if (!isSerializedLevel(TESTMAP)) {
-            throw new Error('TESTMAP is not valid level data');
+        if (!isSerializedLevel(map.data)) {
+            throw new Error('TESTMAP is not valid level data.');
         }
 
         // Start the simulation now that we have snapshot data.
-        client.sim = new Simulation(TESTMAP, 32, snap);
+        client.sim = new Simulation(map.data, 32, snap);
     }
 
     // Store our snapshot data in the simulation.
@@ -132,7 +144,7 @@ export const render = (client: Client, ctx: RenderContext): void => {
 
     // Create our sky.
     ctx.world.clearSky();
-    ctx.world.addSky('SKY1');
+    ctx.world.addSky('sky/SKY1');
 
     // Add our geometry to be rendered.
     ctx.world.clearWorld();
