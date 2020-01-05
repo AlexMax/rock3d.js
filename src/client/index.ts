@@ -56,17 +56,17 @@ const scalePitch = (movement: number): number => {
 }
 
 window.addEventListener("load", async () => {
-    // Get our client element.
-    const root = document.getElementById('client');
-    if (root === null) {
-        throw new Error('Could not find root element');
-    }
-
     // Create an element to hold our renderer
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
-    root.appendChild(canvas);
+    document.body.appendChild(canvas);
+
+    // Create an element to hold debug output
+    const debug = document.createElement('textarea');
+    debug.id = 'debug';
+    debug.style.width = '640px';
+    document.body.appendChild(debug);
 
     // Create the 3D renderer.
     const renderer = new RenderContext(canvas);
