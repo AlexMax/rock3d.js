@@ -18,12 +18,18 @@
 
 import React from "react";
 
+import { Assets } from "../asset";
 import { render } from "../client";
 import { DemoClient } from "../demo";
-import { loadAssets } from "../../r3d/loader";
+import { loadRendererAssets } from "../../r3d/loader";
 import { RenderContext } from "../../r3d/render";
 
 export interface Props {
+    /**
+     * Assets to render with.
+     */
+    assets: Assets;
+
     /**
      * Client to render.
      */
@@ -44,7 +50,7 @@ export class RenderCanvas extends React.Component<Props> {
         this.canvas = React.createRef();
     }
 
-    async componentDidMount(): Promise<void> {
+    componentDidMount(): void {
         const canvas = this.canvas.current;
         if (canvas === null) {
             throw new Error('Canvas is inaccessible');
@@ -55,7 +61,7 @@ export class RenderCanvas extends React.Component<Props> {
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Load our assets.
-        await loadAssets(this.renderer);
+        loadRendererAssets(this.renderer, this.props.assets);
 
         // Start the rendering loop.
         this.timer = window.requestAnimationFrame(this.draw);

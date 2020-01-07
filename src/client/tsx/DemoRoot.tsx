@@ -18,12 +18,20 @@
 
 import React from 'react';
 
+import { Assets } from '../asset';
 import { DemoClient, DemoTick } from '../demo';
 import { DemoControlWindow } from './DemoControlWindow';
 import { DemoInfoWindow } from './DemoInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
 import { Snapshot } from '../../snapshot';
 import { SnapshotInfoWindow } from './SnapshotInfoWindow';
+
+interface Props {
+    /**
+     * Currently loaded assets.
+     */
+    assets: Assets;
+}
 
 interface State {
     /**
@@ -52,9 +60,9 @@ interface State {
     isPlaying: boolean;
 }
 
-export class DemoRoot extends React.Component<{}, State> {
+export class DemoRoot extends React.Component<Props, State> {
 
-    constructor(props: Readonly<{}>) {
+    constructor(props: Readonly<Props>) {
         super(props);
 
         this.onFileLoad = this.onFileLoad.bind(this);
@@ -75,7 +83,7 @@ export class DemoRoot extends React.Component<{}, State> {
     }
 
     private onFileLoad(data: string): void {
-        const client = new DemoClient(data);
+        const client = new DemoClient(this.props.assets, data);
         this.setState({
             client: client,
             tick: client.getTick(),
@@ -197,7 +205,9 @@ export class DemoRoot extends React.Component<{}, State> {
         }
 
         return <div>
-                <RenderCanvas client={this.state.client}/>
+                <RenderCanvas
+                    assets={this.props.assets}
+                    client={this.state.client}/>
                 <DemoControlWindow
                     isPlaying={this.state.isPlaying}
                     onFileLoad={this.onFileLoad}

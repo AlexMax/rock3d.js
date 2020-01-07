@@ -6,8 +6,10 @@
     },
     "extends": "../../tsconfig.json",
     "include": [
-        "../**/*.ts", "../**/*.tsx",
-        "../**/*.vert", "../**/*.frag",
+        "**/*.ts", "**/*.tsx",
+        "../*.ts", "../tsx/**/*.tsx",
+        "../r2d/**/*.ts",
+        "../r3d/**/*.ts", "../r3d/*.vert", "../r3d/*.frag",
         "../../types/**/*.ts"
     ]
 }
