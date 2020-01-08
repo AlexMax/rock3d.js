@@ -23,15 +23,14 @@ import { loadAssets } from './asset';
 import { DemoRoot } from './tsx/DemoRoot';
 
 window.addEventListener("load", async () => {
-    // Get our player element.
-    const root = document.getElementById('player');
-    if (root === null) {
-        throw new Error('Could not find root element');
-    }
+    // Create an element to hold our player.
+    const player = document.createElement('div');
+    player.id = "player";
+    document.body.appendChild(player);
 
     // Load our assets first.
     const assets = await loadAssets("/asset");
 
-    // Render the demo
-    ReactDOM.render(React.createElement(DemoRoot, {assets: assets}), root);
+    // Render the demo player.
+    ReactDOM.render(React.createElement(DemoRoot, {assets: assets}), player);
 });

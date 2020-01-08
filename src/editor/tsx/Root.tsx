@@ -18,6 +18,7 @@
 
 import React from 'react';
 
+import { Assets } from '../../client/asset';
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
 import { createEditableLevel, EditableLevel } from '../editableLevel';
@@ -30,15 +31,19 @@ export enum Mode {
     VisualView,
 };
 
+interface Props {
+    assets: Assets;
+};
+
 interface State {
     level: EditableLevel | null;
     mode: Mode | null;
     modal: JSX.Element | null;
 };
 
-export class Root extends React.Component<{}, State> {
+export class Root extends React.Component<Props, State> {
 
-    constructor(props: Readonly<{}>) {
+    constructor(props: Readonly<Props>) {
         super(props);
         this.closeModal = this.closeModal.bind(this);
         this.openFile = this.openFile.bind(this);
@@ -59,13 +64,19 @@ export class Root extends React.Component<{}, State> {
     }
 
     openFile() {
-        const TESTMAP = '{}'; // FIXME: Stub
+        // Load the map.
+        const map = this.props.assets.get('map/TESTMAP.json');
+        if (map === undefined) {
+            throw new Error('TESTMAP does not exist.');
+        } else if (map.type !== 'JSON') {
+            throw new Error('TESTMAP is not JSON.');
+        }
 
-        if (!isSerializedLevel(TESTMAP)) {
+        if (!isSerializedLevel(map)) {
             throw new Error('Map data is not valid');
         }
 
-        const level = createEditableLevel(TESTMAP);
+        const level = createEditableLevel(map);
         this.setState({ level: level, mode: Mode.DrawView });
     }
 
@@ -99,7 +110,9 @@ export class Root extends React.Component<{}, State> {
                 modeElement = <DrawView level={this.state.level}/>;
                 break;
             case Mode.VisualView:
-                modeElement = <VisualView level={this.state.level}/>;
+                modeElement = <VisualView
+                                    assets={this.props.assets}
+                                    level={this.state.level}/>;
                 break;
             }
         }

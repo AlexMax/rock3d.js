@@ -18,6 +18,7 @@
 
 import React from 'react';
 
+import { Assets } from '../../client/asset';
 import {
     Camera, create as cameraCreate, moveRelative as cameraMoveRelative,
     rotateEuler as cameraRotateEuler
@@ -28,6 +29,11 @@ import { StatusBar } from '../../tsx/StatusBar';
 import { VisualInput } from './VisualInput';
 
 export interface Props {
+    /**
+     * Static assets.
+     */
+    assets: Assets;
+
     /**
      * Level data.
      */
@@ -138,7 +144,9 @@ export class VisualView extends React.Component<Props, State> {
 
     render(): JSX.Element {
         return <>
-            <FPCanvas camera={this.state.camera} level={this.props.level}/>
+            <FPCanvas
+                assets={this.props.assets} camera={this.state.camera}
+                level={this.props.level}/>
             <StatusBar/>
             <VisualInput moveForward={this.moveForward} moveBackward={this.moveBackward}
                 strafeLeft={this.strafeLeft} strafeRight={this.strafeRight}

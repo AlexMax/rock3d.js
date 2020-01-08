@@ -18,13 +18,18 @@
 
 import React from 'react';
 
-import { Atlas } from '../../atlas';
 import { Camera } from '../../r3d/camera';
 import { EditableLevel } from '../editableLevel';
-import { loadAssets } from '../../r3d/loader';
+import { loadRendererAssets } from '../../r3d/loader';
 import { RenderContext } from '../../r3d/render';
+import { Assets } from '../../client/asset';
 
 export interface Props {
+    /**
+     * Static assets for level.
+     */
+    assets: Assets;
+
     /**
      * Camera that looks at the level.
      */
@@ -57,7 +62,7 @@ export class FPCanvas extends React.Component<Props> {
         this.renderer.resize(canvas.clientWidth, canvas.clientHeight);
 
         // Load all of our textures.
-        await loadAssets(this.renderer);
+        loadRendererAssets(this.renderer, this.props.assets);
 
         const perf = performance.now();
 

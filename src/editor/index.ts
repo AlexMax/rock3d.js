@@ -20,12 +20,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { Root } from './tsx/Root';
+import { loadAssets } from '../client/asset';
 
 window.addEventListener("load", async () => {
-    const root = document.getElementById('editor');
-    if (root === null) {
-        throw new Error('Could not find root element');
-    }
+    // Create an element to hold our editor.
+    const editor = document.createElement('div');
+    editor.id = "editor";
+    document.body.appendChild(editor);
 
-    ReactDOM.render(React.createElement(Root), root);
+    // Load our assets first.
+    const assets = await loadAssets("/asset");
+
+    // Render the editor.
+    ReactDOM.render(React.createElement(Root, { assets: assets }), editor);
 });
