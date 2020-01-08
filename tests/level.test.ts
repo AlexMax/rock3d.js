@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { readFileSync } from 'fs';
 import { vec2, vec3 } from 'gl-matrix';
 
 import {
@@ -23,16 +24,19 @@ import {
     isSerializedLevel, createLevel, pointInPolygon, findPolygon
 } from '../src/level';
 
-import TESTMAP from './TESTMAP.json';
-
 let testLevel: Level;
 
 beforeAll(() => {
-    if (!isSerializedLevel(TESTMAP)) {
+    // Load the level.
+    const mapJSON = readFileSync('asset/map/TESTMAP.json', {
+        encoding: "utf8"
+    });
+    const map = JSON.parse(mapJSON);
+    if (!isSerializedLevel(map)) {
         throw new Error('TESTMAP is not valid level data');
     }
 
-    testLevel = createLevel(TESTMAP);
+    testLevel = createLevel(map);
 });
 
 describe('Hitscan', () => {
