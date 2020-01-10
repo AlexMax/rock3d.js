@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+const css = require('../../public/main.css');
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 

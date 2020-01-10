@@ -1,4 +1,5 @@
 const { resolve } = require('path');
+const CssExtract = require('mini-css-extract-plugin');
 const Html = require('html-webpack-plugin');
 
 const config = [{
@@ -18,6 +19,9 @@ const config = [{
                 }
             }],
         }, {
+            test: /\.css$/,
+            use: [CssExtract.loader, 'css-loader'],
+        }, {
             test: /\.(vert|frag)$/,
             use: ['raw-loader'],
         }]
@@ -27,6 +31,9 @@ const config = [{
         path: resolve(__dirname, "public/client")
     },
     plugins: [
+        new CssExtract({
+            filename: "[name]-[contenthash:8].css",
+        }),
         new Html({
             chunks: ['index'],
             filename: resolve(__dirname, "public/client/index.html"),
@@ -57,6 +64,9 @@ const config = [{
                 }
             }],
         }, {
+            test: /\.css$/,
+            use: [CssExtract.loader, 'css-loader'],
+        }, {
             test: /\.(vert|frag)$/,
             use: ['raw-loader'],
         }]
@@ -66,6 +76,9 @@ const config = [{
         path: resolve(__dirname, "public/editor")
     },
     plugins: [
+        new CssExtract({
+            filename: "[name]-[contenthash:8].css",
+        }),
         new Html({
             chunks: ['index'],
             filename: resolve(__dirname, "public/editor/index.html"),

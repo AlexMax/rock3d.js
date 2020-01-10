@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+const css = require('../../public/main.css');
+
 import { render } from './client';
 import { Button, setAxis, setPressed, setReleased } from '../command';
 import { loadAssets } from './asset';
