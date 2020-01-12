@@ -16,27 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const css = require('../../public/main.css');
+import React from "react";
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import { Demo } from "../demo";
+import { Window } from  '../../tsx/Window';
 
-import { loadAssets } from './asset';
-import { ClientRoot } from './tsx/ClientRoot';
+interface Props {
+    /**
+     * Demo to generate a download link for.
+     */
+    demo: Demo;
+}
 
-window.addEventListener("load", async () => {
-    // Create an element to hold our client.
-    const client = document.createElement('div');
-    client.id = "client";
-    document.body.appendChild(client);
+export const DemoDownloadWindow = (props: Props): JSX.Element => {
+    const json = JSON.stringify(props.demo);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
 
-    // Load our assets first.
-    const assets = await loadAssets("/asset");
-
-    // Render the demo player.
-    ReactDOM.render(React.createElement(ClientRoot, {
-        assets: assets,
-        hostname: window.location.hostname,
-        port: 11210,
-    }), client);
-});
+    return <Window title="Download Demo">
+        <a href={url} download="demo.json">Download</a>
+    </Window>;
+}

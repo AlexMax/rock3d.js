@@ -19,8 +19,7 @@
 import React from "react";
 
 import { Assets } from "../asset";
-import { render } from "../client";
-import { DemoClient } from "../demo";
+import { Client, render } from "../client";
 import { loadRendererAssets } from "../../r3d/loader";
 import { RenderContext } from "../../r3d/render";
 
@@ -33,7 +32,7 @@ export interface Props {
     /**
      * Client to render.
      */
-    client: DemoClient | null;
+    client: Client | null;
 }
 
 export class RenderCanvas extends React.Component<Props> {
