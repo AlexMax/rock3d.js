@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { AppAPI } from './api';
 import { Assets } from './asset';
 import { Client, handleMessage } from './client';
 import * as cmd from '../command';
@@ -106,6 +107,11 @@ export class SocketClient implements Client {
     readonly assets: Assets;
 
     /**
+     * Application API functions.
+     */
+    readonly api: AppAPI;
+
+    /**
      * Client ID.
      */
     id: number | null;
@@ -152,10 +158,11 @@ export class SocketClient implements Client {
      */
     healthPID: PID;
 
-    constructor(assets: Assets, hostname: string, port: number) {
+    constructor(assets: Assets, api: AppAPI, hostname: string, port: number) {
         this.tick = this.tick.bind(this);
 
         this.assets = assets;
+        this.api = api;
         this.id = null;
         this.rtt = null;
         this.health = null;
@@ -237,10 +244,17 @@ export class SocketClient implements Client {
             scale = 1 + calc;
         }
 
-        const debug = document.getElementById('debug');
-        if (debug instanceof HTMLTextAreaElement) {
-            debug.innerHTML = `health: ${this.health}\ncalc: ${calc} scale: ${scale}\npid: ${JSON.stringify(this.healthPID)}`;
-        }
+        this.api.updateHealthInfo({
+            health: this.health,
+            calc: calc,
+            scale: scale,
+            p: this.healthPID.p,
+            i: this.healthPID.i,
+            d: this.healthPID.d,
+            pError: this.healthPID.pError,
+            iError: this.healthPID.iError,
+            dError: this.healthPID.dError,
+        });
         this.gameTimer.setScale(scale);
 
         // Send the server our inputs.
