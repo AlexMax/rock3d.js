@@ -36,12 +36,16 @@ export const HealthInfoWindow = (props: Readonly<Props>): JSX.Element => {
     return <Window title="Health Info">
         <table>
             <tbody>
-                <tr><th>Health: {props.health}</th></tr>
-                <tr><th>Calc: {props.calc}</th></tr>
-                <tr><th>Scale: {props.scale}</th></tr>
-                <tr><th>P: {props.p} / {props.pError}</th></tr>
-                <tr><th>I: {props.i} / {props.iError}</th></tr>
-                <tr><th>D: {props.d} / {props.dError}</th></tr>
+                <tr>
+                    <th>Health</th><td>{props.health}</td>
+                    <th>Calc</th><td>{props.calc.toFixed(2)}</td>
+                    <th>Scale</th><td>{props.scale.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <th>P</th><td>{props.p} / {props.pError}</td>
+                    <th>I</th><td>{props.i} / {props.iError}</td>
+                    <th>D</th><td>{props.d} / {props.dError}</td>
+                </tr>
             </tbody>
         </table>
     </Window>;
