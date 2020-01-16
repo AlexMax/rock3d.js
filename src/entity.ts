@@ -264,6 +264,8 @@ export const forceRelativeXY = (
     // Constrain our force to the cap.  We can always apply force up to
     // the cap, but if we're going faster than the cap we don't want to
     // slow down.
+
+    // Rotate velocity so we can operate on it.
     const entityAngle = glMatrix.toRadian(
         quatToEuler(vec3.create(), entity.rotation)[2]
     );
@@ -271,16 +273,18 @@ export const forceRelativeXY = (
         vec3.create(), entity.velocity,
         vec3.create(), -entityAngle
     );
+
+    // Add our contrained force to our existing XY velocity.
     newVelocity[0] = constrain(
         newVelocity[0] + force[0], -cap[0], cap[0]
-    ) - newVelocity[0];
+    );
     newVelocity[1] = constrain(
         newVelocity[1] + force[1], -cap[1], cap[1]
-    ) - newVelocity[1];
+    );
 
-    // Now that we have our desired new velocity, apply it.
+    // Rotate our velocity back to what it was.
     vec3.rotateZ(newVelocity, newVelocity, vec3.create(), entityAngle);
-    vec3.add(newVelocity, newVelocity, entity.velocity);
+
     out.velocity = newVelocity;
     return out;
 }
