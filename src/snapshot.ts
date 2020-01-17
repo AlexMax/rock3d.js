@@ -25,7 +25,7 @@ import {
     MutableEntity, applyVelocity
 } from './entity';
 import { Level, MutableLevel, createEmptyLevel, copyLevel } from './level';
-import { cartesianToPolar, polarToCartesian, quantize } from './math';
+import { cartesianToPolar, polarToCartesian, quantize, constrain } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
@@ -184,7 +184,7 @@ const handleInput = (
 
     // Maximum force is based on the period.
     const maxSpeed = (512 * period) / 1000;
-    const jumpSpeed = (512 * period) / 1000;
+    const jumpSpeed = (256 * period) / 1000;
     const forceCap = vec2.fromValues(maxSpeed, maxSpeed);
 
     // Use our held buttons to calculate desired force.
@@ -304,6 +304,8 @@ const tickMutators = (snap: Snapshot, level: Level, period: number): void => {
  * @param period Amount of time to tick in milliseconds.
  */
 const tickEntities = (snap: Snapshot, period: number): void => {
+    const gravity = (32 * period) / 1000;
+
     // Avoid garbage while iterating our entities.
     const polarVelocity: [number, number] = [0, 0];
 
@@ -319,7 +321,7 @@ const tickEntities = (snap: Snapshot, period: number): void => {
             cartesianToPolar(
                 polarVelocity, newEntity.velocity[0], newEntity.velocity[1]
             );
-            polarVelocity[0] *= 0.9;
+            polarVelocity[0] *= Math.pow(0.994813, period); // 0.85 at 32 ticrate
             polarToCartesian(
                 newEntity.velocity, polarVelocity[0], polarVelocity[1]
             );
@@ -328,7 +330,7 @@ const tickEntities = (snap: Snapshot, period: number): void => {
             if (touchesFloor(newEntity, snap)) {
                 newEntity.velocity[2] = 0;
             } else {
-                newEntity.velocity[2] -= 1;
+                newEntity.velocity[2] -= gravity;
             }
 
             // Quantize our velocity, if necessary.
