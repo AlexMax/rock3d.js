@@ -362,7 +362,11 @@ export const tickSnapshot = (
     // Use passed level data to initialize mutated level cache.
     copyLevel(out.level, level);
 
-    // Run our commands against the current frame, in the specified order.
+    // Tick level mutators first, so entities can reason about their actual
+    // position in the level.
+    tickMutators(out, level, period);
+
+    // Run our commands against the mutated level, in the specified order.
     for (const command of commands) {
         switch (command.type) {
             case cmd.CommandTypes.Input:
@@ -376,8 +380,7 @@ export const tickSnapshot = (
             }
     }
 
-    // Tick our mutators and entities, in that order.
-    tickMutators(out, level, period);
+    // Tick entities in response to commands.
     tickEntities(out, period);
 
     return out;
