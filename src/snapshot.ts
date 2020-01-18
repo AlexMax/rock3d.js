@@ -25,7 +25,7 @@ import {
     MutableEntity, applyVelocity
 } from './entity';
 import { Level, MutableLevel, createEmptyLevel, copyLevel } from './level';
-import { cartesianToPolar, polarToCartesian, quantize, constrain } from './math';
+import { cartesianToPolar, polarToCartesian, quantize } from './math';
 import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig

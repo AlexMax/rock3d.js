@@ -22,7 +22,7 @@ import {
     Level, findPolygon, entityTouchesLevel, isTouchNothing, isTouchVoid,
     isTouchEdge
 } from './level';
-import { constrain, quatToEuler, cartesianToPolar } from './math';
+import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
 
 /**

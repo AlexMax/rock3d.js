@@ -22,7 +22,6 @@ import { Atlas } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { Level } from '../level';
-import { Polygon } from '../polygon';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
 import { compileShader, linkShaderProgram } from './shader';

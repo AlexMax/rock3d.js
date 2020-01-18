@@ -18,11 +18,7 @@
 
 import { vec2 } from 'gl-matrix';
 
-import { SerializedEdge } from '../edge';
-import {
-    createLevel, isSerializedLevel, MutableLevel, SerializedLevel
-} from '../level';
-import { SerializedPolygon } from '../polygon';
+import { createLevel,  MutableLevel, SerializedLevel } from '../level';
 
 interface VertexPolys {
     /**
