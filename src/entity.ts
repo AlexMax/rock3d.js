@@ -22,7 +22,7 @@ import {
     Level, findPolygon, entityTouchesLevel, isTouchNothing, isTouchVoid,
     isTouchEdge
 } from './level';
-import { constrain, quatToEuler } from './math';
+import { constrain, quatToEuler, cartesianToPolar } from './math';
 import { Snapshot } from './snapshot';
 
 /**
@@ -164,6 +164,10 @@ export const cloneEntity = (entity: Entity): MutableEntity => {
     return {
         ...entity,
     } as MutableEntity;
+};
+
+export const copyEntity = (out: MutableEntity, entity: Entity): MutableEntity => {
+    return Object.assign(out, entity);
 };
 
 export interface SerializedEntity {
@@ -311,18 +315,19 @@ export const rotateEuler = (
 }
 
 /**
- * Apply stored velocity to entity.
+ * Apply partial velocity to entity.
  * 
  * @param out Entity to mutate.
  * @param entity Entity to use as input.
+ * @param velocity Partial velocity to apply to entity.
  * @param level Level data to apply velocity inside.
  */
-export const applyVelocity = (
-    out: MutableEntity, entity: Entity, level: Level
+const applyPartialVelocity = (
+    out: MutableEntity, entity: Entity, velocity: vec3, level: Level
 ): MutableEntity => {
     // Our new position, according to our velocity.
     const newPos = vec3.add(
-        vec3.create(), entity.position, entity.velocity
+        vec3.create(), entity.position, velocity
     );
 
     // Find out which polygon this new position is inside.
@@ -332,6 +337,14 @@ export const applyVelocity = (
     let hitDest = entityTouchesLevel(
         level, entity.config, newPos, newPolygon
     );
+
+    if (isTouchVoid(hitDest)) {
+        // We're going so fast that we've skipped past a wall into the void.
+        // We cannot possibly reason about collision when an entity has no
+        // parent polygon, so just stop the move right here.
+        return out;
+    }
+
     if (isTouchEdge(hitDest)) {
         // We hit the wall, figure out a new position along the wall that
         // will slide the player against it.
@@ -398,5 +411,48 @@ export const applyVelocity = (
 
     out.position = newPos;
     out.polygon = newPolygon;
+    return out;
+}
+
+/**
+ * Apply stored velocity to entity.
+ * 
+ * @param out Entity to mutate.
+ * @param entity Entity to use as input.
+ * @param level Level data to apply velocity inside.
+ */
+export const applyVelocity = (
+    out: MutableEntity, entity: Entity, level: Level
+): MutableEntity => {
+    // Our collision detection tests entity positions against discrete
+    // positions, and thus we are subject to the usual issues of small
+    // entities passing through walls at high speeds.  However, due to the
+    // way entities have a "parent" polygon, we run into trouble if entities
+    // are travel faster than their radius in one tic, not just their diameter.
+    //
+    // Thus, to avoid issues, we dynamically break our movement into parts
+    // based on the radius of the entity and the instantanious velocity of
+    // the entity.
+    const dist = Math.hypot(entity.position[0], entity.position[1]);
+    let scale = entity.config.radius / dist;
+
+    // Instead of being super-flexible, we can either process collision in
+    // one, two our four pieces.  I don't want to break things into thirds
+    // because it doesn't have a nice even power-of-two representation in
+    // floating point.
+    if (scale >= 1.0) {
+        applyPartialVelocity(out, entity, out.velocity, level);
+    } else if (scale >= 0.5) {
+        const partialVelocity = vec3.scale(vec3.create(), entity.velocity, 0.5);
+        applyPartialVelocity(out, entity, partialVelocity, level);
+        applyPartialVelocity(out, out, partialVelocity, level);
+    } else {
+        const partialVelocity = vec3.scale(vec3.create(), entity.velocity, 0.25);
+        applyPartialVelocity(out, entity, partialVelocity, level);
+        applyPartialVelocity(out, out, partialVelocity, level);
+        applyPartialVelocity(out, out, partialVelocity, level);
+        applyPartialVelocity(out, out, partialVelocity, level);
+    }
+
     return out;
 }
