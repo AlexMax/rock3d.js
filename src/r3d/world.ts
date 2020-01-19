@@ -329,7 +329,10 @@ export class WorldContext {
         }
 
         // Find the texture of the wall in the atlas
-        let texEntry = this.worldAtlas.find(tex);
+        const texEntry = this.worldAtlas.find(tex);
+        if (texEntry === null) {
+            throw new Error(`Unknown texture ${texEntry}`);
+        }
 
         let ua1 = texEntry.xPos / this.worldAtlas.length;
         let va1 = texEntry.yPos / this.worldAtlas.length;
@@ -404,7 +407,11 @@ export class WorldContext {
         }
 
         // Find the texture of the flat in the atlas
-        let texEntry = this.worldAtlas.find(tex);
+        const texEntry = this.worldAtlas.find(tex);
+        if (texEntry === null) {
+            throw new Error(`Unknown texture ${texEntry}`);
+        }
+
         let ua1 = texEntry.xPos / this.worldAtlas.length;
         let va1 = texEntry.yPos / this.worldAtlas.length;
         let ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
@@ -491,36 +498,44 @@ export class WorldContext {
         // Determine which sprite to use.
         const camAngle = quatToEuler(vec3.create(), cam.dir);
         const entAngle = quatToEuler(vec3.create(), entity.rotation);
+        const sprPrefix = entity.config.spritePrefix;
         const sprIndex = spriteRot(camAngle[2], entAngle[2]);
         var flipped = false;
         switch (sprIndex) {
         case 1:
-            var tex = 'PLAYA1';
+            var tex = sprPrefix + 'A1';
             break;
         case 2:
             flipped = true;
         case 8:
-            var tex = 'PLAYA2A8';
+            var tex = sprPrefix + 'A2A8';
             break;
         case 3:
             flipped = true;
         case 7:
-            var tex = 'PLAYA3A7';
+            var tex = sprPrefix + 'A3A7';
             break;
         case 4:
             flipped = true;
         case 6:
-            var tex = 'PLAYA4A6';
+            var tex = sprPrefix + 'A4A6';
             break;
         case 5:
-            var tex = 'PLAYA5';
+            var tex = sprPrefix + 'A5';
             break;
         default:
             throw new Error(`Unknown rotation index ${sprIndex}`);
         }
 
         // Find the texture of the wall in the atlas
-        const texEntry = this.spriteAtlas.find(tex);
+        let texEntry = this.spriteAtlas.find(tex);
+        if (texEntry === null) {
+            // Sprite doesn't have rotations, try the default rotation.
+            texEntry = this.spriteAtlas.find(sprPrefix + 'A0');
+            if (texEntry === null) {
+                throw new Error(`Unknown sprite ${texEntry}`);
+            }
+        }
 
         const ua1 = texEntry.xPos / this.spriteAtlas.length;
         const va1 = texEntry.yPos / this.spriteAtlas.length;
@@ -623,6 +638,9 @@ export class WorldContext {
 
         // Find the texture of the sky in the atlas
         const texEntry = this.worldAtlas.find(tex);
+        if (texEntry === null) {
+            throw new Error(`Unknown texture ${texEntry}`);
+        }
 
         const ua1 = texEntry.xPos / this.worldAtlas.length;
         const va1 = texEntry.yPos / this.worldAtlas.length;

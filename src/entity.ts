@@ -24,7 +24,7 @@ import {
 } from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
-import { playerConfig } from './entityConfig';
+import { playerConfig, techPillarConfig } from './entityConfig';
 
 /**
  * A single frame of animation.
@@ -200,8 +200,19 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
  * @param entity Serialized entity to unserialize.
  */
 export const unserializeEntity = (entity: SerializedEntity): Entity => {
+    switch (entity.config) {
+    case 'Player':
+        var config = playerConfig;
+        break;
+    case 'Tech Pillar':
+        var config = techPillarConfig;
+        break;
+    default:
+        throw new Error('Unknown entity config');
+    }
+
     return {
-        config: playerConfig,
+        config: config,
         state: entity.state,
         stateClock: entity.stateClock,
         polygon: entity.polygon,
