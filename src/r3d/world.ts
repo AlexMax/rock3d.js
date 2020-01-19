@@ -334,18 +334,18 @@ export class WorldContext {
             throw new Error(`Unknown texture ${texEntry}`);
         }
 
-        let ua1 = texEntry.xPos / this.worldAtlas.length;
-        let va1 = texEntry.yPos / this.worldAtlas.length;
-        let ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
-        let va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+        const ua1 = texEntry.xPos / this.worldAtlas.length;
+        const va1 = texEntry.yPos / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
 
-        let hDist = vec2.length(vec2.sub(vec2.create(), one, two));
-        let vDist = z2 - z1;
+        const hDist = vec2.length(vec2.sub(vec2.create(), one, two));
+        const vDist = z2 - z1;
 
-        let ut1 = 0;
-        let vt1 = 0;
-        let ut2 = hDist / texEntry.texture.width;
-        let vt2 = vDist / texEntry.texture.height;
+        const ut1 = 0;
+        const vt1 = 0;
+        const ut2 = hDist / texEntry.texture.width;
+        const vt2 = vDist / texEntry.texture.height;
 
         // Adjust brightness depending on which direction the wall is going.
         // Angles that are parallel to the X axis are darker, angles that
@@ -412,10 +412,10 @@ export class WorldContext {
             throw new Error(`Unknown texture ${texEntry}`);
         }
 
-        let ua1 = texEntry.xPos / this.worldAtlas.length;
-        let va1 = texEntry.yPos / this.worldAtlas.length;
-        let ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
-        let va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+        const ua1 = texEntry.xPos / this.worldAtlas.length;
+        const va1 = texEntry.yPos / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
 
         const rBright = bright[0] / 256;
         const gBright = bright[1] / 256;
@@ -424,9 +424,9 @@ export class WorldContext {
         // Draw the triangle into the buffers.
         const vCountStart = this.worldVertCount;
         for (let i = 0;i < verts.length - 1;i += 2) {
-            let vCount = this.worldVertCount;
-            let ut = verts[i] / texEntry.texture.width;
-            let vt = -(verts[i+1] / texEntry.texture.height);
+            const vCount = this.worldVertCount;
+            const ut = verts[i] / texEntry.texture.width;
+            const vt = -(verts[i+1] / texEntry.texture.height);
 
             setVertex(this.worldVerts, vCount, verts[i], verts[i+1], z,
                 ua1, va1, ua2 - ua1, va2 - va1, ut, vt, rBright, gBright, bBright);
@@ -434,7 +434,7 @@ export class WorldContext {
         }
 
         for (let i = 0;i < inds.length;i++) {
-            let iCount = this.worldIndCount;
+            const iCount = this.worldIndCount;
             this.worldInds[iCount] = vCountStart + inds[i];
             this.worldIndCount += 1;
         }
