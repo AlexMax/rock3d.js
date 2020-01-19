@@ -96,7 +96,8 @@ const imgParse = async (url: string, data: Blob): Promise<HTMLImageElement> => {
  */
 const loadAsset = async (url: string): Promise<Asset> => {
     const req = new Request(url, {
-        redirect: 'follow'
+        redirect: 'follow',
+        cache: 'no-cache',
     });
 
     const res = await fetch(req);
