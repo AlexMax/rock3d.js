@@ -12,8 +12,18 @@ This engine is not derived from id Tech 1, BUILD or Marathon's engine.  It does 
 
 Building
 --------
+This engine consists of a client, server and editor.
+
 ```
-$ npm run build
+$ npm run build-client
+$ npm run build-server
+$ npm run build-editor
+```
+
+If you are building the client, you must also build a files manifest so the client knows what files it has access to.
+
+```
+$ npm run build-files
 ```
 
 Running
