@@ -275,5 +275,13 @@
         "polygon": 0,
         "position": [64, -32, 0],
         "rotation": [0, 0, 90]
+    }, {
+        "type": "staticSpawn",
+        "polygon": 1,
+        "position": [-160, 416, 0]
+    }, {
+        "type": "staticSpawn",
+        "polygon": 1,
+        "position": [160, 416, 0]
     }]
 }

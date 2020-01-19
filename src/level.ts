@@ -21,17 +21,17 @@ import { vec2, vec3, vec4, glMatrix } from 'gl-matrix';
 import { cacheNormal, Edge, MutableEdge } from './edge';
 import { EntityConfig, entityBottom, entityTop } from './entity';
 import {
-    isSerializedLocation, Location, SerializedLocation, unserializeLocation
+    assertSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
 import {
     intersectPlane, pointInCube, pointInDirection3, toPlane, intersectLines,
     pointInRect, circleTouchesLine
 } from './math';
 import {
-    cacheTessellation, isSerializedPolygon, Polygon, SerializedPolygon,
+    cacheTessellation, assertSerializedPolygon, Polygon, SerializedPolygon,
     unserializePolygon
 } from './polygon';
-import { objectHasKey } from './util';
+import { objectHasKey, isObject } from './util';
 
 /**
  * Mutable version of Level.
@@ -614,10 +614,10 @@ export interface SerializedLevel {
     locations: SerializedLocation[];
 }
 
-export const isSerializedLevel = (
+export function assertSerializedLevel(
     level: unknown
-): level is SerializedLevel => {
-    if (typeof level !== 'object' || level === null) {
+): asserts level is SerializedLevel {
+    if (!isObject(level)) {
         throw new Error('level is not an object');
     }
     if (!objectHasKey('polygons', level)) {
@@ -630,9 +630,7 @@ export const isSerializedLevel = (
         throw new Error('level polygons does not have at least one polygon');
     }
     for (let i = 0;i < level.polygons.length;i++) {
-        if (!isSerializedPolygon(level.polygons[i])) {
-            return false;
-        }
+        assertSerializedPolygon(level.polygons[i]);
     }
     if (!objectHasKey('locations', level)) {
         throw new Error('level does not have locations');
@@ -644,9 +642,6 @@ export const isSerializedLevel = (
         throw new Error('level locations does not have at least one location');
     }
     for (let i = 0;i < level.locations.length;i++) {
-        if (!isSerializedLocation(level.locations[i])) {
-            return false;
-        }
+        assertSerializedLocation(level.locations[i]);
     }
-    return true;
 }

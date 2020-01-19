@@ -18,6 +18,8 @@
 
 import { quat, vec3 } from 'gl-matrix';
 
+import { isObject, isThreeTuple } from './util';
+
 export interface MutableLocation {
     /**
      * Type of location, as a string.
@@ -57,44 +59,34 @@ export interface SerializedLocation {
     type: string;
     polygon: number;
     position: [number, number, number];
-    rotation: [number, number, number];
+    rotation?: [number, number, number];
 }
 
-export const isSerializedLocation = (
-    location: SerializedLocation
-): location is SerializedLocation => {
+export function assertSerializedLocation(
+    location: unknown
+): asserts location is SerializedLocation {
+    if (!isObject(location)) {
+        throw new Error('location is not an object');
+    }
     if (typeof location.type !== 'string') {
         throw new Error('location type is not a string');
     }
     if (typeof location.polygon !== 'number') {
         throw new Error('location polygon is not a number');
     }
-    if (!Array.isArray(location.position)) {
-        throw new Error('location position is not an Array');
+    if (!isThreeTuple(location.position, 'number')) {
+        throw new Error('location position does not look like a three-tuple of number');
     }
-    if (location.position.length !== 3) {
-        throw new Error('location position does not look like a position');
+    // Location is optional.
+    if ("rotation" in location) {
+        if (!isThreeTuple(location.rotation, 'number')) {
+            throw new Error('location rotation does not look like a three-tuple of number');
+        }
     }
-    if (typeof location.position[0] !== 'number' &&
-        typeof location.position[1] !== 'number' &&
-        typeof location.position[2] !== 'number') {
-        throw new Error('location position does not consist of three numbers');
-    }
-    if (!Array.isArray(location.rotation)) {
-        throw new Error('location rotation is not an Array');
-    }
-    if (location.rotation.length !== 3) {
-        throw new Error('location rotation does not look like a rotation');
-    }
-    if (typeof location.rotation[0] !== 'number' &&
-        typeof location.rotation[1] !== 'number' &&
-        typeof location.rotation[2] !== 'number') {
-        throw new Error('location rotation does not consist of three numbers');
-    }
-    return true;
 }
 
 export const unserializeLocation = (data: SerializedLocation): Location => {
+    const rotation = data.rotation ? data.rotation : [0, 0, 0];
     return {
         type: data.type,
         polygon: data.polygon,
@@ -102,8 +94,7 @@ export const unserializeLocation = (data: SerializedLocation): Location => {
             data.position[0], data.position[1], data.position[2]
         ),
         rotation: quat.fromEuler(
-            quat.create(), data.rotation[0],
-            data.rotation[1], data.rotation[2]
+            quat.create(), rotation[0], rotation[1], rotation[2]
         ),
     };
 }

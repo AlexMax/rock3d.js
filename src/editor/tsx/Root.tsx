@@ -22,7 +22,7 @@ import { Assets } from '../../client/asset';
 import { AboutWindow } from './AboutWindow';
 import { DrawView } from './DrawView';
 import { createEditableLevel, EditableLevel } from '../editableLevel';
-import { isSerializedLevel } from '../../level';
+import { assertSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
 import { VisualView } from './VisualView';
 
@@ -72,9 +72,7 @@ export class Root extends React.Component<Props, State> {
             throw new Error('TESTMAP is not JSON.');
         }
 
-        if (!isSerializedLevel(map)) {
-            throw new Error('Map data is not valid');
-        }
+        assertSerializedLevel(map);
 
         const level = createEditableLevel(map);
         this.setState({ level: level, mode: Mode.DrawView });

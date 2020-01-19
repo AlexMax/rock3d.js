@@ -21,7 +21,7 @@ import { vec2, vec3 } from 'gl-matrix';
 
 import {
     Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level,
-    isSerializedLevel, createLevel, pointInPolygon, findPolygon
+    assertSerializedLevel, createLevel, pointInPolygon, findPolygon
 } from '../src/level';
 
 let testLevel: Level;
@@ -32,9 +32,7 @@ beforeAll(() => {
         encoding: "utf8"
     });
     const map = JSON.parse(mapJSON);
-    if (!isSerializedLevel(map)) {
-        throw new Error('TESTMAP is not valid level data');
-    }
+    assertSerializedLevel(map);
 
     testLevel = createLevel(map);
 });

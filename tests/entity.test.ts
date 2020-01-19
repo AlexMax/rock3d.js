@@ -20,7 +20,7 @@ import { readFileSync } from 'fs';
 import { vec3, quat } from 'gl-matrix';
 
 import { applyVelocity, cloneEntity, Entity, playerConfig } from "../src/entity";
-import { createLevel, isSerializedLevel, Level } from '../src/level';
+import { createLevel, assertSerializedLevel, Level } from '../src/level';
 
 let testLevel: Level;
 
@@ -30,9 +30,7 @@ beforeAll(() => {
         encoding: "utf8"
     });
     const map = JSON.parse(mapJSON);
-    if (!isSerializedLevel(map)) {
-        throw new Error('TESTMAP is not valid level data');
-    }
+    assertSerializedLevel(map);
 
     testLevel = createLevel(map);
 });

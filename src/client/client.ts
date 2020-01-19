@@ -18,7 +18,7 @@
 
 import { Assets } from './asset';
 import { fromEntity } from '../r3d/camera';
-import { isSerializedLevel } from '../level';
+import { assertSerializedLevel } from '../level';
 import * as proto from '../proto';
 import { Simulation } from './sim';
 import { unserializeSnapshot } from '../snapshot';
@@ -70,9 +70,7 @@ const snapshot = (client: Client, msg: proto.ServerSnapshot): void => {
             throw new Error('TESTMAP is not JSON.');
         }
 
-        if (!isSerializedLevel(map.data)) {
-            throw new Error('TESTMAP is not valid level data.');
-        }
+        assertSerializedLevel(map.data);
 
         // Start the simulation now that we have snapshot data.
         client.sim = new Simulation(map.data, 32, snap);

@@ -18,7 +18,7 @@
 
 import { vec2 } from 'gl-matrix';
 
-import { isTwoTuple, objectHasKey } from './util';
+import { isTwoTuple, objectHasKey, isObject } from './util';
 
 /**
  * An Edge that we can modify.
@@ -114,8 +114,10 @@ export interface SerializedEdge {
 /**
  * Type guard for serialized Edge.
  */
-export const isSerializedEdge = (edge: unknown): edge is SerializedEdge => {
-    if (typeof edge !== 'object' || edge === null) {
+export function assertSerializedEdge(
+    edge: unknown
+): asserts edge is SerializedEdge {
+    if (!isObject(edge)) {
         throw new Error('edge is not an object');
     }
     if (!objectHasKey('vertex', edge)) {
@@ -136,7 +138,6 @@ export const isSerializedEdge = (edge: unknown): edge is SerializedEdge => {
     if (objectHasKey('backPoly', edge) && typeof edge.backPoly !== 'number') {
         throw new Error('edge backPoly is not a number');
     }
-    return true;
 }
 
 /**

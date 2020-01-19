@@ -20,9 +20,9 @@ import earcut from 'earcut';
 import { vec2, vec3 } from 'gl-matrix';
 
 import {
-    Edge, isSerializedEdge, MutableEdge, SerializedEdge, unserializeEdge
+    Edge, assertSerializedEdge, MutableEdge, SerializedEdge, unserializeEdge
 } from './edge';
-import { isThreeTuple, objectHasKey } from './util';
+import { isThreeTuple, objectHasKey, isObject } from './util';
 
 export interface MutablePolygon {
     /**
@@ -119,8 +119,10 @@ export interface SerializedPolygon {
 /**
  * Type guard for serialized Polygon.
  */
-export const isSerializedPolygon = (poly: unknown): poly is SerializedPolygon => {
-    if (typeof poly !== 'object' || poly === null) {
+export function assertSerializedPolygon(
+    poly: unknown
+): asserts poly is SerializedPolygon {
+    if (!isObject(poly)) {
         throw new Error('polygon is not an object');
     }
     if (!objectHasKey('edges', poly)) {
@@ -133,9 +135,7 @@ export const isSerializedPolygon = (poly: unknown): poly is SerializedPolygon =>
         throw new Error('polygon edges does not have at least three edges');
     }
     for (let i = 0;i < poly.edges.length;i++) {
-        if (!isSerializedEdge(poly.edges[i])) {
-            return false;
-        }
+        assertSerializedEdge(poly.edges[i]);
     }
     if (!objectHasKey('floorHeight', poly)) {
         throw new Error('polygon does not have floorHeight');
@@ -167,7 +167,6 @@ export const isSerializedPolygon = (poly: unknown): poly is SerializedPolygon =>
     if (!isThreeTuple(poly.brightness, 'number')) {
         throw new Error('polygon brightness is not an three-tuple');
     }
-    return true;
 }
 
 export const unserializePolygon = (

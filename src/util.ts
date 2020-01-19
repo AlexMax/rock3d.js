@@ -31,7 +31,42 @@ export const objectHasKey = <K extends string>(
     return true;
 }
 
-export const isTwoTuple = <T>(tup: unknown, type: string): tup is [T, T]  => {
+/**
+ * Returns true if passed parameter is an object.
+ * 
+ * You can't really do anything useful with `object`, so instead we assert
+ * that the passed parameter is a record type of string keys and unknown
+ * values.
+ * 
+ * @param x Checked parameter.
+ */
+export const isObject = (x: unknown): x is Record<string, unknown> => {
+    if (typeof x !== 'object') {
+        return false;
+    }
+    if (x === null) {
+        return false;
+    }
+    return true;
+}
+
+type TwoTupleOverload = {
+    (tup: unknown, type: "string"): tup is [string, string];
+    (tup: unknown, type: "number"): tup is [number, number];
+}
+
+/**
+ * Returns true if the passed item is a two-tuple of the specific
+ * JavaScript type.
+ * 
+ * @param tup Checked parameter.
+ * @param type Type to check against.
+ */
+export function isTwoTuple(tup: unknown, type: "string"): tup is [string, string];
+export function isTwoTuple(tup: unknown, type: "number"): tup is [number, number];
+export function isTwoTuple(
+    tup: unknown, type: "string" | "number"
+): tup is [string, string] | [number, number] {
     if (!Array.isArray(tup)) {
         return false;
     }
@@ -41,9 +76,22 @@ export const isTwoTuple = <T>(tup: unknown, type: string): tup is [T, T]  => {
     return true;
 }
 
-export const isThreeTuple = <T>(
-    tup: unknown, type: string
-): tup is [T, T, T] => {
+/**
+ * Returns true if the passed item is a three-tuple of the specific
+ * JavaScript type.
+ * 
+ * @param tup Checked parameter.
+ * @param type Type to check against.
+ */
+export function isThreeTuple(
+    tup: unknown, type: "string"
+): tup is [string, string, string];
+export function isThreeTuple(
+    tup: unknown, type: "number"
+): tup is [number, number, number];
+export function isThreeTuple(
+    tup: unknown, type: "string" | "number"
+): tup is [string, string, string] | [number, number, number] {
     if (!Array.isArray(tup)) {
         return false;
     }
@@ -56,9 +104,22 @@ export const isThreeTuple = <T>(
     return true;
 }
 
-export const isFourTuple = <T>(
-    tup: unknown, type: string
-): tup is [T, T, T, T] => {
+/**
+ * Returns true if the passed item is a four-tuple of the specific
+ * JavaScript type.
+ * 
+ * @param tup Checked parameter.
+ * @param type Type to check against.
+ */
+export function isFourTuple(
+    tup: unknown, type: "string"
+): tup is [string, string, string, string];
+export function isFourTuple(
+    tup: unknown, type: "number"
+): tup is [number, number, number, number];
+export function isFourTuple(
+    tup: unknown, type: "string" | "number"
+): tup is [string, string, string, string] | [number, number, number, number] {
     if (!Array.isArray(tup)) {
         return false;
     }
@@ -70,3 +131,4 @@ export const isFourTuple = <T>(
     }
     return true;
 }
+
