@@ -141,7 +141,8 @@ const loadAsset = async (url: string): Promise<Asset> => {
  */
 export const loadAssets = async (url: string): Promise<Assets> => {
     const req = new Request(url + '/files.json', {
-        redirect: 'follow'
+        redirect: 'follow',
+        cache: 'no-cache',
     });
     const res = await fetch(req);
     if (res.ok === false) {
