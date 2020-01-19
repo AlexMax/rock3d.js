@@ -44,13 +44,19 @@ export const create = (x: number, y: number, z: number): Camera => {
 
 /**
  * Create a camera from an entity.
+ * 
+ * @param entity Entity to create camera from.
  */
 export const fromEntity = (entity: Entity): Camera => {
+    // Default camera height is 16 below the height of it.
+    // FIXME: Should the default of non-grounded entities be half the height?
+    const cameraHeight = entity.config.cameraHeight ?
+        entity.config.cameraHeight : entity.config.height - 16;
     return {
         pos: vec3.fromValues(
             entity.position[0],
             entity.position[1],
-            entity.position[2] + entity.config.cameraHeight),
+            entity.position[2] + cameraHeight),
         dir: quat.clone(entity.rotation),
     };
 }

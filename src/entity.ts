@@ -24,6 +24,7 @@ import {
 } from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
+import { playerConfig } from './entityConfig';
 
 /**
  * A single frame of animation.
@@ -35,9 +36,10 @@ interface Frame {
     frame: string;
 
     /**
-     * Amount of time, in ms, to spend on the frame.
+     * Amount of time, in ms, to spend on the frame.  If not supplied, frame
+     * lasts forever.
      */
-    time: number;
+    time?: number;
 }
 
 /**
@@ -45,9 +47,14 @@ interface Frame {
  */
 interface Animations {
     /**
+     * Entity spawned.
+     */
+    spawn?: Frame[];
+
+    /**
      * Player/Monster is walking.  Loops forever.
      */
-    walk: Frame[];
+    walk?: Frame[];
 }
 
 /**
@@ -72,7 +79,7 @@ export interface EntityConfig {
     /**
      * How high off the ground the camera is.
      */
-    cameraHeight: number;
+    cameraHeight?: number;
 
     /**
      * Prefix string that all animations for this entity share.
@@ -92,33 +99,6 @@ export interface EntityConfig {
 }
 
 /**
- * Player config.
- */
-export const playerConfig: EntityConfig = {
-    name: 'Player',
-    radius: 16,
-    height: 56,
-    cameraHeight: 48,
-    spritePrefix: 'PLAY',
-    grounded: true,
-    animations: {
-        walk: [{
-            frame: 'A',
-            time: 112,
-        }, {
-            frame: 'B',
-            time: 112,
-        }, {
-            frame: 'C',
-            time: 112,
-        }, {
-            frame: 'D',
-            time: 112,
-        }],
-    }
-}
-
-/**
  * A mutable Entity.
  */
 export interface MutableEntity {
@@ -127,6 +107,16 @@ export interface MutableEntity {
      * Static config of entity.
      */
     readonly config: EntityConfig;
+
+    /**
+     * State that the entity is in.
+     */
+    state: "spawn" | "walk";
+
+    /**
+     * Base game clock that we entered this state on.
+     */
+    stateClock: number;
 
     /**
      * Parent polygon ID.
@@ -172,6 +162,8 @@ export const copyEntity = (out: MutableEntity, entity: Entity): MutableEntity =>
 
 export interface SerializedEntity {
     config: string;
+    state: "spawn" | "walk";
+    stateClock: number;
     polygon: number;
     position: [number, number, number];
     rotation: [number, number, number, number];
@@ -186,6 +178,8 @@ export interface SerializedEntity {
 export const serializeEntity = (entity: Entity): SerializedEntity => {
     return {
         config: entity.config.name,
+        state: entity.state,
+        stateClock: entity.stateClock,
         polygon: entity.polygon,
         position: [
             entity.position[0], entity.position[1], entity.position[2],
@@ -208,6 +202,8 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
 export const unserializeEntity = (entity: SerializedEntity): Entity => {
     return {
         config: playerConfig,
+        state: entity.state,
+        stateClock: entity.stateClock,
         polygon: entity.polygon,
         position: vec3.fromValues(...entity.position),
         rotation: quat.fromValues(...entity.rotation),

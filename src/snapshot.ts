@@ -21,7 +21,7 @@ import { quat, vec2, vec3 } from 'gl-matrix';
 import * as cmd from './command';
 import {
     Entity, serializeEntity, SerializedEntity, unserializeEntity,
-    forceRelativeXY, rotateEuler, playerConfig, cloneEntity, touchesFloor,
+    forceRelativeXY, rotateEuler, cloneEntity, touchesFloor,
     MutableEntity, applyVelocity
 } from './entity';
 import { Level, MutableLevel, createEmptyLevel, copyLevel } from './level';
@@ -30,6 +30,7 @@ import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
 } from './mutator';
+import { playerConfig, techPillarConfig } from './entityConfig';
 
 export interface Snapshot {
     /**
@@ -133,6 +134,38 @@ export const copySnapshot = (dst: Snapshot, src: Readonly<Snapshot>): Snapshot =
     }
 
     return dst;
+}
+
+/**
+ * Handle functionality that should be taken care of on level start.
+ * 
+ * @param snap Snapshot to mutate.
+ * @param level Original unmodified level.
+ */
+const initLevel = (snap: Snapshot, level: Level): Snapshot => {
+    // Iterate through our locations and spawn any necessary entities.
+    for (const location of level.locations) {
+        switch (location.type) {
+        case 'tallTechPillar':
+            snap.entities.set(snap.nextEntityID, {
+                config: techPillarConfig,
+                state: "spawn",
+                stateClock: snap.clock,
+                polygon: 0,
+                position: vec3.clone(location.position),
+                rotation: quat.fromEuler(
+                    quat.create(), location.rotation[0], location.rotation[1],
+                    location.rotation[2]
+                ),
+                velocity: vec3.fromValues(0, 0, 0),
+            });
+            snap.nextEntityID += 1;
+            break;
+        default:
+            // Do nothing.
+        }
+    }
+    return snap;
 }
 
 /**
@@ -259,6 +292,8 @@ const handlePlayer = (
             // Create a new entity for the player.
             snap.entities.set(snap.nextEntityID, {
                 config: playerConfig,
+                state: "spawn",
+                stateClock: snap.clock,
                 polygon: 0,
                 position: vec3.fromValues(0, 0, 0),
                 rotation: quat.fromEuler(quat.create(), 0, 0, 90),
@@ -361,6 +396,11 @@ export const tickSnapshot = (
 
     // Use passed level data to initialize mutated level cache.
     copyLevel(out.level, level);
+
+    // On the first tic, we need to initialize the level.
+    if (snap.clock === 0) {
+        initLevel(out, level);
+    }
 
     // Tick level mutators first, so entities can reason about their actual
     // position in the level.
