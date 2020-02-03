@@ -17,6 +17,25 @@
  */
 
 /**
+ * Generate a function that detects membership in an enum.
+ * 
+ * Thanks to AnyhowStep https://stackoverflow.com/a/60032219/91642 for his help.
+ * 
+ * @param e Enum to generate function for.
+ */
+export const generateIsEnum = <T>(e: T): (token: unknown) => token is T[keyof T] => {
+    const keys = Object.keys(e).filter((k) => {
+        return !/^\d/.test(k);
+    });
+    const values = keys.map((k) => {
+        return (e as any)[k];
+    });
+    return (token: unknown): token is T[keyof T] => {
+        return values.includes(token);
+    };
+};
+
+/**
  * Type guard for an object with a particular key.
  *
  * @param k Key to check.
@@ -48,11 +67,6 @@ export const isObject = (x: unknown): x is Record<string, unknown> => {
         return false;
     }
     return true;
-}
-
-type TwoTupleOverload = {
-    (tup: unknown, type: "string"): tup is [string, string];
-    (tup: unknown, type: "number"): tup is [number, number];
 }
 
 /**

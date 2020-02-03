@@ -30,7 +30,7 @@ import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
 } from './mutator';
-import { playerConfig, getEntityConfig } from './entityConfig';
+import { playerConfig, getEntityConfig, States } from './entityConfig';
 
 export interface Snapshot {
     /**
@@ -152,7 +152,7 @@ const initLevel = (snap: Snapshot, level: Level): Snapshot => {
             }
             snap.entities.set(snap.nextEntityID, {
                 config: getEntityConfig(location.entityConfig),
-                state: "spawn",
+                state: States.spawn,
                 stateClock: snap.clock,
                 polygon: location.polygon,
                 position: vec3.clone(location.position),
@@ -295,7 +295,7 @@ const handlePlayer = (
             // Create a new entity for the player.
             snap.entities.set(snap.nextEntityID, {
                 config: playerConfig,
-                state: "spawn",
+                state: States.spawn,
                 stateClock: snap.clock,
                 polygon: 0,
                 position: vec3.fromValues(0, 0, 0),

@@ -25,86 +25,14 @@ import {
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
 import {
-    playerConfig, burningBarrelConfig, techPillarConfig
+    getEntityConfig, EntityConfig, States, isValidState, entityBottom,
+    entityTop
 } from './entityConfig';
-
-/**
- * A single frame of animation.
- */
-interface Frame {
-    /**
-     * Name of the frame, added to the prefix.
-     */
-    frame: string;
-
-    /**
-     * Amount of time, in ms, to spend on the frame.  If not supplied, frame
-     * lasts forever.
-     */
-    time?: number;
-}
-
-/**
- * Possible animation states and their associated frame data.
- */
-interface Animations {
-    /**
-     * Entity spawned.
-     */
-    spawn?: Frame[];
-
-    /**
-     * Player/Monster is walking.  Loops forever.
-     */
-    walk?: Frame[];
-}
-
-/**
- * Internal entity type definition.
- */
-export interface EntityConfig {
-    /**
-     * Name of the entity, for informational or debugging purposes.
-     */
-    name: string;
-
-    /**
-     * Radius of the entity.
-     */
-    radius: number;
-
-    /**
-     * Height of the entity.
-     */
-    height: number;
-
-    /**
-     * How high off the ground the camera is.
-     */
-    cameraHeight?: number;
-
-    /**
-     * Prefix string that all animations for this entity share.
-     */
-    spritePrefix: string;
-
-    /**
-     * True if this entity should be billboarded relative to the floor,
-     * otherwise false if the entity should be billboarded on all axis.
-     */
-    grounded: boolean;
-
-    /**
-     * Animation states and frames.
-     */
-    animations: Animations;
-}
 
 /**
  * A mutable Entity.
  */
 export interface MutableEntity {
-
     /**
      * Static config of entity.
      */
@@ -113,7 +41,7 @@ export interface MutableEntity {
     /**
      * State that the entity is in.
      */
-    state: "spawn" | "walk";
+    state: States;
 
     /**
      * Base game clock that we entered this state on.
@@ -164,7 +92,7 @@ export const copyEntity = (out: MutableEntity, entity: Entity): MutableEntity =>
 
 export interface SerializedEntity {
     config: string;
-    state: "spawn" | "walk";
+    state: string;
     stateClock: number;
     polygon: number;
     position: [number, number, number];
@@ -202,22 +130,11 @@ export const serializeEntity = (entity: Entity): SerializedEntity => {
  * @param entity Serialized entity to unserialize.
  */
 export const unserializeEntity = (entity: SerializedEntity): Entity => {
-    switch (entity.config) {
-    case 'Player':
-        var config = playerConfig;
-        break;
-    case 'Burning Barrel':
-        var config = burningBarrelConfig;
-        break;
-    case 'Tech Pillar':
-        var config = techPillarConfig;
-        break;
-    default:
-        throw new Error('Unknown entity config');
+    if (!(isValidState(entity.state))) {
+        throw new Error(`Invalid state ${entity.state} in serialized entity.`);
     }
-
     return {
-        config: config,
+        config: getEntityConfig(entity.config),
         state: entity.state,
         stateClock: entity.stateClock,
         polygon: entity.polygon,
@@ -225,32 +142,6 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
         rotation: quat.fromValues(...entity.rotation),
         velocity: vec3.fromValues(...entity.velocity),
     };
-}
-
-/**
- * Bottom boundary of an entity.
- *
- * @param config Configuration of entity.
- * @param pos Position of entity.
- */
-export const entityBottom = (config: EntityConfig, pos: vec3): number => {
-    if (config.grounded === true) {
-        return pos[2];
-    }
-    return pos[2] - config.height / 2;
-}
-
-/**
- * Top boundary of an entity.
- *
- * @param config Configuration of entity.
- * @param pos Position of entity.
- */
-export const entityTop = (config: EntityConfig, pos: vec3): number => {
-    if (config.grounded === true) {
-        return pos[2] + config.height;
-    }
-    return pos[2] + config.height / 2;
 }
 
 /**
@@ -467,19 +358,4 @@ export const applyVelocity = (
     }
 
     return out;
-}
-
-/**
- * Get the correct animation frame for an entity given a period.
- * 
- * @param entity Entity to get animation frame for.
- * @param period Period of game simulation.
- */
-export const getFrame = (entity: Entity, period: number): string => {
-    const animations = entity.config.animations[entity.state];
-    if (animations === undefined) {
-        throw new Error(`Unknown state ${entity.state} in entity ${entity.config.name}.`);
-    }
-
-    return 'A';
 }

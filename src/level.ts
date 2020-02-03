@@ -19,7 +19,6 @@
 import { vec2, vec3, vec4, glMatrix } from 'gl-matrix';
 
 import { cacheNormal, Edge, MutableEdge } from './edge';
-import { EntityConfig, entityBottom, entityTop } from './entity';
 import {
     assertSerializedLocation, Location, SerializedLocation, unserializeLocation
 } from './location';
@@ -32,6 +31,7 @@ import {
     unserializePolygon
 } from './polygon';
 import { objectHasKey, isObject } from './util';
+import { EntityConfig, entityTop, entityBottom } from './entityConfig';
 
 /**
  * Mutable version of Level.
