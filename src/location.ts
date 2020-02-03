@@ -27,6 +27,11 @@ export interface MutableLocation {
     type: string;
 
     /**
+     * Entity config of spawners.
+     */
+    entityConfig?: string;
+
+    /**
      * Polygon that the location is located inside.
      */
     polygon: number;
@@ -57,6 +62,7 @@ export type Location = Omit<Readonly<MutableLocation>, "__mutable">;
 
 export interface SerializedLocation {
     type: string;
+    entityConfig?: string;
     polygon: number;
     position: [number, number, number];
     rotation?: [number, number, number];
@@ -70,6 +76,12 @@ export function assertSerializedLocation(
     }
     if (typeof location.type !== 'string') {
         throw new Error('location type is not a string');
+    }
+    // Entity Config is optional.
+    if ("entityConfig" in location) {
+        if (typeof location.entityConfig !== 'string') {
+            throw new Error('location entity config is not a string');
+        }
     }
     if (typeof location.polygon !== 'number') {
         throw new Error('location polygon is not a number');
@@ -89,6 +101,7 @@ export const unserializeLocation = (data: SerializedLocation): Location => {
     const rotation = data.rotation ? data.rotation : [0, 0, 0];
     return {
         type: data.type,
+        entityConfig: data.entityConfig,
         polygon: data.polygon,
         position: vec3.fromValues(
             data.position[0], data.position[1], data.position[2]

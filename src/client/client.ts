@@ -23,6 +23,7 @@ import * as proto from '../proto';
 import { Simulation } from './sim';
 import { unserializeSnapshot } from '../snapshot';
 import { RenderContext } from '../r3d/render';
+import { getFrame } from '../entity';
 
 export interface Client {
     /**
@@ -158,7 +159,11 @@ export const render = (client: Client, ctx: RenderContext): void => {
             continue;
         }
 
-        ctx.world.addEntity(level, entity, cam);
+        // Determine which frame of the entity to draw.
+        const frame = getFrame(entity, client.sim.period);
+
+        // Draw it.
+        ctx.world.addEntity(level, entity, frame, cam);
     }
 
     // Render the world.

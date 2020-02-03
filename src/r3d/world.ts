@@ -488,9 +488,10 @@ export class WorldContext {
      * 
      * @param level Level to use when looking up polygon.
      * @param entity Entity to render.
+     * @param frame Sprite frame to render.
      * @param cam Camera to billboard relative to.
      */
-    addEntity(level: Level, entity: Entity, cam: Camera): void {
+    addEntity(level: Level, entity: Entity, frame: string, cam: Camera): void {
         if (this.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
@@ -503,25 +504,25 @@ export class WorldContext {
         var flipped = false;
         switch (sprIndex) {
         case 1:
-            var tex = sprPrefix + 'A1';
+            var tex = sprPrefix + frame + '1';
             break;
         case 2:
             flipped = true;
         case 8:
-            var tex = sprPrefix + 'A2A8';
+            var tex = sprPrefix + frame + '2A8';
             break;
         case 3:
             flipped = true;
         case 7:
-            var tex = sprPrefix + 'A3A7';
+            var tex = sprPrefix + frame + '3A7';
             break;
         case 4:
             flipped = true;
         case 6:
-            var tex = sprPrefix + 'A4A6';
+            var tex = sprPrefix + frame + '4A6';
             break;
         case 5:
-            var tex = sprPrefix + 'A5';
+            var tex = sprPrefix + frame + '5';
             break;
         default:
             throw new Error(`Unknown rotation index ${sprIndex}`);
@@ -531,10 +532,13 @@ export class WorldContext {
         let texEntry = this.spriteAtlas.find(tex);
         if (texEntry === null) {
             // Sprite doesn't have rotations, try the default rotation.
-            texEntry = this.spriteAtlas.find(sprPrefix + 'A0');
+            texEntry = this.spriteAtlas.find(sprPrefix + frame + '0');
             if (texEntry === null) {
                 throw new Error(`Unknown sprite ${texEntry}`);
             }
+
+            // Sprites without rotations are never flipped.
+            flipped = false;
         }
 
         const ua1 = texEntry.xPos / this.spriteAtlas.length;

@@ -33,18 +33,26 @@ export const playerConfig: EntityConfig = {
             frame: 'A',
         }],
         walk: [{
-            frame: 'A',
-            time: 112,
-        }, {
-            frame: 'B',
-            time: 112,
-        }, {
-            frame: 'C',
-            time: 112,
-        }, {
-            frame: 'D',
-            time: 112,
+            frame: 'ABCD',
+            time: 125,
         }],
+    }
+}
+
+/**
+ * A static animated burning barrel.
+ */
+export const burningBarrelConfig: EntityConfig = {
+    name: "Burning Barrel",
+    radius: 16,
+    height: 32,
+    spritePrefix: 'FCAN',
+    grounded: true,
+    animations: {
+        spawn: [{
+            frame: 'ABC',
+            time: 125,
+        }]
     }
 }
 
@@ -63,3 +71,19 @@ export const techPillarConfig: EntityConfig = {
         }]
     }
 }
+
+const configs = [playerConfig, burningBarrelConfig, techPillarConfig];
+
+/**
+ * Get an entity config by name.  Throws if the entity cannot be found.
+ * 
+ * @param name Name of the entity config.
+ */
+export const getEntityConfig = (name: string): EntityConfig => {
+    for (let i = 0;i < configs.length;i++) {
+        if (configs[i].name === name) {
+            return configs[i];
+        }
+    }
+    throw new Error(`Cannot find entity config ${name}.`);
+};

@@ -276,11 +276,13 @@
         "position": [64, -32, 0],
         "rotation": [0, 0, 90]
     }, {
-        "type": "tallTechPillar",
+        "type": "initSpawn",
+        "entityConfig": "Burning Barrel",
         "polygon": 0,
         "position": [-160, 416, 0]
     }, {
-        "type": "tallTechPillar",
+        "type": "initSpawn",
+        "entityConfig": "Tech Pillar",
         "polygon": 0,
         "position": [160, 416, 0]
     }]

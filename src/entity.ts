@@ -24,7 +24,9 @@ import {
 } from './level';
 import { constrain, quatToEuler } from './math';
 import { Snapshot } from './snapshot';
-import { playerConfig, techPillarConfig } from './entityConfig';
+import {
+    playerConfig, burningBarrelConfig, techPillarConfig
+} from './entityConfig';
 
 /**
  * A single frame of animation.
@@ -203,6 +205,9 @@ export const unserializeEntity = (entity: SerializedEntity): Entity => {
     switch (entity.config) {
     case 'Player':
         var config = playerConfig;
+        break;
+    case 'Burning Barrel':
+        var config = burningBarrelConfig;
         break;
     case 'Tech Pillar':
         var config = techPillarConfig;
@@ -462,4 +467,19 @@ export const applyVelocity = (
     }
 
     return out;
+}
+
+/**
+ * Get the correct animation frame for an entity given a period.
+ * 
+ * @param entity Entity to get animation frame for.
+ * @param period Period of game simulation.
+ */
+export const getFrame = (entity: Entity, period: number): string => {
+    const animations = entity.config.animations[entity.state];
+    if (animations === undefined) {
+        throw new Error(`Unknown state ${entity.state} in entity ${entity.config.name}.`);
+    }
+
+    return 'A';
 }

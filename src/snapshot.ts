@@ -30,7 +30,7 @@ import {
     Mutator, serializeMutator, SerializedMutator, unserializeMutator,
     liftConfig
 } from './mutator';
-import { playerConfig, techPillarConfig } from './entityConfig';
+import { playerConfig, getEntityConfig } from './entityConfig';
 
 export interface Snapshot {
     /**
@@ -146,12 +146,15 @@ const initLevel = (snap: Snapshot, level: Level): Snapshot => {
     // Iterate through our locations and spawn any necessary entities.
     for (const location of level.locations) {
         switch (location.type) {
-        case 'tallTechPillar':
+        case 'initSpawn':
+            if (location.entityConfig === undefined) {
+                throw new Error('initSpawn needs an entityConfig to spawn.');
+            }
             snap.entities.set(snap.nextEntityID, {
-                config: techPillarConfig,
+                config: getEntityConfig(location.entityConfig),
                 state: "spawn",
                 stateClock: snap.clock,
-                polygon: 0,
+                polygon: location.polygon,
                 position: vec3.clone(location.position),
                 rotation: quat.fromEuler(
                     quat.create(), location.rotation[0], location.rotation[1],
