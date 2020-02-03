@@ -21,7 +21,7 @@ import { vec3, quat } from 'gl-matrix';
 
 import { applyVelocity, cloneEntity, Entity } from "../src/entity";
 import { createLevel, assertSerializedLevel, Level } from '../src/level';
-import { playerConfig } from '../src/entityConfig';
+import { playerConfig, States } from '../src/entityConfig';
 
 let testLevel: Level;
 
@@ -39,7 +39,7 @@ beforeAll(() => {
 describe('applyVelocity', () => {
     test('Running straight into a wall should stop the entity', () => {
         const testEntity: Entity = {
-            state: "spawn",
+            state: States.spawn,
             stateClock: 0,
             config: playerConfig,
             polygon: 0,
@@ -55,7 +55,7 @@ describe('applyVelocity', () => {
 
     test('Running into the wall at an angle should slide the entity along it', () => {
         const testEntity: Entity = {
-            state: "spawn",
+            state: States.spawn,
             stateClock: 0,
             config: playerConfig,
             polygon: 0,
@@ -72,7 +72,7 @@ describe('applyVelocity', () => {
     test('Running into the wall at an angle at high speed should slide the entity along it', () => {
         const position: [number, number, number] = [-232, 0, 0];
         const testEntity: Entity = {
-            state: "spawn",
+            state: States.spawn,
             stateClock: 0,
             config: playerConfig,
             polygon: 0,
