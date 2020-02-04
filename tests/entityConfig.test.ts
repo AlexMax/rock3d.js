@@ -79,7 +79,7 @@ describe('getAnimationFrame', () => {
             testConfig, States.spawn, 1, 10, period
         )).toEqual('D');
 
-        // Checking the last frame of the lasts group, which lasts forever.
+        // Checking the last frame of the last group, which lasts forever.
         expect(getAnimationFrame(
             testConfig, States.spawn, 1, 11, period
         )).toEqual('E');
