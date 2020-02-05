@@ -336,7 +336,7 @@ export const applyVelocity = (
     // Thus, to avoid issues, we dynamically break our movement into parts
     // based on the radius of the entity and the instantanious velocity of
     // the entity.
-    const dist = Math.hypot(entity.position[0], entity.position[1]);
+    const dist = Math.hypot(entity.velocity[0], entity.velocity[1]);
     let scale = entity.config.radius / dist;
 
     // Instead of being super-flexible, we can either process collision in
