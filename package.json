@@ -12,14 +12,18 @@
         "url": "https://github.com/AlexMax/rock3d.js.git"
     },
     "scripts": {
-        "build-server": "tsc --project ./src/server",
         "build-client": "webpack --config webpack.config.js --config-name client",
         "build-editor": "webpack --config webpack.config.js --config-name editor",
         "build-files": "node ./build-files.js",
+        "build-server": "tsc --project ./src/server",
+        "dev": "concurrently \"npm:webserver\" \"npm:dev-server\" \"npm:dev-client\"",
+        "dev-client": "webpack --config webpack.config.js --config-name client --watch --mode=development",
+        "dev-server": "tsc-watch --project ./src/server --onSuccess \"node ./dist/server/index.js\" --noClear",
         "lint": "eslint src --ext .ts,.tsx",
+        "server": "node ./dist/server/index.js",
         "test": "jest",
         "test-watch": "jest --watch",
-        "server": "node ./dist/server/index.js"
+        "webserver": "node ./webserver.js"
     },
     "dependencies": {
         "@types/content-type": "^1.1.3",
@@ -47,11 +51,13 @@
         "@typescript-eslint/eslint-plugin": "^2.18.0",
         "@typescript-eslint/parser": "^2.18.0",
         "benchmark": "^2.1.4",
+        "concurrently": "^5.1.0",
         "eslint": "^6.8.0",
         "eslint-plugin-react": "^7.18.2",
+        "express": "^4.17.1",
         "jest": "^25.1.0",
-        "license-checker": "^25.0.1",
         "microtime": "^3.0.0",
-        "ts-jest": "^25.1.0"
+        "ts-jest": "^25.1.0",
+        "tsc-watch": "^4.1.0"
     }
 }
