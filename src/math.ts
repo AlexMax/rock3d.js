@@ -78,10 +78,12 @@ export const circleTouchesLine = (
     const Py = a[1] + (R * (b[1] - a[1]));
 
     // Check to see if the closest point is on the line segment.
-    if (Px < Math.min(a[0], b[0]) || Px > Math.max(a[0], b[0])) {
-        return null;
-    }
-    if (Py < Math.min(a[1], b[1]) || Py > Math.max(a[1], b[1])) {
+    if (
+        Px <= Math.min(a[0], b[0]) - r ||
+        Px >= Math.max(a[0], b[0]) + r ||
+        Py <= Math.min(a[1], b[1]) - r ||
+        Py >= Math.max(a[1], b[1]) + r
+    ) {
         return null;
     }
 

@@ -19,9 +19,11 @@
 import { readFileSync } from 'fs';
 import { vec2, vec3 } from 'gl-matrix';
 
+import { playerConfig } from '../src/entityConfig';
 import {
     Hit, HitEdge, HitFloor, HitCeiling, HitType, hitscan, Level,
-    assertSerializedLevel, createLevel, pointInPolygon, findPolygon
+    assertSerializedLevel, createLevel, pointInPolygon, findPolygon,
+    entityTouchesLevel, isTouchEdge
 } from '../src/level';
 
 let testLevel: Level;
@@ -145,5 +147,30 @@ describe('Find Polygon', () => {
     test('Point is outside the map', () => {
         const point = vec2.fromValues(0, -256);
         expect(findPolygon(testLevel, 0, point)).toBeNull();
+    });
+});
+
+describe('entityTouchesLevel', () => {
+    test('Entity should collide with problematic corner', () => {
+        const position = [
+            315.44537353515625, 760, 32
+        ];
+        const hitDest = entityTouchesLevel(
+            testLevel, playerConfig, position, 4
+        );
+        expect(isTouchEdge(hitDest)).toBe(true);
+    });
+
+    test('Entity should be ejected from the correct wall', () => {
+        const position = [
+            333.4219665527344, 753.641357421875, 32
+        ];
+        const hitDest = entityTouchesLevel(
+            testLevel, playerConfig, position, 4
+        );
+        expect(isTouchEdge(hitDest)).toBe(true);
+        if (isTouchEdge(hitDest)) {
+            expect(hitDest.edgeID).not.toBe(28);
+        }
     });
 });

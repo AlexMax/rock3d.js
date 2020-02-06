@@ -19,8 +19,34 @@
 import { quat, vec2, vec3 } from 'gl-matrix';
 
 import {
-    intersectLines, pointInCircle, pointInCube, pointInRect, quatToEuler
+    circleTouchesLine, intersectLines, pointInCircle, pointInCube, pointInRect,
+    quatToEuler
 } from '../src/math';
+
+describe('circleTouchesLine', () => {
+    test('Circle touches edge of line', () => {
+        // This test came from an actual ingame issue I ran into.
+        const a = vec2.fromValues(320, 768);
+        const b = vec2.fromValues(448, 768);
+        const c = vec2.fromValues(315.44537353515625, 760);
+        const out = circleTouchesLine(vec2.create(), a, b, c, 16);
+
+        // Circle should touch the edge.
+        expect(out).not.toBeNull();
+        expect(vec2.equals(out!, [315.4453, 768])).toBeTruthy();
+    });
+
+    test('Circle should not touch beyond edge of line', () => {
+        // This test came from an actual ingame issue I ran into.
+        const a = vec2.fromValues(320, 896);
+        const b = vec2.fromValues(320, 768);
+        const c = vec2.fromValues(335.6473693847656, 752);
+        const out = circleTouchesLine(vec2.create(), a, b, c, 16);
+
+        // Circle should not touch the edge.
+        expect(out).toBeNull();
+    });
+});
 
 describe('intersectLines', () => {
     test('Lines intersect', () => {
