@@ -533,11 +533,13 @@ const entityCanCrossEdge = (
  *
  * @param level Level to collide against.
  * @param config Entity configuration.
+ * @param velocity Current velocity of entity.
  * @param newPos New position to collide with.
  * @param startPoly Starting polygon to check.
  */
 export const entityTouchesLevel = (
-    level: Level, config: EntityConfig, newPos: vec3, startPoly: number | null
+    level: Level, config: EntityConfig, velocity: vec3, newPos: vec3,
+    startPoly: number | null
 ): Touch => {
     if (startPoly === null) {
         // Entity is in the void, any other check would be nonsense.
@@ -566,6 +568,13 @@ export const entityTouchesLevel = (
             if (circleTouchesLine(
                 touchPos, edge.vertex, edge.nextVertex, newPos, config.radius
             ) !== null) {
+                // Discard touches that are aligned with the normal.  You
+                // need to be able to walk through the back side of a wall,
+                // lest collisions at corners become more complicated.
+                if (vec2.dot(velocity, edge.normalCache as vec2) > 0) {
+                    continue;
+                }
+
                 // Should we consider this edge a wall?
                 if (entityCanCrossEdge(
                     level, polyID, edgeID, config, newPos

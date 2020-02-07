@@ -155,8 +155,11 @@ describe('entityTouchesLevel', () => {
         const position = [
             315.44537353515625, 760, 32
         ];
+        const velocity = [ // Not the actual velocity
+            -1, 1, 0
+        ];
         const hitDest = entityTouchesLevel(
-            testLevel, playerConfig, position, 4
+            testLevel, playerConfig, velocity, position, 4
         );
         expect(isTouchEdge(hitDest)).toBe(true);
     });
@@ -165,8 +168,11 @@ describe('entityTouchesLevel', () => {
         const position = [
             333.4219665527344, 753.641357421875, 32
         ];
+        const velocity = [ // Not the actual velocity
+            -1, 1, 0
+        ];
         const hitDest = entityTouchesLevel(
-            testLevel, playerConfig, position, 4
+            testLevel, playerConfig, velocity, position, 4
         );
         expect(isTouchEdge(hitDest)).toBe(true);
         if (isTouchEdge(hitDest)) {

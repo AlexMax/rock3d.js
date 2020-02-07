@@ -238,7 +238,7 @@ const applyPartialVelocity = (
 
     // Collide the new position with the level.
     let hitDest = entityTouchesLevel(
-        level, entity.config, newPos, newPolygon
+        level, entity.config, entity.velocity, newPos, newPolygon
     );
 
     if (isTouchVoid(hitDest)) {
@@ -259,7 +259,7 @@ const applyPartialVelocity = (
 
         // Test sliding collision.
         hitDest = entityTouchesLevel(
-            level, entity.config, newPos, newPolygon
+            level, entity.config, entity.velocity, newPos, newPolygon
         );
         if (isTouchEdge(hitDest)) {
             // We slid into a wall, try and position our entity in the corner.
@@ -271,7 +271,7 @@ const applyPartialVelocity = (
 
             // Test corner collision.
             hitDest = entityTouchesLevel(
-                level, entity.config, newPos, newPolygon
+                level, entity.config, entity.velocity, newPos, newPolygon
             );
             if (isTouchEdge(hitDest)) {
                 // Stop the move completely.
