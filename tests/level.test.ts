@@ -167,46 +167,4 @@ describe('entityTouchesLevel', () => {
         );
         expect(isTouchEdge(hitDest)).toBe(true);
     });
-
-    /**
-     * This test came from approaching an outside corner hugging the wall,
-     * as soon as you hit the intersection of the two walls, you got warped
-     * directly to the corner.
-     */
-    test('Entity should be ejected from the correct wall', () => {
-        const position = [
-            333.4219665527344, 753.641357421875, 32
-        ];
-        const velocity = [ // Not the actual velocity
-            -1, 1, 0
-        ];
-        const hitDest = entityTouchesLevel(
-            testLevel, playerConfig, velocity, position, 4
-        );
-        expect(isTouchEdge(hitDest)).toBe(true);
-        if (isTouchEdge(hitDest)) {
-            expect(hitDest.edgeID).not.toBe(28);
-        }
-    });
-
-    /**
-     * This test came from an outside corner.  This time, you started at
-     * the corner and then crept along the wall, before too long you got
-     * telepoerted backwards towards the corner.
-     */
-    test('Entity should be ejected from the correct wall (2)', () => {
-        const velocity = [
-            0.8373914361000061, 15.978072166442871, 0
-        ];
-        const position = [
-            312.3740234375, 759.989013671875, 32
-        ];
-        const hitDest = entityTouchesLevel(
-            testLevel, playerConfig, velocity, position, 4
-        );
-        expect(isTouchEdge(hitDest)).toBe(true);
-        if (isTouchEdge(hitDest)) {
-            expect(hitDest.edgeID).not.toBe(28);
-        }
-    });
 });

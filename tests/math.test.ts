@@ -24,26 +24,31 @@ import {
 } from '../src/math';
 
 describe('circleTouchesLine', () => {
-    test('Circle touches edge of line', () => {
-        // This test came from an actual ingame issue I ran into.
-        const a = vec2.fromValues(320, 768);
-        const b = vec2.fromValues(448, 768);
-        const c = vec2.fromValues(315.44537353515625, 760);
+    test('Circle should touch line when close enough', () => {
+        const a = vec2.fromValues(0, 32);
+        const b = vec2.fromValues(32, 32);
+        const c = vec2.fromValues(16, 17);
         const out = circleTouchesLine(vec2.create(), a, b, c, 16);
 
-        // Circle should touch the edge.
         expect(out).not.toBeNull();
-        expect(vec2.equals(out!, [315.4453, 768])).toBeTruthy();
+        expect(out).toEqualVec2([16, 32]);
     });
 
-    test('Circle should not touch beyond edge of line', () => {
-        // This test came from an actual ingame issue I ran into.
-        const a = vec2.fromValues(320, 896);
-        const b = vec2.fromValues(320, 768);
-        const c = vec2.fromValues(335.6473693847656, 752);
+    test('Circle should not touch line it\'s nowhere near', () => {
+        const a = vec2.fromValues(0, 32);
+        const b = vec2.fromValues(32, 32);
+        const c = vec2.fromValues(16, 8);
         const out = circleTouchesLine(vec2.create(), a, b, c, 16);
 
-        // Circle should not touch the edge.
+        expect(out).toBeNull();
+    });
+
+    test('Circle should not touch edge of line', () => {
+        const a = vec2.fromValues(0, 32);
+        const b = vec2.fromValues(32, 32);
+        const c = vec2.fromValues(16, 16);
+        const out = circleTouchesLine(vec2.create(), a, b, c, 16);
+
         expect(out).toBeNull();
     });
 });
