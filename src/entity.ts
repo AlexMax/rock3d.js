@@ -249,10 +249,12 @@ const applyPartialVelocity = (
     }
 
     if (isTouchEdge(hitDest)) {
-        // We hit the wall, figure out a new position along the wall that
-        // will slide the player against it.
-        const edge = level.edges[hitDest.edgeID];
-        const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
+        // We hit a wall, figure out a new position.
+        const normal = vec2.fromValues(
+            newPos[0] - hitDest.position[0],
+            newPos[1] - hitDest.position[1]
+        );
+        vec2.normalize(normal, normal);
         vec2.scale(normal, normal, entity.config.radius);
         vec2.add(newPos, hitDest.position, normal);
         newPolygon = findPolygon(level, entity.polygon, newPos);
@@ -263,8 +265,11 @@ const applyPartialVelocity = (
         );
         if (isTouchEdge(hitDest)) {
             // We slid into a wall, try and position our entity in the corner.
-            const edge = level.edges[hitDest.edgeID];
-            const normal = vec2.normalize(vec2.create(), edge.normalCache as vec2);
+            const normal = vec2.fromValues(
+                newPos[0] - hitDest.position[0],
+                newPos[1] - hitDest.position[1]
+            );
+            vec2.normalize(normal, normal);
             vec2.scale(normal, normal, entity.config.radius);
             vec2.add(newPos, hitDest.position, normal);
             newPolygon = findPolygon(level, entity.polygon, newPos);

@@ -79,11 +79,24 @@ export const circleTouchesLine = (
 
     // Check to see if the closest point is on the line segment.
     if (
-        Px <= Math.min(a[0], b[0]) - r ||
-        Px >= Math.max(a[0], b[0]) + r ||
-        Py <= Math.min(a[1], b[1]) - r ||
-        Py >= Math.max(a[1], b[1]) + r
+        Px < Math.min(a[0], b[0]) ||
+        Px > Math.max(a[0], b[0]) ||
+        Py < Math.min(a[1], b[1]) ||
+        Py > Math.max(a[1], b[1])
     ) {
+        // Collide with the vertexes.
+        const aDist = Math.hypot(c[0] - a[0], c[1] - a[1]);
+        const bDist = Math.hypot(c[0] - b[0], c[1] - b[1])
+        if (aDist < r || bDist < r) {
+            if (aDist < bDist) {
+                out[0] = a[0];
+                out[1] = a[1];
+            } else {
+                out[0] = b[0];
+                out[1] = b[1];
+            }
+            return out;
+        }
         return null;
     }
 
