@@ -18,7 +18,7 @@
 
 import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
-import { Atlas } from '../atlas';
+import { Atlas, Texture } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { Level } from '../level';
@@ -79,8 +79,7 @@ const setVertex = (
  * @param out Out vector.
  * @param spriteCenter Center of sprite.
  * @param offset Vertex of the sprite to billboard, in terms of the X, Y
- *               offset from the center.  0.0 is no offset, 1.0 is the
- *               entire width/height of the sprite.
+ *               offset from the center.
  * @param right Right vector in world coordinates.
  * @param up Up vector in world coordinates.
  * @param width Width of sprite.
@@ -88,14 +87,12 @@ const setVertex = (
  */
 const billboardVertex = (
     out: vec3, spriteCenter: vec3, offset: vec2, right: vec3, up: vec3,
-    width: number, height: number
+    tex: Texture
 ) => {
     const calcRight = vec3.copy(vec3.create(), right);
     vec3.scale(calcRight, calcRight, offset[0]);
-    vec3.scale(calcRight, calcRight, width);
     const calcUp = vec3.copy(vec3.create(), up);
     vec3.scale(calcUp, calcUp, offset[1]);
-    vec3.scale(calcUp, calcUp, height);
     vec3.copy(out, spriteCenter);
     vec3.add(out, out, calcRight);
     vec3.add(out, out, calcUp);
@@ -336,16 +333,16 @@ export class WorldContext {
 
         const ua1 = texEntry.xPos / this.worldAtlas.length;
         const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
 
         const hDist = vec2.length(vec2.sub(vec2.create(), one, two));
         const vDist = z2 - z1;
 
         const ut1 = 0;
         const vt1 = 0;
-        const ut2 = hDist / texEntry.texture.width;
-        const vt2 = vDist / texEntry.texture.height;
+        const ut2 = hDist / texEntry.texture.img.width;
+        const vt2 = vDist / texEntry.texture.img.height;
 
         // Adjust brightness depending on which direction the wall is going.
         // Angles that are parallel to the X axis are darker, angles that
@@ -414,8 +411,8 @@ export class WorldContext {
 
         const ua1 = texEntry.xPos / this.worldAtlas.length;
         const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
 
         const rBright = bright[0] / 256;
         const gBright = bright[1] / 256;
@@ -425,8 +422,8 @@ export class WorldContext {
         const vCountStart = this.worldVertCount;
         for (let i = 0;i < verts.length - 1;i += 2) {
             const vCount = this.worldVertCount;
-            const ut = verts[i] / texEntry.texture.width;
-            const vt = -(verts[i+1] / texEntry.texture.height);
+            const ut = verts[i] / texEntry.texture.img.width;
+            const vt = -(verts[i+1] / texEntry.texture.img.height);
 
             setVertex(this.worldVerts, vCount, verts[i], verts[i+1], z,
                 ua1, va1, ua2 - ua1, va2 - va1, ut, vt, rBright, gBright, bBright);
@@ -543,8 +540,8 @@ export class WorldContext {
 
         const ua1 = texEntry.xPos / this.spriteAtlas.length;
         const va1 = texEntry.yPos / this.spriteAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.spriteAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.height) / this.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.spriteAtlas.length;
 
         if (flipped) {
             var ut2 = 0;
@@ -568,7 +565,7 @@ export class WorldContext {
         // Figure out where our camera is.
         if (entity.config.grounded) {
             // Sprite center is attached to the floor.
-            spriteCenter[2] += Math.ceil(texEntry.texture.height / 2);
+            spriteCenter[2] += texEntry.texture.img.height / 2;
 
             // Only billboard yaw axis.
             const euler = quatToEuler(vec3.create(), cam.dir);
@@ -592,20 +589,28 @@ export class WorldContext {
         const worldUp = vec3.fromValues(viewInv[4], viewInv[5], viewInv[6]);
 
         // Four vertexes of the sprite.
-        const lowerLeft = vec2.fromValues(-0.5, -0.5);
-        const lowerRight = vec2.fromValues(0.5, -0.5);
-        const upperRight = vec2.fromValues(0.5, 0.5);
-        const upperLeft = vec2.fromValues(-0.5, 0.5);
+        const left = -texEntry.texture.info.xCenter;
+        const right = left + texEntry.texture.img.width;
+        const down = -texEntry.texture.info.yCenter;
+        const up = down + texEntry.texture.img.height;
+        const lowerLeft = vec2.fromValues(left, down);
+        const lowerRight = vec2.fromValues(right, down);
+        const upperRight = vec2.fromValues(right, up);
+        const upperLeft = vec2.fromValues(left, up);
 
         // Calculation to transform the four vertexes.
-        const one = billboardVertex(vec3.create(), spriteCenter, lowerLeft,
-            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const two = billboardVertex(vec3.create(), spriteCenter, lowerRight,
-            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const three = billboardVertex(vec3.create(), spriteCenter, upperRight,
-            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
-        const four = billboardVertex(vec3.create(), spriteCenter, upperLeft,
-            worldRight, worldUp, texEntry.texture.width, texEntry.texture.height);
+        const one = billboardVertex(
+            vec3.create(), spriteCenter, lowerLeft, worldRight, worldUp, texEntry.texture
+        );
+        const two = billboardVertex(
+            vec3.create(), spriteCenter, lowerRight, worldRight, worldUp, texEntry.texture
+        );
+        const three = billboardVertex(
+            vec3.create(), spriteCenter, upperRight, worldRight, worldUp, texEntry.texture
+        );
+        const four = billboardVertex(
+            vec3.create(), spriteCenter, upperLeft, worldRight, worldUp, texEntry.texture
+        );
 
         // Draw a sprite into the vertex and index buffers.
         const vCount = this.spriteVertCount;
@@ -635,21 +640,21 @@ export class WorldContext {
      * 
      * The sky sphere is a basic UV sphere of constant size.
      */
-    addSky(tex: string): void {
+    addSky(texName: string): void {
         if (this.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Find the texture of the sky in the atlas
-        const texEntry = this.worldAtlas.find(tex);
+        const texEntry = this.worldAtlas.find(texName);
         if (texEntry === null) {
-            throw new Error(`Unknown texture ${texEntry}`);
+            throw new Error(`Unknown texture ${texName}`);
         }
 
         const ua1 = texEntry.xPos / this.worldAtlas.length;
         const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.height) / this.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
 
         // Number of parallel lines, not counting the two poles. 
         const parallelsCount = 9;
@@ -675,11 +680,11 @@ export class WorldContext {
         // two poles.
         for (let i = 0;i < parallelsCount;i++) {
             const parallel = Math.PI * (i + 1) / (parallelsCount + 1);
-            const vt = (i / (parallelsCount - 1)) * (256 / texEntry.texture.height);
+            const vt = (i / (parallelsCount - 1)) * (256 / texEntry.texture.img.height);
             for (let j = 0;j <= meridiansCount;j++) {
                 const meridian = 2.0 * Math.PI * j / meridiansCount;
                 const pos = sphereToCartesian(vec3.create(), radius, parallel, meridian);
-                const ut = (j / (meridiansCount)) * (1024 / texEntry.texture.width);
+                const ut = (j / (meridiansCount)) * (1024 / texEntry.texture.img.width);
                 setVertex(this.skyVerts, vCount, pos[0], pos[1], pos[2],
                     ua1, va1, ua2 - ua1, va2 - va1, ut, vt, 1, 1, 1);
                 vCount += 1;
@@ -752,19 +757,19 @@ export class WorldContext {
             gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
 
             // Corner pixels.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
 
             // Side walls.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
 
             // Actual texture.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
 
             gl.bindTexture(gl.TEXTURE_2D, null);
         });
@@ -780,12 +785,12 @@ export class WorldContext {
         this.spriteAtlas = sprites;
 
         // Get the texture atlas onto the GPU
-        sprites.persist((data, x, y) => {
+        sprites.persist((tex, x, y) => {
             const gl = this.parent.gl;
 
             // Actual sprite.
             gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, tex.img);
             gl.bindTexture(gl.TEXTURE_2D, null);
         });
     }

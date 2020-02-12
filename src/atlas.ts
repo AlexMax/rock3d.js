@@ -16,8 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * Information for a specific texture.
+ */
+export interface TextureInfo {
+    xCenter: number;
+    yCenter: number;
+}
+
+/**
+ * A loaded texture.
+ */
+export interface Texture {
+    name: string;
+    img: HTMLImageElement;
+    info: TextureInfo;
+}
+
 interface AtlasEntry {
-    texture: HTMLImageElement;
+    texture: Texture;
     xPos: number;
     yPos: number;
 }
@@ -27,11 +44,9 @@ interface AtlasShelf {
     height: number;
 }
 
-interface AtlasHash {
-    [name: string]: AtlasEntry;
-}
+type AtlasHash = Map<string, AtlasEntry>;
 
-export type PersistProc = (data: HTMLImageElement, x: number, y: number) => void;
+export type PersistProc = (tex: Texture, x: number, y: number) => void;
 
 export class Atlas {
     atlas: AtlasHash;
@@ -39,15 +54,15 @@ export class Atlas {
     shelves: AtlasShelf[];
 
     constructor(size: number) {
-        this.atlas = Object.create(null);
+        this.atlas = new Map();
         this.length = size;
         this.shelves = [];
     }
 
-    add(texName: string, tex: HTMLImageElement): void {
+    add(tex: Texture): void {
         // Add padding on each side of the texture.
-        const actualWidth = tex.width + 2;
-        const actualHeight = tex.height + 2;
+        const actualWidth = tex.img.width + 2;
+        const actualHeight = tex.img.height + 2;
 
         if (actualWidth > this.length || actualHeight > this.length) {
             throw new Error("Texture is too big for the atlas");
@@ -61,11 +76,11 @@ export class Atlas {
                 // Is there space on the shelf?
                 if (actualWidth <= this.length - shelf.width) {
                     // There is!  Put the atlas entry there, then adjust the shelf.
-                    this.atlas[texName] = {
+                    this.atlas.set(tex.name, {
                         texture: tex,
                         xPos: shelf.width + 1,
                         yPos: y + 1
-                    };
+                    });
                     shelf.width += actualWidth;
 
                     return;
@@ -84,11 +99,11 @@ export class Atlas {
                 width: actualWidth,
                 height: actualHeight,
             });
-            this.atlas[texName] = {
+            this.atlas.set(tex.name, {
                 texture: tex,
                 xPos: 1,
                 yPos: y + 1
-            };
+            });
 
             return;
         }
@@ -102,9 +117,8 @@ export class Atlas {
      * @param p Function that actually does the persisting to the GPU.
      */
     persist(p: PersistProc): void {
-        for (const texName in this.atlas) {
-            const tex = this.atlas[texName];
-            p(tex.texture, tex.xPos, tex.yPos);
+        for (const [_, entry] of this.atlas) {
+            p(entry.texture, entry.xPos, entry.yPos);
         }
     }
 
@@ -114,9 +128,7 @@ export class Atlas {
      * @param name The name of the texture to find.
      */
     find(name: string): AtlasEntry | null {
-        if (!(name in this.atlas)) {
-            return null;
-        }
-        return this.atlas[name];
+        const entry = this.atlas.get(name);
+        return entry ? entry : null;
     }
 }
