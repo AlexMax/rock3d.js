@@ -42,22 +42,22 @@
         "react-dom": "^16.12.0",
         "ts-loader": "^6.2.1",
         "typescript": "^3.7.5",
-        "webpack": "^4.41.5",
-        "webpack-cli": "^3.3.10",
+        "webpack": "^4.41.6",
+        "webpack-cli": "^3.3.11",
         "ws": "^7.2.1"
     },
     "devDependencies": {
-        "@types/jest": "^25.1.1",
-        "@typescript-eslint/eslint-plugin": "^2.18.0",
-        "@typescript-eslint/parser": "^2.18.0",
+        "@types/jest": "^25.1.2",
+        "@typescript-eslint/eslint-plugin": "^2.19.2",
+        "@typescript-eslint/parser": "^2.19.2",
         "benchmark": "^2.1.4",
         "concurrently": "^5.1.0",
         "eslint": "^6.8.0",
-        "eslint-plugin-react": "^7.18.2",
+        "eslint-plugin-react": "^7.18.3",
         "express": "^4.17.1",
         "jest": "^25.1.0",
         "microtime": "^3.0.0",
-        "ts-jest": "^25.1.0",
+        "ts-jest": "^25.2.0",
         "tsc-watch": "^4.1.0"
     }
 }
