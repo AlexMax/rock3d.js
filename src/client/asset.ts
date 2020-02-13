@@ -34,6 +34,11 @@ interface ImageAsset {
     data: HTMLImageElement;
 }
 
+interface AudioAsset {
+    type: "Audio";
+    data: HTMLAudioElement;
+}
+
 interface TextAsset {
     type: "Text";
     data: string;
@@ -42,7 +47,7 @@ interface TextAsset {
 /**
  * One of many possible assets.
  */
-type Asset = JSONAsset | ImageAsset | TextAsset;
+type Asset = JSONAsset | ImageAsset | AudioAsset | TextAsset;
 
 /**
  * Asset directory.
@@ -89,6 +94,20 @@ const imgParse = async (url: string, data: Blob): Promise<HTMLImageElement> => {
     });
 }
 
+const audioParse = async (url: string, data: Blob): Promise<HTMLAudioElement> => {
+    const src = URL.createObjectURL(data);
+    return new Promise((resolve, reject) => {
+        const audio = new Audio();
+        audio.oncanplaythrough = (): void => {
+            resolve(audio);
+        };
+        audio.onerror = (): void => {
+            reject(new Error(`Could not load audio ${url}.`));
+        };
+        audio.src = src;
+    });
+}
+
 /**
  * Load a single asset.
  * 
@@ -124,6 +143,11 @@ const loadAsset = async (url: string): Promise<Asset> => {
         return {
             type: 'Image',
             data: await imgParse(url, await res.blob()),
+        }
+    case 'audio/wav':
+        return {
+            type: 'Audio',
+            data: await audioParse(url, await res.blob()),
         }
     case 'text/plain':
         return {
