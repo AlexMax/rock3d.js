@@ -74,6 +74,30 @@ const setVertex = (
 }
 
 /**
+ * Debugging function for vertex.
+ */
+(window as any).debugVertex = (
+    buffer: ArrayBuffer, index: number
+): void => {
+    const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
+    console.debug({
+        x: view.getFloat32(0, true),
+        y: view.getFloat32(4, true),
+        z: view.getFloat32(8, true),
+        uAtOrigin: view.getFloat32(12, true),
+        vAtOrigin: view.getFloat32(16, true),
+        uAtLen: view.getFloat32(20, true),
+        vAtLen: view.getFloat32(24, true),
+        uTex: view.getFloat32(28, true),
+        vTex: view.getFloat32(32, true),
+        rBright: view.getFloat32(36, true),
+        gBright: view.getFloat32(40, true),
+        bBright: view.getFloat32(44, true),
+    });
+}
+
+
+/**
  * Billboard a single vertex of a sprite.
  * 
  * @param out Out vector.
@@ -142,6 +166,11 @@ export class WorldContext {
     skyInds: Uint16Array;
     skyIndCount: number;
 
+    weaponVerts: ArrayBuffer;
+    weaponVertCount: number;
+    weaponInds: Uint16Array;
+    weaponIndCount: number;
+
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
@@ -166,6 +195,12 @@ export class WorldContext {
         this.skyVertCount = 0;
         this.skyInds = new Uint16Array(1024);
         this.skyIndCount = 0;
+
+        // Weapon vertexes and indexes.
+        this.weaponVerts = new ArrayBuffer(32768);
+        this.weaponVertCount = 0;
+        this.weaponInds = new Uint16Array(1024);
+        this.weaponIndCount = 0;
 
         // 3D shader program, used for rendering walls, floors and ceilings.
         const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
@@ -717,6 +752,68 @@ export class WorldContext {
         this.skyIndCount = iCount;
     }
 
+    addWeapon(frame: string): void {
+        const sprPrefix = 'SHT2';
+
+        if (this.spriteAtlas === undefined) {
+            throw new Error('Texture Atlas is empty');
+        }
+
+        // Weapon sprites never have rotations, try the default rotation.
+        const texEntry = this.spriteAtlas.find(sprPrefix + frame + '0');
+        if (texEntry === null) {
+            throw new Error(`Unknown sprite ${texEntry}`);
+        }
+
+        // Sprite position
+        const one = vec3.fromValues(1.0, 1.0, -1.0);
+        const two = vec3.fromValues(1.0, -1.0, -1.0);
+        const three = vec3.fromValues(1.0, -1.0, 1.0);
+        const four = vec3.fromValues(1.0, 1.0, 1.0);
+
+        // Texture coordinates.
+        const ua1 = texEntry.xPos / this.spriteAtlas.length;
+        const va1 = texEntry.yPos / this.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.spriteAtlas.length;
+        const ut1 = 0;
+        const ut2 = 1;
+        const vt1 = 0;
+        const vt2 = 1;
+
+        // Figure out the brightness of the surrounding polygon.
+        // const polygon = level.polygons[entity.polygon];
+        // const rBright = polygon.brightness[0] / 256;
+        // const gBright = polygon.brightness[1] / 256;
+        // const bBright = polygon.brightness[2] / 256;
+
+        const rBright = 1.0;
+        const gBright = 1.0;
+        const bBright = 1.0;
+
+        // Draw a sprite into the vertex and index buffers.
+        const vCount = this.weaponVertCount;
+        setVertex(this.weaponVerts, vCount, one[0], one[1], one[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright);
+        setVertex(this.weaponVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright);
+        setVertex(this.weaponVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright);
+        setVertex(this.weaponVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright);
+
+        const iCount = this.weaponIndCount;
+        this.weaponInds[iCount] = vCount;
+        this.weaponInds[iCount + 1] = vCount + 1;
+        this.weaponInds[iCount + 2] = vCount + 2;
+        this.weaponInds[iCount + 3] = vCount + 2;
+        this.weaponInds[iCount + 4] = vCount + 3;
+        this.weaponInds[iCount + 5] = vCount + 0;
+
+        this.weaponVertCount += 4;
+        this.weaponIndCount += 6;
+    }
+
     /**
      * Clear the world vertexes.
      */
@@ -739,6 +836,14 @@ export class WorldContext {
     clearSky(): void {
         this.skyVertCount = 0;
         this.skyIndCount = 0;
+    }
+
+    /**
+     * Clear weapon vertexes.
+     */
+    clearWeapon(): void {
+        this.weaponVertCount = 0;
+        this.weaponIndCount = 0;
     }
 
     /**
@@ -871,6 +976,21 @@ export class WorldContext {
 
         // Draw the sprites.
         gl.drawElements(gl.TRIANGLES, this.spriteIndCount, gl.UNSIGNED_SHORT, 0);
+
+        // Clear the depth buffer - we're always going to draw our weapon
+        // in front of the rest of the world.
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // Bind our weapon camera data.
+        const weaponView = getViewMatrix(createCamera(0, 0, 0));
+        gl.uniformMatrix4fv(viewLoc, false, weaponView);
+
+        // Load our weapon data.
+        gl.bufferData(gl.ARRAY_BUFFER, this.weaponVerts, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.weaponInds, gl.STATIC_DRAW);
+
+        // Draw the weapon.
+        gl.drawElements(gl.TRIANGLES, this.weaponIndCount, gl.UNSIGNED_SHORT, 0);
 
         // Cleanup.
         gl.disableVertexAttribArray(this.world_lPos);
