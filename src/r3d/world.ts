@@ -24,78 +24,9 @@ import { Entity } from '../entity';
 import { Level } from '../level';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
-import { compileShader, linkShaderProgram } from './shader';
-
-import world_vert from './shader/world.vert';
-import world_frag from './shader/world.frag';
+import { WorldProgram } from './shader/worldProgram';
 
 const ATLAS_SIZE = 512;
-
-/**
- * Return the number of bytes needed to hold the given number of vertexes.
- * 
- * @param count Number of vertexes to measure.
- */
-const vertexBytes = (count: number) => {
-    return count * 48;
-}
-
-/**
- * Write Vertex data to a buffer.
- * 
- * FIXME: Detect and deal with big-endian platforms...if they exist anymore.
- * 
- * @param buffer Destination buffer for vertex data.
- * @param index In a buffer that can hold multiple vertexes, the number of
- *              vertexes that come before (in the data) the vertex you want
- *              to write.
- */
-const setVertex = (
-    buffer: ArrayBuffer, index: number, x: number, y: number, z: number,
-    uAtOrigin: number, vAtOrigin: number, uAtLen: number, vAtLen: number,
-    uTex: number, vTex: number, rBright: number, gBright: number,
-    bBright: number
-): ArrayBuffer => {
-    const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
-    view.setFloat32(0, x, true);
-    view.setFloat32(4, y, true);
-    view.setFloat32(8, z, true);
-    view.setFloat32(12, uAtOrigin, true);
-    view.setFloat32(16, vAtOrigin, true);
-    view.setFloat32(20, uAtLen, true);
-    view.setFloat32(24, vAtLen, true);
-    view.setFloat32(28, uTex, true);
-    view.setFloat32(32, vTex, true);
-    view.setFloat32(36, rBright, true);
-    view.setFloat32(40, gBright, true);
-    view.setFloat32(44, bBright, true);
-
-    return buffer;
-}
-
-/**
- * Debugging function for vertex.
- */
-(window as any).debugVertex = (
-    buffer: ArrayBuffer, index: number
-): void => {
-    const view = new DataView(buffer, vertexBytes(index), vertexBytes(1));
-    console.debug({
-        x: view.getFloat32(0, true),
-        y: view.getFloat32(4, true),
-        z: view.getFloat32(8, true),
-        uAtOrigin: view.getFloat32(12, true),
-        vAtOrigin: view.getFloat32(16, true),
-        uAtLen: view.getFloat32(20, true),
-        vAtLen: view.getFloat32(24, true),
-        uTex: view.getFloat32(28, true),
-        vTex: view.getFloat32(32, true),
-        rBright: view.getFloat32(36, true),
-        gBright: view.getFloat32(40, true),
-        bBright: view.getFloat32(44, true),
-    });
-}
-
 
 /**
  * Billboard a single vertex of a sprite.
@@ -106,12 +37,9 @@ const setVertex = (
  *               offset from the center.
  * @param right Right vector in world coordinates.
  * @param up Up vector in world coordinates.
- * @param width Width of sprite.
- * @param height Height of sprite.
  */
 const billboardVertex = (
     out: vec3, spriteCenter: vec3, offset: vec2, right: vec3, up: vec3,
-    tex: Texture
 ) => {
     const calcRight = vec3.copy(vec3.create(), right);
     vec3.scale(calcRight, calcRight, offset[0]);
@@ -139,7 +67,7 @@ const spriteRot = (camAngle: number, sprAngle: number): number => {
 export class WorldContext {
     parent: RenderContext; // Reference to parent
 
-    worldProg: WebGLProgram;
+    worldProgram: WorldProgram;
     worldAtlas?: Atlas;
     worldTexAtlas: WebGLTexture;
     worldVBO: WebGLBuffer;
@@ -149,10 +77,6 @@ export class WorldContext {
     worldInds: Uint16Array;
     worldIndCount: number;
     worldProject: mat4;
-    world_lPos: GLuint;
-    world_lAtlasInfo: GLuint;
-    world_lTexCoord: GLuint;
-    world_lBright: GLuint;
 
     spriteAtlas?: Atlas;
     spriteTexAtlas: WebGLTexture;
@@ -174,6 +98,9 @@ export class WorldContext {
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
+
+        // Set up the world shader.
+        this.worldProgram = new WorldProgram(gl);
 
         // Set up non-JS data.
 
@@ -202,12 +129,6 @@ export class WorldContext {
         this.weaponInds = new Uint16Array(1024);
         this.weaponIndCount = 0;
 
-        // 3D shader program, used for rendering walls, floors and ceilings.
-        const vs = compileShader(gl, gl.VERTEX_SHADER, world_vert);
-        const fs = compileShader(gl, gl.FRAGMENT_SHADER, world_frag);
-
-        this.worldProg = linkShaderProgram(gl, [vs, fs]);
-
         // We need vertex buffers...
         const vbo = gl.createBuffer();
         if (vbo === null) {
@@ -221,32 +142,6 @@ export class WorldContext {
             throw new Error('Could not allocate worldEBO');
         }
         this.worldEBO = ebo;
-
-        // Keep track of our attributes.
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-
-        // x, y, and z positions.
-        this.world_lPos = gl.getAttribLocation(this.worldProg, 'lPos');
-        if (this.world_lPos === -1) {
-            throw new Error('Could not find lPos in world program');
-        }
-        // u and v texture coordinates for the texture atlas.
-        this.world_lAtlasInfo = gl.getAttribLocation(this.worldProg, 'lAtlasInfo');
-        if (this.world_lAtlasInfo === -1) {
-            throw new Error('Could not find lAtlasInfo in world program');
-        }
-        // u and v texture coordinates for the texture itself.
-        this.world_lTexCoord = gl.getAttribLocation(this.worldProg, 'lTexCoord');
-        if (this.world_lTexCoord === -1) {
-            throw new Error('Could not find lTexCoord in world program');
-        }
-        // Brightness modifier.
-        this.world_lBright = gl.getAttribLocation(this.worldProg, 'lBright');
-        if (this.world_lBright === -1) {
-            throw new Error('Could not find lBright in world program');
-        }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, null); // So we don't modify the buffer
 
         // Set up the texture atlas texture
         const worldTexAtlas = gl.createTexture();
@@ -262,12 +157,8 @@ export class WorldContext {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         // Assign the texture atlas to the world program
-        gl.useProgram(this.worldProg);
-        const textureLoc = gl.getUniformLocation(this.worldProg, "uTexture");
-        if (textureLoc === null) {
-            throw new Error('uTexture uniform location could not be found');
-        }
-        gl.uniform1i(textureLoc, 0); // TEXTURE0
+        gl.useProgram(this.worldProgram.program);
+        gl.uniform1i(this.worldProgram.uTexture, 0); // TEXTURE0
 
         // Upload a blank hot pink texture to the atlas.
         const blankTextureAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
@@ -298,12 +189,8 @@ export class WorldContext {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         // Assign the texture atlas to the world program
-        gl.useProgram(this.worldProg);
-        const atlasLoc = gl.getUniformLocation(this.worldProg, "uTexture");
-        if (atlasLoc === null) {
-            throw new Error('uTexture uniform location could not be found');
-        }
-        gl.uniform1i(atlasLoc, 0); // TEXTURE0
+        gl.useProgram(this.worldProgram.program);
+        gl.uniform1i(this.worldProgram.uTexture, 0); // TEXTURE0
 
         // Upload a blank hot pink texture to the atlas.
         const blankSpriteAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
@@ -331,15 +218,14 @@ export class WorldContext {
         const canvas = gl.canvas as HTMLCanvasElement;
 
         // Use the world program.
-        gl.useProgram(this.worldProg);
+        gl.useProgram(this.worldProgram.program);
 
         // Setup the projection matrix.
         mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
             canvas.clientWidth / canvas.clientHeight, 1, 10_000);
 
         // Make sure our projection matrix goes into the shader program.
-        const projectionLoc = gl.getUniformLocation(this.worldProg, "uProjection");
-        gl.uniformMatrix4fv(projectionLoc, false, this.worldProject);
+        gl.uniformMatrix4fv(this.worldProgram.uProjection, false, this.worldProject);
     }
 
     /**
@@ -398,14 +284,22 @@ export class WorldContext {
         // Assuming you want to face the square head-on, xyz1 is the lower-left
         // coordinate and xyz2 is the upper-right coordinate.
         const vCount = this.worldVertCount;
-        setVertex(this.worldVerts, vCount, one[0], one[1], z1, ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright);
-        setVertex(this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright);
-        setVertex(this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright);
-        setVertex(this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright);
+        WorldProgram.setVertex(
+            this.worldVerts, vCount, one[0], one[1], z1, ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.worldVerts, vCount + 1, two[0], two[1], z1, ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.worldVerts, vCount + 2, two[0], two[1], z2, ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.worldVerts, vCount + 3, one[0], one[1], z2, ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright
+        );
 
         const iCount = this.worldIndCount;
         this.worldInds[iCount] = vCount;
@@ -460,8 +354,10 @@ export class WorldContext {
             const ut = verts[i] / texEntry.texture.img.width;
             const vt = -(verts[i+1] / texEntry.texture.img.height);
 
-            setVertex(this.worldVerts, vCount, verts[i], verts[i+1], z,
-                ua1, va1, ua2 - ua1, va2 - va1, ut, vt, rBright, gBright, bBright);
+            WorldProgram.setVertex(
+                this.worldVerts, vCount, verts[i], verts[i+1], z,
+                ua1, va1, ua2 - ua1, va2 - va1, ut, vt, rBright, gBright, bBright
+            );
             this.worldVertCount += 1;
         }
 
@@ -635,28 +531,36 @@ export class WorldContext {
 
         // Calculation to transform the four vertexes.
         const one = billboardVertex(
-            vec3.create(), spriteCenter, lowerLeft, worldRight, worldUp, texEntry.texture
+            vec3.create(), spriteCenter, lowerLeft, worldRight, worldUp
         );
         const two = billboardVertex(
-            vec3.create(), spriteCenter, lowerRight, worldRight, worldUp, texEntry.texture
+            vec3.create(), spriteCenter, lowerRight, worldRight, worldUp
         );
         const three = billboardVertex(
-            vec3.create(), spriteCenter, upperRight, worldRight, worldUp, texEntry.texture
+            vec3.create(), spriteCenter, upperRight, worldRight, worldUp
         );
         const four = billboardVertex(
-            vec3.create(), spriteCenter, upperLeft, worldRight, worldUp, texEntry.texture
+            vec3.create(), spriteCenter, upperLeft, worldRight, worldUp
         );
 
         // Draw a sprite into the vertex and index buffers.
         const vCount = this.spriteVertCount;
-        setVertex(this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright);
-        setVertex(this.spriteVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright);
-        setVertex(this.spriteVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright);
-        setVertex(this.spriteVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright);
+        WorldProgram.setVertex(
+            this.spriteVerts, vCount, one[0], one[1], one[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.spriteVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.spriteVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.spriteVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright
+        );
 
         const iCount = this.spriteIndCount;
         this.spriteInds[iCount] = vCount;
@@ -702,13 +606,17 @@ export class WorldContext {
 
         // Vertex #1 is at the top of the sphere.
         let vCount = this.skyVertCount;
-        setVertex(this.skyVerts, vCount, 0, 0, radius,
-            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1);
+        WorldProgram.setVertex(
+            this.skyVerts, vCount, 0, 0, radius,
+            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1
+        );
         vCount += 1;
 
         // Vertex #2 is at the bottom of the sphere.
-        setVertex(this.skyVerts, vCount, 0, 0, -radius,
-            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1);
+        WorldProgram.setVertex(
+            this.skyVerts, vCount, 0, 0, -radius,
+            ua1, va1, ua2 - ua1, va2 - va1, 0, 0, 1, 1, 1
+        );
         vCount += 1;
 
         // Generate coordinates for all points on the sphere in between the
@@ -720,8 +628,10 @@ export class WorldContext {
                 const meridian = 2.0 * Math.PI * j / meridiansCount;
                 const pos = sphereToCartesian(vec3.create(), radius, parallel, meridian);
                 const ut = (j / (meridiansCount)) * (1024 / texEntry.texture.img.width);
-                setVertex(this.skyVerts, vCount, pos[0], pos[1], pos[2],
-                    ua1, va1, ua2 - ua1, va2 - va1, ut, vt, 1, 1, 1);
+                WorldProgram.setVertex(
+                    this.skyVerts, vCount, pos[0], pos[1], pos[2],
+                    ua1, va1, ua2 - ua1, va2 - va1, ut, vt, 1, 1, 1
+                );
                 vCount += 1;
             }
         }
@@ -793,14 +703,22 @@ export class WorldContext {
 
         // Draw a sprite into the vertex and index buffers.
         const vCount = this.weaponVertCount;
-        setVertex(this.weaponVerts, vCount, one[0], one[1], one[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright);
-        setVertex(this.weaponVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright);
-        setVertex(this.weaponVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright);
-        setVertex(this.weaponVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright);
+        WorldProgram.setVertex(
+            this.weaponVerts, vCount, one[0], one[1], one[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.weaponVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.weaponVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright
+        );
+        WorldProgram.setVertex(
+            this.weaponVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
+            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright
+        );
 
         const iCount = this.weaponIndCount;
         this.weaponInds[iCount] = vCount;
@@ -912,37 +830,23 @@ export class WorldContext {
         gl.clearColor(0.0, 0.4, 0.4, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // Use the world program.
-        gl.useProgram(this.worldProg);
-
-        // Length of a single vertex.
-        const vertexLen = vertexBytes(1);
-
-        // Set up our attributes.
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
-        gl.enableVertexAttribArray(this.world_lPos);
-        gl.vertexAttribPointer(this.world_lPos, 3, gl.FLOAT, false, vertexLen, 0);
-        gl.enableVertexAttribArray(this.world_lAtlasInfo);
-        gl.vertexAttribPointer(this.world_lAtlasInfo, 4, gl.FLOAT, false, vertexLen, 12);
-        gl.enableVertexAttribArray(this.world_lTexCoord);
-        gl.vertexAttribPointer(this.world_lTexCoord, 2, gl.FLOAT, false, vertexLen, 28);
-        gl.enableVertexAttribArray(this.world_lBright);
-        gl.vertexAttribPointer(this.world_lBright, 3, gl.FLOAT, false, vertexLen, 36);
-
         // Bind the world atlas texture.
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
+
+        // Use the world program.
+        gl.useProgram(this.worldProgram.program);
 
         // Bind our sky camera data.
         const skyCam = createCamera(0, 0, 0);
         skyCam.dir = cam.dir;
         const skyView = getViewMatrix(skyCam);
-        const viewLoc = gl.getUniformLocation(this.worldProg, "uView");
-        if (viewLoc === null) {
-            throw new Error('uView uniform location could not be found');
-        }
-        gl.uniformMatrix4fv(viewLoc, false, skyView);
+        gl.uniformMatrix4fv(this.worldProgram.uView, false, skyView);
+
+        // Set up our attributes.
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
+        this.worldProgram.bindAttributes();
 
         // Load our sky data.
         gl.bufferData(gl.ARRAY_BUFFER, this.skyVerts, gl.STATIC_DRAW);
@@ -957,7 +861,7 @@ export class WorldContext {
 
         // Bind our world camera data.
         const worldView = getViewMatrix(cam);
-        gl.uniformMatrix4fv(viewLoc, false, worldView);
+        gl.uniformMatrix4fv(this.worldProgram.uView, false, worldView);
 
         // Load our world data.
         gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
@@ -983,7 +887,7 @@ export class WorldContext {
 
         // Bind our weapon camera data.
         const weaponView = getViewMatrix(createCamera(0, 0, 0));
-        gl.uniformMatrix4fv(viewLoc, false, weaponView);
+        gl.uniformMatrix4fv(this.worldProgram.uView, false, weaponView);
 
         // Load our weapon data.
         gl.bufferData(gl.ARRAY_BUFFER, this.weaponVerts, gl.STATIC_DRAW);
@@ -993,12 +897,10 @@ export class WorldContext {
         gl.drawElements(gl.TRIANGLES, this.weaponIndCount, gl.UNSIGNED_SHORT, 0);
 
         // Cleanup.
-        gl.disableVertexAttribArray(this.world_lPos);
-        gl.disableVertexAttribArray(this.world_lAtlasInfo);
-        gl.disableVertexAttribArray(this.world_lTexCoord);
-        gl.disableVertexAttribArray(this.world_lBright);
+        this.worldProgram.unbindAttributes();
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.useProgram(null);
     }
 }

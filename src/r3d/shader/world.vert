@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-uniform mat4 uView;
 uniform mat4 uProjection;
+uniform mat4 uView;
 
 attribute vec3 lPos;
 attribute vec4 lAtlasInfo;

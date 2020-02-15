@@ -17,7 +17,7 @@
  */
 
 import { RenderContext } from './render';
-import { compileShader, linkShaderProgram } from './shader';
+import { compileShader, linkShaderProgram } from './shaderProgram';
 
 import debug_texture_vert from './shader/debug_texture.vert';
 import debug_texture_frag from './shader/debug_texture.frag';
