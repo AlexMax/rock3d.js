@@ -61,9 +61,9 @@ interface Props {
     client: SocketClient;
 
     /**
-     * Function to call on demo download.
+     * Function to call on menu toggle.
      */
-    onDemoDownload: (demo: Demo) => void;
+    onToggleMenu: () => void;
 }
 
 /**
@@ -87,12 +87,9 @@ export class ClientInput extends React.Component<Props> {
             return;
         }
 
-        if (evt.keyCode === 192) {
-            // User hit tilde, stop the client and dump a packet capture.
-            this.props.client.halt();
-
-            // Call the demo download callback.
-            this.props.onDemoDownload(this.props.client.connection.demo);
+        if (evt.keyCode === 27) {
+            // User hit escape, show the menu.
+            this.props.onToggleMenu();
 
             return;
         }

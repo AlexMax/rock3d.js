@@ -26,6 +26,7 @@ import { DemoDownloadWindow } from './DemoDownloadWindow';
 import { HealthInfoWindow } from './HealthInfoWindow';
 import { RenderCanvas } from './RenderCanvas';
 import { SocketClient } from '../socket';
+import { EscapeMenu } from './EscapeMenu';
 
 interface Props {
     /**
@@ -51,6 +52,16 @@ interface State {
     client: SocketClient;
 
     /**
+     * True if menu is opened, otherwise false.
+     */
+    inMenu: boolean;
+
+    /**
+     * True if health information should be drawn, otherwise false.
+     */
+    showHealthInfo: boolean;
+
+    /**
      * Health information.
      */
     healthInfo: HealthInfo | null;
@@ -66,6 +77,10 @@ export class ClientRoot extends React.Component<Props, State> {
     constructor(props: Readonly<Props>) {
         super(props);
 
+        this.toggleMenu = this.toggleMenu.bind(this);
+        this.toggleHealthInfo = this.toggleHealthInfo.bind(this);
+        this.downloadDemo = this.downloadDemo.bind(this);
+        this.stopClient = this.stopClient.bind(this);
         this.updateHealthInfo = this.updateHealthInfo.bind(this);
         this.demoDownload = this.demoDownload.bind(this);
 
@@ -80,11 +95,38 @@ export class ClientRoot extends React.Component<Props, State> {
                 this.props.hostname,
                 this.props.port
             ),
+            inMenu: false,
+            showHealthInfo: false,
             healthInfo: null,
             demo: null,
         };
 
         this.state.client.run();
+    }
+
+    private toggleMenu() {
+        if (this.state.inMenu) {
+            this.setState({ inMenu: false });
+        } else {
+            this.setState({ inMenu: true });
+        }
+    }
+
+    private toggleHealthInfo() {
+        if (this.state.showHealthInfo) {
+            this.setState({ showHealthInfo: false });
+        } else {
+            this.setState({ showHealthInfo: true });
+        }
+    }
+
+    private downloadDemo() {
+        this.state.client.halt();
+        this.setState({ demo: this.state.client.connection.demo });
+    }
+
+    private stopClient() {
+        this.state.client.halt();
     }
 
     private updateHealthInfo(info: HealthInfo) {
@@ -96,8 +138,29 @@ export class ClientRoot extends React.Component<Props, State> {
     }
 
     render(): JSX.Element {
+        let escapeMenu: JSX.Element | null = null;
+        let clientInput: JSX.Element | null = null;
+        if (this.state.inMenu) {
+            escapeMenu = <EscapeMenu
+                onReturn={this.toggleMenu}
+                onHealthInfo={this.toggleHealthInfo}
+                onDownloadDemo={this.downloadDemo}
+                onStopClient={this.stopClient}
+            />
+            clientInput = null;
+        } else {
+            escapeMenu = null;
+            clientInput = <ClientInput
+                client={this.state.client}
+                onToggleMenu={this.toggleMenu}
+            />
+        }
+
         let healthInfo: JSX.Element | null = null;
-        if (this.state.healthInfo !== null) {
+        if (
+            this.state.showHealthInfo &&
+            this.state.healthInfo !== null
+        ) {
             healthInfo = <HealthInfoWindow
                 health={this.state.healthInfo.health}
                 calc={this.state.healthInfo.calc}
@@ -115,15 +178,14 @@ export class ClientRoot extends React.Component<Props, State> {
             demoDownload = <DemoDownloadWindow demo={this.state.demo}/>;
         }
 
-        return <div>
+        return <>
+            {clientInput}
             <RenderCanvas
                 assets={this.props.assets}
                 client={this.state.client}/>
-            <ClientInput
-                client={this.state.client}
-                onDemoDownload={this.demoDownload}/>
+            {escapeMenu}
             {healthInfo}
             {demoDownload}
-        </div>;
+        </>;
     }
 }
