@@ -68,7 +68,7 @@ export class RenderContext {
 
         // Set projection matrix for initial settings.
         this.world.setProject(90);
-        this.flat.setProject(90);
+        this.flat.setProject();
     }
 
     /**
@@ -89,7 +89,7 @@ export class RenderContext {
 
             // Fix up the projection matrix to match the new aspect ratio.
             this.world.setProject(90);
-            this.flat.setProject(90);
+            this.flat.setProject();
         }
     }
 

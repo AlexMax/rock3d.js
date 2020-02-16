@@ -68,11 +68,17 @@ export class FlatContext {
      * 
      * @param fov FOV in degrees.
      */
-    setProject(fov: number): void {
+    setProject(): void {
         const gl = this.parent.gl;
         const canvas = gl.canvas as HTMLCanvasElement;
 
-        mat4.ortho(this.project, 0, 320, 240, 0, -1, 1);
+        const virtualHeight = 240;
+        const virtualWidth = (canvas.clientWidth * virtualHeight) / canvas.clientHeight;
+
+        mat4.ortho(
+            this.project, -(virtualWidth / 2), virtualWidth / 2,
+            virtualHeight / 2, -(virtualHeight / 2), -1, 1
+        );
     }
 
     addWeapon(frame: string): void {
@@ -89,12 +95,13 @@ export class FlatContext {
         }
 
         // Sprite position
-        const width = texEntry.texture.img.width;
-        const height = texEntry.texture.img.height;
-        const one = vec3.fromValues(0.0, 0.0, 0.0);
-        const two = vec3.fromValues(0.0, width, 0.0);
-        const three = vec3.fromValues(height, width, 0.0);
-        const four = vec3.fromValues(height, 0.0, 0.0);
+        const xHalf = texEntry.texture.img.width / 2;
+        const yHalf = texEntry.texture.img.height / 2;
+        const yOffset = 75;
+        const one = vec3.fromValues(-xHalf, yHalf + yOffset, 0.0);
+        const two = vec3.fromValues(xHalf, yHalf + yOffset, 0.0);
+        const three = vec3.fromValues(xHalf, -yHalf + yOffset, 0.0);
+        const four = vec3.fromValues(-xHalf, -yHalf + yOffset, 0.0);
 
         // Texture coordinates.
         const ua1 = texEntry.xPos / this.parent.spriteAtlas.length;
