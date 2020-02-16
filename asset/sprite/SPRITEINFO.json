@@ -7,5 +7,8 @@
     },
     "FCANC0": {
         "xCenter": 12.5
+    },
+    "SHT2A0": {
+        "yCenter": -51
     }
 }

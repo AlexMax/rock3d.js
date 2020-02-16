@@ -97,11 +97,20 @@ export class FlatContext {
         // Sprite position
         const xHalf = texEntry.texture.img.width / 2;
         const yHalf = texEntry.texture.img.height / 2;
-        const yOffset = 75;
-        const one = vec3.fromValues(-xHalf, yHalf + yOffset, 0.0);
-        const two = vec3.fromValues(xHalf, yHalf + yOffset, 0.0);
-        const three = vec3.fromValues(xHalf, -yHalf + yOffset, 0.0);
-        const four = vec3.fromValues(-xHalf, -yHalf + yOffset, 0.0);
+        const xOffset = xHalf - texEntry.texture.info.xCenter;
+        const yOffset = yHalf - texEntry.texture.info.yCenter;
+        const one = vec3.fromValues(
+            -xHalf + xOffset, yHalf + yOffset, 0.0
+        );
+        const two = vec3.fromValues(
+            xHalf + xOffset, yHalf + yOffset, 0.0
+        );
+        const three = vec3.fromValues(
+            xHalf + xOffset, -yHalf + yOffset, 0.0
+        );
+        const four = vec3.fromValues(
+            -xHalf + xOffset, -yHalf + yOffset, 0.0
+        );
 
         // Texture coordinates.
         const ua1 = texEntry.xPos / this.parent.spriteAtlas.length;
