@@ -18,15 +18,12 @@
 
 import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
-import { Atlas, Texture } from '../atlas';
 import { Camera, create as createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { Level } from '../level';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
 import { RenderContext } from './render';
-import { WorldProgram } from './shader/worldProgram';
-
-const ATLAS_SIZE = 512;
+import { WorldProgram } from './worldProgram';
 
 /**
  * Billboard a single vertex of a sprite.
@@ -67,9 +64,6 @@ const spriteRot = (camAngle: number, sprAngle: number): number => {
 export class WorldContext {
     parent: RenderContext; // Reference to parent
 
-    worldProgram: WorldProgram;
-    worldAtlas?: Atlas;
-    worldTexAtlas: WebGLTexture;
     worldVBO: WebGLBuffer;
     worldVerts: ArrayBuffer;
     worldVertCount: number;
@@ -78,8 +72,6 @@ export class WorldContext {
     worldIndCount: number;
     worldProject: mat4;
 
-    spriteAtlas?: Atlas;
-    spriteTexAtlas: WebGLTexture;
     spriteVerts: ArrayBuffer;
     spriteVertCount: number;
     spriteInds: Uint16Array;
@@ -98,9 +90,6 @@ export class WorldContext {
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
-
-        // Set up the world shader.
-        this.worldProgram = new WorldProgram(gl);
 
         // Set up non-JS data.
 
@@ -142,70 +131,6 @@ export class WorldContext {
             throw new Error('Could not allocate worldEBO');
         }
         this.worldEBO = ebo;
-
-        // Set up the texture atlas texture
-        const worldTexAtlas = gl.createTexture();
-        if (worldTexAtlas === null) {
-            throw new Error('Could not create texture atlas object');
-        }
-        this.worldTexAtlas = worldTexAtlas;
-        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-        // Assign the texture atlas to the world program
-        gl.useProgram(this.worldProgram.program);
-        gl.uniform1i(this.worldProgram.uTexture, 0); // TEXTURE0
-
-        // Upload a blank hot pink texture to the atlas.
-        const blankTextureAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
-        for (let i = 0;i < blankTextureAtlas.byteLength;i+=4) {
-            blankTextureAtlas[i] = 255;
-            blankTextureAtlas[i + 1] = 0;
-            blankTextureAtlas[i + 2] = 255;
-            blankTextureAtlas[i + 3] = 255;
-        }
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0,
-            gl.RGBA, gl.UNSIGNED_BYTE, blankTextureAtlas);
-
-        // Unbind texture so we don't accidentally mess with it.
-        gl.bindTexture(gl.TEXTURE_2D, null);
-
-        // Set up the sprite atlas texture
-        const spriteTexAtlas = gl.createTexture();
-        if (spriteTexAtlas === null) {
-            throw new Error('Could not create texture atlas object');
-        }
-        this.spriteTexAtlas = spriteTexAtlas;
-        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-        // Assign the texture atlas to the world program
-        gl.useProgram(this.worldProgram.program);
-        gl.uniform1i(this.worldProgram.uTexture, 0); // TEXTURE0
-
-        // Upload a blank hot pink texture to the atlas.
-        const blankSpriteAtlas = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
-        for (let i = 0;i < blankSpriteAtlas.byteLength;i+=4) {
-            blankSpriteAtlas[i] = 255;
-            blankSpriteAtlas[i + 1] = 0;
-            blankSpriteAtlas[i + 2] = 255;
-            blankSpriteAtlas[i + 3] = 0;
-        }
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0,
-            gl.RGBA, gl.UNSIGNED_BYTE, blankSpriteAtlas);
-
-        // Unbind texture so we don't accidentally mess with it.
-        gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
     /**
@@ -218,14 +143,16 @@ export class WorldContext {
         const canvas = gl.canvas as HTMLCanvasElement;
 
         // Use the world program.
-        gl.useProgram(this.worldProgram.program);
+        gl.useProgram(this.parent.worldProgram.program);
 
         // Setup the projection matrix.
         mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
             canvas.clientWidth / canvas.clientHeight, 1, 10_000);
 
         // Make sure our projection matrix goes into the shader program.
-        gl.uniformMatrix4fv(this.worldProgram.uProjection, false, this.worldProject);
+        gl.uniformMatrix4fv(
+            this.parent.worldProgram.uProjection, false, this.worldProject
+        );
     }
 
     /**
@@ -242,20 +169,20 @@ export class WorldContext {
      * @param bright Wall brightness.
      */
     addWall(one: vec2, two: vec2, z1: number, z2: number, tex: string, bright: vec3): void {
-        if (this.worldAtlas === undefined) {
+        if (this.parent.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Find the texture of the wall in the atlas
-        const texEntry = this.worldAtlas.find(tex);
+        const texEntry = this.parent.worldAtlas.find(tex);
         if (texEntry === null) {
             throw new Error(`Unknown texture ${texEntry}`);
         }
 
-        const ua1 = texEntry.xPos / this.worldAtlas.length;
-        const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
+        const ua1 = texEntry.xPos / this.parent.worldAtlas.length;
+        const va1 = texEntry.yPos / this.parent.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.worldAtlas.length;
 
         const hDist = vec2.length(vec2.sub(vec2.create(), one, two));
         const vDist = z2 - z1;
@@ -328,20 +255,20 @@ export class WorldContext {
             return;
         }
 
-        if (this.worldAtlas === undefined) {
+        if (this.parent.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Find the texture of the flat in the atlas
-        const texEntry = this.worldAtlas.find(tex);
+        const texEntry = this.parent.worldAtlas.find(tex);
         if (texEntry === null) {
             throw new Error(`Unknown texture ${texEntry}`);
         }
 
-        const ua1 = texEntry.xPos / this.worldAtlas.length;
-        const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
+        const ua1 = texEntry.xPos / this.parent.worldAtlas.length;
+        const va1 = texEntry.yPos / this.parent.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.worldAtlas.length;
 
         const rBright = bright[0] / 256;
         const gBright = bright[1] / 256;
@@ -420,7 +347,7 @@ export class WorldContext {
      * @param cam Camera to billboard relative to.
      */
     addEntity(level: Level, entity: Entity, frame: string, cam: Camera): void {
-        if (this.spriteAtlas === undefined) {
+        if (this.parent.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
@@ -457,10 +384,10 @@ export class WorldContext {
         }
 
         // Find the texture of the wall in the atlas
-        let texEntry = this.spriteAtlas.find(tex);
+        let texEntry = this.parent.spriteAtlas.find(tex);
         if (texEntry === null) {
             // Sprite doesn't have rotations, try the default rotation.
-            texEntry = this.spriteAtlas.find(sprPrefix + frame + '0');
+            texEntry = this.parent.spriteAtlas.find(sprPrefix + frame + '0');
             if (texEntry === null) {
                 throw new Error(`Unknown sprite ${texEntry}`);
             }
@@ -469,10 +396,10 @@ export class WorldContext {
             flipped = false;
         }
 
-        const ua1 = texEntry.xPos / this.spriteAtlas.length;
-        const va1 = texEntry.yPos / this.spriteAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.spriteAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.spriteAtlas.length;
+        const ua1 = texEntry.xPos / this.parent.spriteAtlas.length;
+        const va1 = texEntry.yPos / this.parent.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.spriteAtlas.length;
 
         if (flipped) {
             var ut2 = 0;
@@ -580,20 +507,20 @@ export class WorldContext {
      * The sky sphere is a basic UV sphere of constant size.
      */
     addSky(texName: string): void {
-        if (this.worldAtlas === undefined) {
+        if (this.parent.worldAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Find the texture of the sky in the atlas
-        const texEntry = this.worldAtlas.find(texName);
+        const texEntry = this.parent.worldAtlas.find(texName);
         if (texEntry === null) {
             throw new Error(`Unknown texture ${texName}`);
         }
 
-        const ua1 = texEntry.xPos / this.worldAtlas.length;
-        const va1 = texEntry.yPos / this.worldAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.worldAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.worldAtlas.length;
+        const ua1 = texEntry.xPos / this.parent.worldAtlas.length;
+        const va1 = texEntry.yPos / this.parent.worldAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.worldAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.worldAtlas.length;
 
         // Number of parallel lines, not counting the two poles. 
         const parallelsCount = 9;
@@ -665,12 +592,12 @@ export class WorldContext {
     addWeapon(frame: string): void {
         const sprPrefix = 'SHT2';
 
-        if (this.spriteAtlas === undefined) {
+        if (this.parent.spriteAtlas === undefined) {
             throw new Error('Texture Atlas is empty');
         }
 
         // Weapon sprites never have rotations, try the default rotation.
-        const texEntry = this.spriteAtlas.find(sprPrefix + frame + '0');
+        const texEntry = this.parent.spriteAtlas.find(sprPrefix + frame + '0');
         if (texEntry === null) {
             throw new Error(`Unknown sprite ${texEntry}`);
         }
@@ -682,10 +609,10 @@ export class WorldContext {
         const four = vec3.fromValues(1.0, 1.0, 1.0);
 
         // Texture coordinates.
-        const ua1 = texEntry.xPos / this.spriteAtlas.length;
-        const va1 = texEntry.yPos / this.spriteAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.spriteAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.spriteAtlas.length;
+        const ua1 = texEntry.xPos / this.parent.spriteAtlas.length;
+        const va1 = texEntry.yPos / this.parent.spriteAtlas.length;
+        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.spriteAtlas.length;
+        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.spriteAtlas.length;
         const ut1 = 0;
         const ut2 = 1;
         const vt1 = 0;
@@ -765,88 +692,42 @@ export class WorldContext {
     }
 
     /**
-     * Persist the texture atlas onto the GPU using the current render context.
-     * 
-     * @param textures Texture atlas to bake.
-     */
-    bakeTextureAtlas(textures: Atlas): void {
-        // Copy the texture atlas into the render context
-        this.worldAtlas = textures;
-
-        // Get the texture atlas onto the GPU
-        textures.persist((data, x, y) => {
-            const gl = this.parent.gl;
-
-            gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
-
-            // Corner pixels.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-
-            // Side walls.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-
-            // Actual texture.
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
-
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        });
-    }
-
-    /**
-     * Persist the sprite atlas onto the GPU using the current render context.
-     * 
-     * @param sprites Sprite atlas to bake.
-     */
-    bakeSpriteAtlas(sprites: Atlas): void {
-        // Copy the texture atlas into the render context
-        this.spriteAtlas = sprites;
-
-        // Get the texture atlas onto the GPU
-        sprites.persist((tex, x, y) => {
-            const gl = this.parent.gl;
-
-            // Actual sprite.
-            gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
-            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, tex.img);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-        });
-    }
-
-    /**
      * Render the world.
      * 
      * @param cam Camera that we're rendering a point of view from.
      */
     render(cam: Camera): void {
+        if (
+            this.parent.worldTexAtlas === undefined ||
+            this.parent.spriteTexAtlas === undefined
+        ) {
+            throw new Error('Missing texture atlas');
+        }
+
         const gl = this.parent.gl;
 
         // Clear the buffer.
         gl.clearColor(0.0, 0.4, 0.4, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        // Use the world program.
+        gl.useProgram(this.parent.worldProgram.program);
+
         // Bind the world atlas texture.
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas);
-
-        // Use the world program.
-        gl.useProgram(this.worldProgram.program);
+        gl.bindTexture(gl.TEXTURE_2D, this.parent.worldTexAtlas.texture);
+        gl.uniform1i(this.parent.worldProgram.uTexture, 0);
 
         // Bind our sky camera data.
         const skyCam = createCamera(0, 0, 0);
         skyCam.dir = cam.dir;
         const skyView = getViewMatrix(skyCam);
-        gl.uniformMatrix4fv(this.worldProgram.uView, false, skyView);
+        gl.uniformMatrix4fv(this.parent.worldProgram.uView, false, skyView);
 
         // Set up our attributes.
         gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
-        this.worldProgram.bindAttributes();
+        this.parent.worldProgram.bindAttributes();
 
         // Load our sky data.
         gl.bufferData(gl.ARRAY_BUFFER, this.skyVerts, gl.STATIC_DRAW);
@@ -861,7 +742,7 @@ export class WorldContext {
 
         // Bind our world camera data.
         const worldView = getViewMatrix(cam);
-        gl.uniformMatrix4fv(this.worldProgram.uView, false, worldView);
+        gl.uniformMatrix4fv(this.parent.worldProgram.uView, false, worldView);
 
         // Load our world data.
         gl.bufferData(gl.ARRAY_BUFFER, this.worldVerts, gl.STATIC_DRAW);
@@ -872,7 +753,8 @@ export class WorldContext {
 
         // Bind the sprite atlas texture.
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas);
+        gl.bindTexture(gl.TEXTURE_2D, this.parent.spriteTexAtlas.texture);
+        gl.uniform1i(this.parent.worldProgram.uTexture, 0);
 
         // Load our sprite data.
         gl.bufferData(gl.ARRAY_BUFFER, this.spriteVerts, gl.STATIC_DRAW);
@@ -887,7 +769,7 @@ export class WorldContext {
 
         // Bind our weapon camera data.
         const weaponView = getViewMatrix(createCamera(0, 0, 0));
-        gl.uniformMatrix4fv(this.worldProgram.uView, false, weaponView);
+        gl.uniformMatrix4fv(this.parent.worldProgram.uView, false, weaponView);
 
         // Load our weapon data.
         gl.bufferData(gl.ARRAY_BUFFER, this.weaponVerts, gl.STATIC_DRAW);
@@ -897,7 +779,7 @@ export class WorldContext {
         gl.drawElements(gl.TRIANGLES, this.weaponIndCount, gl.UNSIGNED_SHORT, 0);
 
         // Cleanup.
-        this.worldProgram.unbindAttributes();
+        this.parent.worldProgram.unbindAttributes();
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, null);

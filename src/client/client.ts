@@ -174,5 +174,5 @@ export const render = (client: Client, ctx: RenderContext): void => {
     ctx.world.addWeapon("A");
 
     // Render the world.
-    ctx.world.render(cam);
+    ctx.render(cam);
 }

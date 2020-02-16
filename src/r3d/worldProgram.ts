@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { compileShader, linkShaderProgram } from '../shaderProgram';
+import { compileShader, linkShaderProgram } from './shaderProgram';
 
-import worldVert from './world.vert';
-import worldFrag from './world.frag';
+import worldVert from './shader/world.vert';
+import worldFrag from './shader/world.frag';
 
 export class WorldProgram {
 

@@ -111,7 +111,7 @@ export const loadRendererAssets = (
     }
 
     // Persist the atlas to the GPU.
-    renderer.world.bakeTextureAtlas(texAtlas);
+    renderer.bakeTextureAtlas(texAtlas);
 
     // Load our sprites into the atlas.
     const spriteAtlas = new Atlas(ATLAS_SIZE);
@@ -120,7 +120,7 @@ export const loadRendererAssets = (
     }
 
     // Persist the atlas to the GPU.
-    renderer.world.bakeSpriteAtlas(spriteAtlas);
+    renderer.bakeSpriteAtlas(spriteAtlas);
 }
 
 export const localFileLoader = (file: File): Promise<string> => {

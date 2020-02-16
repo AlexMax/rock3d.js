@@ -16,9 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Atlas } from '../atlas';
+import { AtlasTexture } from './atlasTexture';
 import { Camera } from './camera';
 import { DebugTextureContext } from './debug_texture';
 import { WorldContext } from './world';
+import { WorldProgram } from './worldProgram';
 
 const DEBUG: boolean = false;
 
@@ -26,8 +29,14 @@ export class RenderContext {
     canvas: HTMLCanvasElement;
     gl: WebGLRenderingContext;
 
+    worldProgram: WorldProgram;
     world: WorldContext;
     debugTexture?: DebugTextureContext;
+
+    worldAtlas?: Atlas;
+    worldTexAtlas?: AtlasTexture;
+    spriteAtlas?: Atlas;
+    spriteTexAtlas?: AtlasTexture;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -45,6 +54,10 @@ export class RenderContext {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+        // Set up shaders.
+        this.worldProgram = new WorldProgram(gl);
+
+        // Set up rendering contexts.
         this.world = new WorldContext(this);
         if (DEBUG === true) {
             this.debugTexture = new DebugTextureContext(this);
@@ -75,10 +88,77 @@ export class RenderContext {
         }
     }
 
+    /**
+     * Persist the texture atlas onto the GPU using the current render context.
+     * 
+     * @param textures Texture atlas to bake.
+     */
+    bakeTextureAtlas(textures: Atlas): void {
+        // Set up atlas and texture into the render context
+        this.worldAtlas = textures;
+        this.worldTexAtlas = new AtlasTexture(this.gl, textures.length, 255);
+
+        // Get the texture atlas onto the GPU
+        textures.persist((data, x, y) => {
+            if (this.worldTexAtlas === undefined) {
+                throw new Error('World atlas texture is missing');
+            }
+
+            const gl = this.gl;
+            gl.bindTexture(gl.TEXTURE_2D, this.worldTexAtlas.texture);
+
+            // Corner pixels.
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+
+            // Side walls.
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x - 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x + 1, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y - 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y + 1, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+
+            // Actual texture.
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, data.img);
+
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        });
+    }
+
+    /**
+     * Persist the sprite atlas onto the GPU using the current render context.
+     * 
+     * @param sprites Sprite atlas to bake.
+     */
+    bakeSpriteAtlas(sprites: Atlas): void {
+        // Set up atlas and texture into the render context
+        this.spriteAtlas = sprites;
+        this.spriteTexAtlas = new AtlasTexture(this.gl, sprites.length, 255);
+
+        // Get the texture atlas onto the GPU
+        sprites.persist((tex, x, y) => {
+            if (this.spriteTexAtlas === undefined) {
+                throw new Error('Sprite atlas texture is missing');
+            }
+
+            const gl = this.gl;
+
+            // Actual sprite.
+            gl.bindTexture(gl.TEXTURE_2D, this.spriteTexAtlas.texture);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, tex.img);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        });
+    }
+
     render(cam: Camera): void {
         this.world.render(cam);
-        if (this.debugTexture !== undefined && this.world.worldAtlas !== undefined) {
-            this.debugTexture.render(this.world.worldTexAtlas);
+        if (
+            this.debugTexture !== undefined &&
+            this.spriteAtlas !== undefined &&
+            this.spriteTexAtlas !== undefined
+        ) {
+            this.debugTexture.render(this.spriteTexAtlas.texture);
         }
     }
 }
