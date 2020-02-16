@@ -20,8 +20,9 @@ import { Atlas } from '../atlas';
 import { AtlasTexture } from './atlasTexture';
 import { Camera } from './camera';
 import { DebugTextureContext } from './debug_texture';
-import { WorldContext } from './world';
+import { WorldContext } from './worldContext';
 import { WorldProgram } from './worldProgram';
+import { FlatContext } from './flatContext';
 
 const DEBUG: boolean = false;
 
@@ -31,6 +32,7 @@ export class RenderContext {
 
     worldProgram: WorldProgram;
     world: WorldContext;
+    flat: FlatContext;
     debugTexture?: DebugTextureContext;
 
     worldAtlas?: Atlas;
@@ -59,12 +61,14 @@ export class RenderContext {
 
         // Set up rendering contexts.
         this.world = new WorldContext(this);
+        this.flat = new FlatContext(this);
         if (DEBUG === true) {
             this.debugTexture = new DebugTextureContext(this);
         }
 
         // Set projection matrix for initial settings.
         this.world.setProject(90);
+        this.flat.setProject(90);
     }
 
     /**
@@ -85,6 +89,7 @@ export class RenderContext {
 
             // Fix up the projection matrix to match the new aspect ratio.
             this.world.setProject(90);
+            this.flat.setProject(90);
         }
     }
 
@@ -153,6 +158,7 @@ export class RenderContext {
 
     render(cam: Camera): void {
         this.world.render(cam);
+        this.flat.render();
         if (
             this.debugTexture !== undefined &&
             this.spriteAtlas !== undefined &&

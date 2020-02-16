@@ -50,5 +50,9 @@ void main() {
     color.x *= fBright.x;
     color.y *= fBright.y;
     color.z *= fBright.z;
+    // [AM] Uncomment this to show texture coordinates as red and blue gradient.
+    // color.x = texCord.x;
+    // color.y = 0.0;
+    // color.z = texCord.y;
     gl_FragColor = color;
 }

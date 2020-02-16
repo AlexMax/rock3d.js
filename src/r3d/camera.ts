@@ -34,7 +34,7 @@ const unitUp = vec3.fromValues(0, 0, 1);
 /**
  * Create a new camera.
  */
-export const create = (x: number, y: number, z: number): Camera => {
+export const createCamera = (x: number, y: number, z: number): Camera => {
     const dir = quat.create();
     return {
         pos: vec3.fromValues(x, y, z),

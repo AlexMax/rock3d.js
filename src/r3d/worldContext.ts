@@ -18,7 +18,7 @@
 
 import { glMatrix, mat4, quat, vec2, vec3 } from 'gl-matrix';
 
-import { Camera, create as createCamera, getViewMatrix } from './camera';
+import { Camera, createCamera, getViewMatrix } from './camera';
 import { Entity } from '../entity';
 import { Level } from '../level';
 import { constrain, sphereToCartesian, quatToEuler } from '../math';
@@ -64,13 +64,12 @@ const spriteRot = (camAngle: number, sprAngle: number): number => {
 export class WorldContext {
     parent: RenderContext; // Reference to parent
 
-    worldVBO: WebGLBuffer;
+    project: mat4;
+
     worldVerts: ArrayBuffer;
     worldVertCount: number;
-    worldEBO: WebGLBuffer;
     worldInds: Uint16Array;
     worldIndCount: number;
-    worldProject: mat4;
 
     spriteVerts: ArrayBuffer;
     spriteVertCount: number;
@@ -82,23 +81,20 @@ export class WorldContext {
     skyInds: Uint16Array;
     skyIndCount: number;
 
-    weaponVerts: ArrayBuffer;
-    weaponVertCount: number;
-    weaponInds: Uint16Array;
-    weaponIndCount: number;
+    vbo: WebGLBuffer;
+    ebo: WebGLBuffer;
 
     constructor(parent: RenderContext) {
         this.parent = parent;
         const gl = parent.gl;
 
-        // Set up non-JS data.
+        this.project = mat4.create();
 
         // Polygon vertexes and indexes.
         this.worldVerts = new ArrayBuffer(32768);
         this.worldVertCount = 0;
         this.worldInds = new Uint16Array(2048);
         this.worldIndCount = 0;
-        this.worldProject = mat4.create();
 
         // Sprite vertexes and indexes.
         this.spriteVerts = new ArrayBuffer(32768);
@@ -112,25 +108,19 @@ export class WorldContext {
         this.skyInds = new Uint16Array(1024);
         this.skyIndCount = 0;
 
-        // Weapon vertexes and indexes.
-        this.weaponVerts = new ArrayBuffer(32768);
-        this.weaponVertCount = 0;
-        this.weaponInds = new Uint16Array(1024);
-        this.weaponIndCount = 0;
-
         // We need vertex buffers...
         const vbo = gl.createBuffer();
         if (vbo === null) {
             throw new Error('Could not allocate worldVBO');
         }
-        this.worldVBO = vbo;
+        this.vbo = vbo;
 
         // ...and index buffers...
         const ebo = gl.createBuffer();
         if (ebo === null) {
             throw new Error('Could not allocate worldEBO');
         }
-        this.worldEBO = ebo;
+        this.ebo = ebo;
     }
 
     /**
@@ -142,17 +132,9 @@ export class WorldContext {
         const gl = this.parent.gl;
         const canvas = gl.canvas as HTMLCanvasElement;
 
-        // Use the world program.
-        gl.useProgram(this.parent.worldProgram.program);
-
         // Setup the projection matrix.
-        mat4.perspective(this.worldProject, glMatrix.toRadian(fov),
+        mat4.perspective(this.project, glMatrix.toRadian(fov),
             canvas.clientWidth / canvas.clientHeight, 1, 10_000);
-
-        // Make sure our projection matrix goes into the shader program.
-        gl.uniformMatrix4fv(
-            this.parent.worldProgram.uProjection, false, this.worldProject
-        );
     }
 
     /**
@@ -589,76 +571,6 @@ export class WorldContext {
         this.skyIndCount = iCount;
     }
 
-    addWeapon(frame: string): void {
-        const sprPrefix = 'SHT2';
-
-        if (this.parent.spriteAtlas === undefined) {
-            throw new Error('Texture Atlas is empty');
-        }
-
-        // Weapon sprites never have rotations, try the default rotation.
-        const texEntry = this.parent.spriteAtlas.find(sprPrefix + frame + '0');
-        if (texEntry === null) {
-            throw new Error(`Unknown sprite ${texEntry}`);
-        }
-
-        // Sprite position
-        const one = vec3.fromValues(1.0, 1.0, -1.0);
-        const two = vec3.fromValues(1.0, -1.0, -1.0);
-        const three = vec3.fromValues(1.0, -1.0, 1.0);
-        const four = vec3.fromValues(1.0, 1.0, 1.0);
-
-        // Texture coordinates.
-        const ua1 = texEntry.xPos / this.parent.spriteAtlas.length;
-        const va1 = texEntry.yPos / this.parent.spriteAtlas.length;
-        const ua2 = (texEntry.xPos + texEntry.texture.img.width) / this.parent.spriteAtlas.length;
-        const va2 = (texEntry.yPos + texEntry.texture.img.height) / this.parent.spriteAtlas.length;
-        const ut1 = 0;
-        const ut2 = 1;
-        const vt1 = 0;
-        const vt2 = 1;
-
-        // Figure out the brightness of the surrounding polygon.
-        // const polygon = level.polygons[entity.polygon];
-        // const rBright = polygon.brightness[0] / 256;
-        // const gBright = polygon.brightness[1] / 256;
-        // const bBright = polygon.brightness[2] / 256;
-
-        const rBright = 1.0;
-        const gBright = 1.0;
-        const bBright = 1.0;
-
-        // Draw a sprite into the vertex and index buffers.
-        const vCount = this.weaponVertCount;
-        WorldProgram.setVertex(
-            this.weaponVerts, vCount, one[0], one[1], one[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt2, rBright, gBright, bBright
-        );
-        WorldProgram.setVertex(
-            this.weaponVerts, vCount + 1, two[0], two[1], two[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt2, rBright, gBright, bBright
-        );
-        WorldProgram.setVertex(
-            this.weaponVerts, vCount + 2, three[0], three[1], three[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut2, vt1, rBright, gBright, bBright
-        );
-        WorldProgram.setVertex(
-            this.weaponVerts, vCount + 3, four[0], four[1], four[2], ua1, va1,
-            ua2 - ua1, va2 - va1, ut1, vt1, rBright, gBright, bBright
-        );
-
-        const iCount = this.weaponIndCount;
-        this.weaponInds[iCount] = vCount;
-        this.weaponInds[iCount + 1] = vCount + 1;
-        this.weaponInds[iCount + 2] = vCount + 2;
-        this.weaponInds[iCount + 3] = vCount + 2;
-        this.weaponInds[iCount + 4] = vCount + 3;
-        this.weaponInds[iCount + 5] = vCount + 0;
-
-        this.weaponVertCount += 4;
-        this.weaponIndCount += 6;
-    }
-
     /**
      * Clear the world vertexes.
      */
@@ -681,14 +593,6 @@ export class WorldContext {
     clearSky(): void {
         this.skyVertCount = 0;
         this.skyIndCount = 0;
-    }
-
-    /**
-     * Clear weapon vertexes.
-     */
-    clearWeapon(): void {
-        this.weaponVertCount = 0;
-        this.weaponIndCount = 0;
     }
 
     /**
@@ -718,6 +622,11 @@ export class WorldContext {
         gl.bindTexture(gl.TEXTURE_2D, this.parent.worldTexAtlas.texture);
         gl.uniform1i(this.parent.worldProgram.uTexture, 0);
 
+        // Bind our projection matrix.
+        gl.uniformMatrix4fv(
+            this.parent.worldProgram.uProjection, false, this.project
+        );
+
         // Bind our sky camera data.
         const skyCam = createCamera(0, 0, 0);
         skyCam.dir = cam.dir;
@@ -725,8 +634,8 @@ export class WorldContext {
         gl.uniformMatrix4fv(this.parent.worldProgram.uView, false, skyView);
 
         // Set up our attributes.
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.worldVBO);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.worldEBO);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
         this.parent.worldProgram.bindAttributes();
 
         // Load our sky data.
@@ -762,21 +671,6 @@ export class WorldContext {
 
         // Draw the sprites.
         gl.drawElements(gl.TRIANGLES, this.spriteIndCount, gl.UNSIGNED_SHORT, 0);
-
-        // Clear the depth buffer - we're always going to draw our weapon
-        // in front of the rest of the world.
-        gl.clear(gl.DEPTH_BUFFER_BIT);
-
-        // Bind our weapon camera data.
-        const weaponView = getViewMatrix(createCamera(0, 0, 0));
-        gl.uniformMatrix4fv(this.parent.worldProgram.uView, false, weaponView);
-
-        // Load our weapon data.
-        gl.bufferData(gl.ARRAY_BUFFER, this.weaponVerts, gl.STATIC_DRAW);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.weaponInds, gl.STATIC_DRAW);
-
-        // Draw the weapon.
-        gl.drawElements(gl.TRIANGLES, this.weaponIndCount, gl.UNSIGNED_SHORT, 0);
 
         // Cleanup.
         this.parent.worldProgram.unbindAttributes();
