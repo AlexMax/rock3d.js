@@ -21,7 +21,7 @@ import React from 'react';
 import { Window } from  '../../tsx/Window';
 
 interface Props {
-    onReturn: () => void;
+    onCloseMenu: () => void;
     onHealthInfo: () => void;
     onDownloadDemo: () => void;
     onStopClient: () => void;
@@ -34,7 +34,7 @@ export class EscapeMenu extends React.Component<Props, State> {
     render(): JSX.Element {
         return <Window title="rock3d">
             <div>
-                <button onClick={this.props.onReturn}>Return to Game</button>
+                <button onClick={this.props.onCloseMenu}>Return to Game</button>
             </div>
             <div>
                 <button onClick={this.props.onHealthInfo}>Toggle Health Info</button>

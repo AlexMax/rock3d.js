@@ -74,10 +74,13 @@ interface State {
 
 export class ClientRoot extends React.Component<Props, State> {
 
+    div: React.RefObject<HTMLDivElement>;
+
     constructor(props: Readonly<Props>) {
         super(props);
 
-        this.toggleMenu = this.toggleMenu.bind(this);
+        this.onPointerLockChange = this.onPointerLockChange.bind(this);
+        this.closeMenu = this.closeMenu.bind(this);
         this.toggleHealthInfo = this.toggleHealthInfo.bind(this);
         this.downloadDemo = this.downloadDemo.bind(this);
         this.stopClient = this.stopClient.bind(this);
@@ -95,21 +98,40 @@ export class ClientRoot extends React.Component<Props, State> {
                 this.props.hostname,
                 this.props.port
             ),
-            inMenu: false,
+            inMenu: true,
             showHealthInfo: false,
             healthInfo: null,
             demo: null,
         };
 
+        this.div = React.createRef();
+
         this.state.client.run();
     }
 
-    private toggleMenu() {
-        if (this.state.inMenu) {
+    componentDidMount() {
+        document.addEventListener('pointerlockchange', this.onPointerLockChange);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('pointerlockchange', this.onPointerLockChange);
+    }
+
+    private onPointerLockChange() {
+        if (document.pointerLockElement) {
             this.setState({ inMenu: false });
         } else {
             this.setState({ inMenu: true });
         }
+    }
+
+    private closeMenu() {
+        const div = this.div.current;
+        if (!div) {
+            throw new Error("Lost div on menu toggle.");
+        }
+
+        div.requestPointerLock();
     }
 
     private toggleHealthInfo() {
@@ -142,7 +164,7 @@ export class ClientRoot extends React.Component<Props, State> {
         let clientInput: JSX.Element | null = null;
         if (this.state.inMenu) {
             escapeMenu = <EscapeMenu
-                onReturn={this.toggleMenu}
+                onCloseMenu={this.closeMenu}
                 onHealthInfo={this.toggleHealthInfo}
                 onDownloadDemo={this.downloadDemo}
                 onStopClient={this.stopClient}
@@ -150,10 +172,7 @@ export class ClientRoot extends React.Component<Props, State> {
             clientInput = null;
         } else {
             escapeMenu = null;
-            clientInput = <ClientInput
-                client={this.state.client}
-                onToggleMenu={this.toggleMenu}
-            />
+            clientInput = <ClientInput client={this.state.client}/>
         }
 
         let healthInfo: JSX.Element | null = null;
@@ -178,7 +197,7 @@ export class ClientRoot extends React.Component<Props, State> {
             demoDownload = <DemoDownloadWindow demo={this.state.demo}/>;
         }
 
-        return <>
+        return <div ref={this.div}>
             {clientInput}
             <RenderCanvas
                 assets={this.props.assets}
@@ -186,6 +205,6 @@ export class ClientRoot extends React.Component<Props, State> {
             {escapeMenu}
             {healthInfo}
             {demoDownload}
-        </>;
+        </div>;
     }
 }

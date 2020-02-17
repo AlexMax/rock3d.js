@@ -59,11 +59,6 @@ interface Props {
      * Client to operate on.
      */
     client: SocketClient;
-
-    /**
-     * Function to call on menu toggle.
-     */
-    onToggleMenu: () => void;
 }
 
 /**
@@ -88,9 +83,7 @@ export class ClientInput extends React.Component<Props> {
         }
 
         if (evt.keyCode === 27) {
-            // User hit escape, show the menu.
-            this.props.onToggleMenu();
-
+            // User hit escape, let pointerlockchange handle it.
             return;
         }
 
