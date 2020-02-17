@@ -18,9 +18,10 @@
 
 import { mat4, vec3 } from "gl-matrix";
 
-import { createCamera, getViewMatrix } from "./camera";
 import { RenderContext } from "./render";
 import { WorldProgram } from "./worldProgram";
+import { Level } from "../level";
+import { Entity } from "../entity";
 
 export class FlatContext {
     parent: RenderContext; // Reference to parent
@@ -81,7 +82,14 @@ export class FlatContext {
         );
     }
 
-    addWeapon(frame: string): void {
+    /**
+     * Add a weapon sprite to the set of things to render.
+     * 
+     * @param level Level to render inside.
+     * @param entity Entity that weapon belongs to.
+     * @param frame Sprite frame to render.
+     */
+    addWeapon(level: Level, entity: Entity, frame: string): void {
         const sprPrefix = 'SHT2';
 
         if (this.parent.spriteAtlas === undefined) {
@@ -123,14 +131,10 @@ export class FlatContext {
         const vt2 = 1;
 
         // Figure out the brightness of the surrounding polygon.
-        // const polygon = level.polygons[entity.polygon];
-        // const rBright = polygon.brightness[0] / 256;
-        // const gBright = polygon.brightness[1] / 256;
-        // const bBright = polygon.brightness[2] / 256;
-
-        const rBright = 1.0;
-        const gBright = 1.0;
-        const bBright = 1.0;
+        const polygon = level.polygons[entity.polygon];
+        const rBright = polygon.brightness[0] / 256;
+        const gBright = polygon.brightness[1] / 256;
+        const bBright = polygon.brightness[2] / 256;
 
         // Draw a sprite into the vertex and index buffers.
         const vCount = this.weaponVertCount;

@@ -171,7 +171,7 @@ export const render = (client: Client, ctx: RenderContext): void => {
 
     // Add our weapon to be rendered.
     ctx.flat.clearWeapon();
-    ctx.flat.addWeapon("A");
+    ctx.flat.addWeapon(level, entity, "A");
 
     // Render the world.
     ctx.render(cam);
