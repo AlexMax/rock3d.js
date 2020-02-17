@@ -65,13 +65,14 @@ export class Root extends React.Component<Props, State> {
 
     openFile() {
         // Load the map.
-        const map = this.props.assets.get('map/TESTMAP.json');
-        if (map === undefined) {
+        const mapAsset = this.props.assets.get('map/TESTMAP.json');
+        if (mapAsset === undefined) {
             throw new Error('TESTMAP does not exist.');
-        } else if (map.type !== 'JSON') {
+        } else if (mapAsset.type !== 'JSON') {
             throw new Error('TESTMAP is not JSON.');
         }
 
+        const map = mapAsset.data;
         assertSerializedLevel(map);
 
         const level = createEditableLevel(map);

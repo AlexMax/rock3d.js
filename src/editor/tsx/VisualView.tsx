@@ -20,7 +20,7 @@ import React from 'react';
 
 import { Assets } from '../../client/asset';
 import {
-    Camera, create as cameraCreate, moveRelative as cameraMoveRelative,
+    Camera, createCamera, moveRelative as cameraMoveRelative,
     rotateEuler as cameraRotateEuler
 } from '../../r3d/camera';
 import { FPCanvas } from './FPCanvas';
@@ -64,7 +64,7 @@ export class VisualView extends React.Component<Props, State> {
         this.yawLeft = this.yawLeft.bind(this);
         this.yawRight = this.yawRight.bind(this);
 
-        let camera = cameraCreate(0, 0, 48);
+        let camera = createCamera(0, 0, 48);
         this.state = {
             camera: camera,
         };
