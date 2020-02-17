@@ -12,13 +12,14 @@
         "url": "https://github.com/AlexMax/rock3d.js.git"
     },
     "scripts": {
+        "build-server": "tsc --project ./src/server",
         "build-client": "webpack --config webpack.config.js --config-name client",
         "build-editor": "webpack --config webpack.config.js --config-name editor",
         "build-files": "node ./build-files.js",
-        "build-server": "tsc --project ./src/server",
         "dev": "concurrently \"npm:webserver\" \"npm:dev-server\" \"npm:dev-client\"",
-        "dev-client": "webpack --config webpack.config.js --config-name client --watch --mode=development",
         "dev-server": "tsc-watch --project ./src/server --onSuccess \"node ./dist/server/index.js\" --noClear",
+        "dev-client": "webpack --config webpack.config.js --config-name client --watch --mode=development",
+        "dev-editor": "concurrently \"npm:webserver\" \"webpack --config webpack.config.js --config-name editor --watch --mode=development\"",
         "lint": "eslint src --ext .ts,.tsx",
         "server": "node ./dist/server/index.js",
         "test": "jest",
