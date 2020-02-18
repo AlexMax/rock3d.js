@@ -170,12 +170,52 @@ export class RenderContext {
         const ctx = this.ctx;
         const cameraMat = getViewMatrix(cam);
 
+        // Draw two-sided edges first.
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'grey';
+        level.polygons.forEach((polygon) => {
+            for (let i = 0;i < polygon.edgeIDs.length;i++) {
+                const edge = level.edges[polygon.edgeIDs[i]];
+                if (edge.backPoly === null) {
+                    // Skip edges with no backPoly for now.
+                    const v = vec2.create();
+                    vec2.transformMat3(v, edge.nextVertex, cameraMat);
+                    vec2.transformMat3(v, v, this.canvasProject);
+                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
+                    continue;
+                }
+
+                if (i === 0) {
+                    const v = vec2.create();
+                    vec2.transformMat3(v, edge.vertex, cameraMat);
+                    vec2.transformMat3(v, v, this.canvasProject);
+                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
+                }
+
+                const v = vec2.create();
+                vec2.transformMat3(v, edge.nextVertex, cameraMat);
+                vec2.transformMat3(v, v, this.canvasProject);
+                ctx.lineTo(crisp(v[0]), crisp(v[1]));
+            }
+        });
+        ctx.stroke();
+
+        // Draw one-sided edges on top.
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'white';
         level.polygons.forEach((polygon) => {
             for (let i = 0;i < polygon.edgeIDs.length;i++) {
                 const edge = level.edges[polygon.edgeIDs[i]];
+                if (edge.backPoly !== null) {
+                    // We already drew edges with a backPoly.
+                    const v = vec2.create();
+                    vec2.transformMat3(v, edge.nextVertex, cameraMat);
+                    vec2.transformMat3(v, v, this.canvasProject);
+                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
+                    continue;
+                }
 
                 if (i === 0) {
                     const v = vec2.create();
