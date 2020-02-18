@@ -42,7 +42,7 @@ button:active {
 
 /* #region *** MAIN LAYOUT ***/
 
-html, body, #rocked, .root, .mode, .mode-canvas {
+html, body, #editor, .root, .mode, .mode-canvas {
     height: 100%;
     width: 100%;
 }
