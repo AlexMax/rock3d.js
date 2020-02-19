@@ -25,9 +25,9 @@ import {
 import { DrawInput } from './DrawInput';
 import { EditableLevel } from '../editableLevel';
 import { StatusBar } from '../../tsx/StatusBar';
-import { Toolbar } from '../../tsx/Toolbar';
 import { TopdownCanvas } from './TopdownCanvas';
 import { roundMultiple } from '../../math';
+import { ModeToolbar } from './ModeToolbar';
 
 export interface Props {
     level: EditableLevel;
@@ -40,11 +40,6 @@ interface State {
     camera: Camera;
 
     /**
-     * Lines that we are using for a draw command.
-     */
-    drawLines: vec2[];
-
-    /**
      * Current grid size.
      */
     gridSize: number;
@@ -53,6 +48,16 @@ interface State {
      * Current position of mouse in level.
      */
     levelPos: vec2 | null;
+
+    /**
+     * Currently selected mode.
+     */
+    selectedMode: "location" | "polygon" | "edge" | "vertex";
+
+    /**
+     * Lines that we are using for a draw command.
+     */
+    drawLines: vec2[];
 }
 
 export class DrawView extends React.Component<Props, State> {
@@ -67,14 +72,19 @@ export class DrawView extends React.Component<Props, State> {
         this.zoomOut = this.zoomOut.bind(this);
         this.gridIn = this.gridIn.bind(this);
         this.gridOut = this.gridOut.bind(this);
+        this.locationMode = this.locationMode.bind(this);
+        this.polygonMode = this.polygonMode.bind(this);
+        this.edgeMode = this.edgeMode.bind(this);
+        this.vertexMode = this.vertexMode.bind(this);
         this.levelPos = this.levelPos.bind(this);
         this.levelClick = this.levelClick.bind(this);
 
         this.state = {
             camera: cameraCreate(),
-            drawLines: [],
             gridSize: 32,
             levelPos: null,
+            selectedMode: "location",
+            drawLines: [],
         }
     }
 
@@ -110,6 +120,22 @@ export class DrawView extends React.Component<Props, State> {
     gridOut(): void {
         const gridSize = Math.min(1024, this.state.gridSize * 2);
         this.setState({ gridSize: gridSize });
+    }
+
+    locationMode(): void {
+        this.setState({ selectedMode: "location" });
+    }
+
+    polygonMode(): void {
+        this.setState({ selectedMode: "polygon" });
+    }
+
+    edgeMode(): void {
+        this.setState({ selectedMode: "edge" });
+    }
+
+    vertexMode(): void {
+        this.setState({ selectedMode: "vertex" });
     }
 
     levelPos(levelPos: vec2 | null): void {
@@ -152,7 +178,12 @@ export class DrawView extends React.Component<Props, State> {
                 <div className="status-bar-push">Grid Size: {this.state.gridSize}</div>
                 <div>Coords: {posX}, {posY}</div>
             </StatusBar>
-            <Toolbar title="A Test Toolbar"/>
+            <ModeToolbar
+                selectedMode={this.state.selectedMode}
+                onLocationMode={this.locationMode}
+                onPolygonMode={this.polygonMode}
+                onEdgeMode={this.edgeMode}
+                onVertexMode={this.vertexMode}/>
             <DrawInput panUp={this.panUp} panDown={this.panDown}
                 panLeft={this.panLeft} panRight={this.panRight}
                 zoomIn={this.zoomIn} zoomOut={this.zoomOut}

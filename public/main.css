@@ -157,17 +157,16 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** TOOLBAR ***/
 
 .toolbar {
+    display: flex;
+    flex-direction: column;
     position: absolute;
 
     /* Don't wrap text on edge of screen. */
     white-space: nowrap;
 }
 
-.toolbar .toolbar-button {
-    background-color: var(--window-bg-color);
-    border-style: solid;
-    border-width: 1px;
-    border-color: var(--window-border-color);
+.toolbar .toolbar-button.active {
+    border-color: var(--window-inverted-border-color);
 }
 
 /* #endregion */

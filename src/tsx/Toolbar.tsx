@@ -22,16 +22,50 @@ import { withTitleBar, WrappedProps as TitleBarProps } from './TitleBar';
 
 interface Props extends TitleBarProps { }
 
+/**
+ * A floating toolbar used for holding items or controls without a border.
+ */
 class BaseToolbar extends React.Component<Props> {
     render() {
         return <div className="toolbar" style={this.props.positionStyle}>
             {this.props.titleBar}
-            <div className="toolbar-button">Select</div>
-            <div className="toolbar-button">Line</div>
-            <div className="toolbar-button">Polygon</div>
+            {this.props.children}
         </div>;
     }
 };
+
+interface ToolbarItemProps {
+    /**
+     * True if the toolbar item should be shown as active, otherwise false.
+     */
+    active: boolean;
+
+    /**
+     * Function to call on item click.
+     */
+    onClick?: () => void;
+
+    /**
+     * Title of the item.
+     */
+    title: string;
+}
+
+/**
+ * A single item in a toolbar.
+ */
+export class ToolbarItem extends React.Component<ToolbarItemProps> {
+    render() {
+        let classes = "toolbar-button";
+        if (this.props.active) {
+            classes += " active";
+        }
+
+        return <button className={classes} onClick={this.props.onClick}>
+            {this.props.title}
+        </button>;
+    }
+}
 
 const Toolbar = withTitleBar(BaseToolbar);
 export { Toolbar };
