@@ -121,6 +121,7 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderGrid(this.props.camera, this.props.gridSize);
         this.renderer.renderLevel(this.props.level, this.props.camera);
         this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera, styles.vertexes);
+        this.renderer.renderLocations(this.props.level, this.props.camera);
 
         this.renderer.renderLines(this.props.drawLines, this.props.camera, styles.drawLines);
         this.renderer.renderVertexes(this.props.drawLines, this.props.camera, styles.drawLines);
@@ -140,6 +141,7 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderGrid(nextProps.camera, nextProps.gridSize);
         this.renderer.renderLevel(nextProps.level, nextProps.camera);
         this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera, styles.vertexes);
+        this.renderer.renderLocations(nextProps.level, nextProps.camera);
 
         this.renderer.renderLines(nextProps.drawLines, nextProps.camera, styles.drawLines);
         this.renderer.renderVertexes(nextProps.drawLines, nextProps.camera, styles.drawLines);

@@ -234,6 +234,40 @@ export class RenderContext {
     }
 
     /**
+     * Render all locations in a level.
+     * 
+     * @param level Level to render locations from.
+     * @param cam Camera position to render from.
+     */
+    renderLocations(level: Level, cam: Camera): void {
+        const ctx = this.ctx;
+        const cameraMat = getViewMatrix(cam);
+
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgb(190, 255, 159)';
+        level.locations.forEach((location) => {
+            // Calculate circle location.
+            const c = vec2.create();
+            vec2.transformMat3(c, location.position, cameraMat);
+            vec2.transformMat3(c, c, this.canvasProject);
+
+            // Calculate circle radius.
+            const r = vec2.fromValues(
+                location.position[0] + 16, location.position[1],
+            );
+            vec2.transformMat3(r, r, cameraMat);
+            vec2.transformMat3(r, r, this.canvasProject);
+            const rad = vec2.dist(c, r);
+
+            // Draw the circle.
+            ctx.moveTo(crisp(c[0]), crisp(c[1]));
+            ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+        });
+        ctx.stroke();
+    }
+
+    /**
      * Given an array of vertexes, render lines between them.  Vertexes
      * are shared between the ending of one line and start of another.
      * 
