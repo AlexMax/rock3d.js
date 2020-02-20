@@ -1,13 +1,15 @@
 :root {
     color: #000000;
     font: 16px sans-serif;
-    --background-color: #574c8f;
-    --menu-select-color: #9397a5;
-    --window-bg-color: #aeb2c3;
-    --window-border-color: #dcdee5 #5d6069 #5d6069 #dcdee5;
-    --window-inverted-border-color: #5d6069 #dcdee5 #dcdee5 #5d6069;
-    --window-title-bg-color: #b24d7a;
-    --window-title-border-color: #dcadc2 #57253b #57253b #dcadc2;
+    --background-color: #535374;
+    --button-active-border-color: #555555 #ffffff #ffffff #555555;
+    --button-border-color: #ffffff #555555 #555555 #ffffff;
+    --menu-border-color: #ffffff #000000 #000000 #ffffff;
+    --select-color: #ffffff;
+    --window-background-color: #aaaaaa;
+    --window-border-color: #000000;
+    --window-title-background-color: #000000;
+    --window-title-border-color: #b6b6b6 #616161 #616161 #b6b6b6;
     --window-title-color: #ffffff;
     -moz-user-select: none;
     user-select: none;
@@ -28,14 +30,14 @@ body {
 /* #region *** HTML ELEMENTS ***/
 
 button {
-    background-color: var(--window-bg-color);
-    border-color: var(--window-border-color);
+    background-color: var(--window-background-color);
+    border-color: var(--button-border-color);
     border-style: solid;
     border-width: 1px;
 }
 
 button:active {
-    border-color: var(--window-inverted-border-color);
+    border-color: var(--button-active-border-color);
 }
 
 /* #endregion */
@@ -74,8 +76,8 @@ html, body, #editor, .root, .mode, .mode-canvas {
 
 /* Main navigation */
 .menu-bar {
-    background-color: var(--window-bg-color);
-    border-color: var(--window-border-color);
+    background-color: var(--window-background-color);
+    border-color: var(--menu-border-color);
     border-style: solid;
     border-width: 1px;
     cursor: default;
@@ -86,9 +88,10 @@ html, body, #editor, .root, .mode, .mode-canvas {
 
 /* Only dropdown menus */
 .menu-dropdown {
-    border: 1px solid;
-    border-color: var(--window-border-color);
-    background-color: var(--window-bg-color);
+    background-color: var(--window-background-color);
+    border-color: var(--menu-border-color);
+    border-style: solid;
+    border-width: 1px;
     cursor: default;
     margin: 0;
     padding: 0;
@@ -115,7 +118,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 }
 
 .menu-item:hover {
-    background-color: var(--menu-select-color);
+    background-color: var(--select-color);
 }
 
 /* #endregion */
@@ -123,8 +126,8 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** STATUS BAR ***/
 
 .status-bar {
-    background-color: var(--window-bg-color);
-    border-color: var(--window-border-color);
+    background-color: var(--window-background-color);
+    border-color: var(--menu-border-color);
     border-style: solid;
     border-width: 1px;
     display: flex;
@@ -144,7 +147,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** TITLE BAR ***/
 
 .title-bar {
-    background-color: var(--window-title-bg-color);
+    background-color: var(--window-title-background-color);
     border-color: var(--window-title-border-color);
     border-style: solid;
     border-width: 1px;
@@ -157,6 +160,10 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** TOOLBAR ***/
 
 .toolbar {
+    background-color: var(--window-background-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
     display: flex;
     flex-direction: column;
     position: absolute;
@@ -165,8 +172,16 @@ html, body, #editor, .root, .mode, .mode-canvas {
     white-space: nowrap;
 }
 
-.toolbar .toolbar-button.active {
-    border-color: var(--window-inverted-border-color);
+.toolbar .toolbar-content {
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px 0 0 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.toolbar .toolbar-content .toolbar-button.active {
+    border-color: var(--button-active-border-color);
 }
 
 /* #endregion */
@@ -174,6 +189,10 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** WINDOW ***/
 
 .window {
+    background-color: var(--window-background-color);
+    border-color: var(--window-border-color);
+    border-style: solid;
+    border-width: 1px;
     position: absolute;
 
     /* Don't wrap text on edge of screen. */
@@ -181,10 +200,9 @@ html, body, #editor, .root, .mode, .mode-canvas {
 }
 
 .window .window-content {
-    background-color: var(--window-bg-color);
     border-color: var(--window-border-color);
     border-style: solid;
-    border-width: 1px;
+    border-width: 1px 0 0 0;
 }
 
 /* #endregion */

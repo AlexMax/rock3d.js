@@ -29,7 +29,9 @@ class BaseToolbar extends React.Component<Props> {
     render() {
         return <div className="toolbar" style={this.props.positionStyle}>
             {this.props.titleBar}
-            {this.props.children}
+            <div className="toolbar-content">
+                {this.props.children}
+            </div>
         </div>;
     }
 };
