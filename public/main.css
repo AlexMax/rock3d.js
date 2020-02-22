@@ -1,10 +1,8 @@
 :root {
-    color: #000000;
-    font: 16px sans-serif;
     --background-color: #535374;
-    --button-pressed-border-color: #555555 #ffffff #ffffff #555555;
     --button-border-color: #ffffff #555555 #555555 #ffffff;
-    --menu-border-color: #ffffff #000000 #000000 #ffffff;
+    --button-pressed-border-color: #000000 #ffffff #ffffff #000000;
+    --color: #000000;
     --select-background-color: #ffffff;
     --window-background-color: #aaaaaa;
     --window-border-color: #000000;
@@ -12,6 +10,8 @@
     --window-title-border-color: #b6b6b6 #616161 #616161 #b6b6b6;
     --window-title-color: #ffffff;
     -moz-user-select: none;
+    color: var(--color);
+    font: 16px sans-serif;
     user-select: none;
 }
 
@@ -34,6 +34,7 @@ button {
     border-color: var(--button-border-color);
     border-style: solid;
     border-width: 1px;
+    color: var(--color);
 }
 
 button:active {
@@ -47,6 +48,15 @@ button.no-press:active {
 
 button.selected {
     background-color: var(--select-background-color);
+}
+
+/*
+ * Eliminates keyboard navigation hints.
+ *
+ * FIXME: Figure out keyboard navigation and add this back conditionally.
+ */
+ button::-moz-focus-inner {
+    border: 0;
 }
 
 /* #endregion */
@@ -86,7 +96,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* Main navigation */
 .menu-bar {
     background-color: var(--window-background-color);
-    border-color: var(--menu-border-color);
+    border-color: var(--button-border-color);
     border-style: solid;
     border-width: 1px;
     cursor: default;
@@ -98,7 +108,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* Only dropdown menus */
 .menu-dropdown {
     background-color: var(--window-background-color);
-    border-color: var(--menu-border-color);
+    border-color: var(--button-border-color);
     border-style: solid;
     border-width: 1px;
     cursor: default;
@@ -136,7 +146,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 
 .status-bar {
     background-color: var(--window-background-color);
-    border-color: var(--menu-border-color);
+    border-color: var(--button-border-color);
     border-style: solid;
     border-width: 1px;
     display: flex;
@@ -169,7 +179,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 /* #region *** TOOLBAR ***/
 
 .toolbar {
-    background-color: var(--window-background-color);
+    background-color: #000000;
     border-color: var(--window-border-color);
     border-style: solid;
     border-width: 1px;
@@ -182,11 +192,10 @@ html, body, #editor, .root, .mode, .mode-canvas {
 }
 
 .toolbar .toolbar-content {
-    border-color: var(--window-border-color);
-    border-style: solid;
-    border-width: 1px 0 0 0;
+    border-top: 1px solid var(--window-border-color);
     display: flex;
     flex-direction: column;
+    row-gap: 1px;
 }
 
 /* #endregion */
