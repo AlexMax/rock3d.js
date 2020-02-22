@@ -2,10 +2,10 @@
     color: #000000;
     font: 16px sans-serif;
     --background-color: #535374;
-    --button-active-border-color: #555555 #ffffff #ffffff #555555;
+    --button-pressed-border-color: #555555 #ffffff #ffffff #555555;
     --button-border-color: #ffffff #555555 #555555 #ffffff;
     --menu-border-color: #ffffff #000000 #000000 #ffffff;
-    --select-color: #ffffff;
+    --select-background-color: #ffffff;
     --window-background-color: #aaaaaa;
     --window-border-color: #000000;
     --window-title-background-color: #000000;
@@ -27,7 +27,7 @@ body {
    overflow: hidden;
 }
 
-/* #region *** HTML ELEMENTS ***/
+/* #region *** BUTTON ***/
 
 button {
     background-color: var(--window-background-color);
@@ -37,7 +37,16 @@ button {
 }
 
 button:active {
-    border-color: var(--button-active-border-color);
+    background-color: var(--select-background-color);
+    border-color: var(--button-pressed-border-color);
+}
+
+button.no-press:active {
+    border-color: var(--button-border-color);
+}
+
+button.selected {
+    background-color: var(--select-background-color);
 }
 
 /* #endregion */
@@ -118,7 +127,7 @@ html, body, #editor, .root, .mode, .mode-canvas {
 }
 
 .menu-item:hover {
-    background-color: var(--select-color);
+    background-color: var(--select-background-color);
 }
 
 /* #endregion */
@@ -178,10 +187,6 @@ html, body, #editor, .root, .mode, .mode-canvas {
     border-width: 1px 0 0 0;
     display: flex;
     flex-direction: column;
-}
-
-.toolbar .toolbar-content .toolbar-button.active {
-    border-color: var(--button-active-border-color);
 }
 
 /* #endregion */

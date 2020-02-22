@@ -33,19 +33,19 @@ export class ModeToolbar extends React.Component<Props> {
     render() {
         return <Toolbar title="Mode">
             <ToolbarItem
-                active={this.props.selectedMode === "location"}
+                selected={this.props.selectedMode === "location"}
                 onClick={this.props.onLocationMode}
                 title="Location"/>
             <ToolbarItem
-                active={this.props.selectedMode === "polygon"}
+                selected={this.props.selectedMode === "polygon"}
                 onClick={this.props.onPolygonMode}
                 title="Polygon"/>
             <ToolbarItem
-                active={this.props.selectedMode === "edge"}
+                selected={this.props.selectedMode === "edge"}
                 onClick={this.props.onEdgeMode}
                 title="Edge"/>
             <ToolbarItem
-                active={this.props.selectedMode === "vertex"}
+                selected={this.props.selectedMode === "vertex"}
                 onClick={this.props.onVertexMode}
                 title="Vertex"/>
         </Toolbar>;

@@ -38,9 +38,9 @@ class BaseToolbar extends React.Component<Props> {
 
 interface ToolbarItemProps {
     /**
-     * True if the toolbar item should be shown as active, otherwise false.
+     * True if the toolbar item should be shown as selected, otherwise false.
      */
-    active: boolean;
+    selected: boolean;
 
     /**
      * Function to call on item click.
@@ -58,9 +58,9 @@ interface ToolbarItemProps {
  */
 export class ToolbarItem extends React.Component<ToolbarItemProps> {
     render() {
-        let classes = "toolbar-button";
-        if (this.props.active) {
-            classes += " active";
+        let classes = "no-press";
+        if (this.props.selected) {
+            classes += " selected";
         }
 
         return <button className={classes} onClick={this.props.onClick}>
