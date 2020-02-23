@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { vec2 } from "gl-matrix";
 import React from "react";
 
 import { TopdownCanvas } from "./TopdownCanvas";
@@ -52,9 +53,20 @@ export class LocationInspectMode extends React.Component<Props, State> {
     constructor(props: Readonly<Props>) {
         super(props);
 
+        this.levelClick = this.levelClick.bind(this);
+
         this.state = {
             selected: 0
         };
+    }
+
+    /**
+     * Clicking on the level inspects the clicked-on location.
+     * 
+     * @param mousePos Position of mouse click in level.
+     */
+    levelClick(mousePos: vec2) {
+        alert(mousePos);
     }
 
     render() {
@@ -69,7 +81,7 @@ export class LocationInspectMode extends React.Component<Props, State> {
                 gridSize={this.props.gridSize}
                 level={this.props.level}
                 onLevelPos={null}
-                onLevelClick={null}/>
+                onLevelClick={this.levelClick}/>
             {inspector}
         </>;
     }
