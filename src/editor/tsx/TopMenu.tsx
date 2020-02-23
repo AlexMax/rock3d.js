@@ -23,14 +23,18 @@ import { MenuConfig, MenuBar } from '../../tsx/Menu';
 export interface Props {
     onOpenFile: () => void;
     onCloseFile: () => void;
-    onDrawView: () => void;
-    onVisualView: () => void;
     onAbout: () => void;
 };
 
 export class TopMenu extends React.Component<Props> {
     render() {
         const menuConfig: MenuConfig = [{
+            label: 'rocked',
+            subMenu: [{
+                label: 'About',
+                action: this.props.onAbout,
+            }],
+        }, {
             label: 'File',
             subMenu: [{
                 label: 'New',
@@ -51,21 +55,6 @@ export class TopMenu extends React.Component<Props> {
                 label: 'Copy',
             }, {
                 label: 'Paste',
-            }],
-        }, {
-            label: 'View',
-            subMenu: [{
-                label: 'Draw',
-                action: this.props.onDrawView,
-            }, {
-                label: 'Visual',
-                action: this.props.onVisualView,
-            }],
-        }, {
-            label: 'Help',
-            subMenu: [{
-                label: 'About',
-                action: this.props.onAbout,
             }],
         }];
 

@@ -20,15 +20,16 @@ import React from 'react';
 
 import { Assets } from '../../client/asset';
 import { AboutWindow } from './AboutWindow';
-import { DrawView } from './DrawView';
 import { createEditableLevel, EditableLevel } from '../editableLevel';
 import { assertSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
-import { VisualView } from './VisualView';
+import { ModeToolbar } from './ModeToolbar';
 
 export enum Mode {
-    DrawView,
-    VisualView,
+    LocationInspect,
+    PolygonInspect,
+    EdgeInspect,
+    VertexInspect,
 };
 
 interface Props {
@@ -48,9 +49,11 @@ export class EditorRoot extends React.Component<Props, State> {
         this.closeModal = this.closeModal.bind(this);
         this.openFile = this.openFile.bind(this);
         this.closeFile = this.closeFile.bind(this);
-        this.drawView = this.drawView.bind(this);
-        this.visualView = this.visualView.bind(this);
         this.about = this.about.bind(this);
+        this.locationInspect = this.locationInspect.bind(this);
+        this.polygonInspect = this.polygonInspect.bind(this);
+        this.edgeInspect = this.edgeInspect.bind(this);
+        this.vertexInspect = this.vertexInspect.bind(this);
 
         this.state = {
             level: null,
@@ -76,51 +79,49 @@ export class EditorRoot extends React.Component<Props, State> {
         assertSerializedLevel(map);
 
         const level = createEditableLevel(map);
-        this.setState({ level: level, mode: Mode.DrawView });
+        this.setState({ level: level, mode: Mode.LocationInspect });
     }
 
     closeFile() {
         this.setState({ level: null, mode: null });
     }
 
-    drawView() {
-        if (this.state.level === null) {
-            return;
-        }
-        this.setState({ mode: Mode.DrawView });
-    }
-
-    visualView() {
-        if (this.state.level === null) {
-            return;
-        }
-        this.setState({ mode: Mode.VisualView });
-    }
-
     about() {
-        this.setState({ modal: <AboutWindow onClose={this.closeModal}/> });
+        this.setState({ modal: <AboutWindow onClose={this.closeModal} /> });
+    }
+
+    locationInspect() {
+        this.setState({ mode: Mode.LocationInspect });
+    }
+
+    polygonInspect() {
+        this.setState({ mode: Mode.PolygonInspect });
+    }
+
+    edgeInspect() {
+        this.setState({ mode: Mode.EdgeInspect });
+    }
+
+    vertexInspect() {
+        this.setState({ mode: Mode.VertexInspect });
     }
 
     render() {
-        let modeElement: JSX.Element | null = null;
-        if (this.state.level !== null) {
-            switch (this.state.mode) {
-            case Mode.DrawView:
-                modeElement = <DrawView level={this.state.level}/>;
-                break;
-            case Mode.VisualView:
-                modeElement = <VisualView
-                                    assets={this.props.assets}
-                                    level={this.state.level}/>;
-                break;
-            }
-        }
+        let mode: JSX.Element | null = null;
 
-        return <div className="root">
-            <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile} 
-                onDrawView={this.drawView} onVisualView={this.visualView}
-                onAbout={this.about}/>
-            {this.state.modal}
-        </div>;
+        const toolbar = this.state.level !== null && this.state.mode !== null ?
+            <ModeToolbar
+                selectedMode={this.state.mode}
+                onLocationInspect={this.locationInspect}
+                onPolygonInspect={this.polygonInspect}
+                onEdgeInspect={this.edgeInspect}
+                onVertexInspect={this.vertexInspect} /> : null;
+
+        return <>
+            <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile}
+                onAbout={this.about} />
+            {mode}
+            {toolbar}
+        </>;
     }
 }

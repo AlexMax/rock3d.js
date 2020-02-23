@@ -68,6 +68,10 @@ html, body, #editor, .root, .mode, .mode-canvas {
     width: 100%;
 }
 
+#editor {
+    background-color: var(--background-color);
+}
+
 .root, .mode {
     display: flex;
     flex-direction: column;
@@ -75,8 +79,6 @@ html, body, #editor, .root, .mode, .mode-canvas {
 
 /* The mode container */
 .mode {
-    background-color: var(--background-color);
-
      /* Ensure that resizing the window covers up the content */
     overflow: hidden;
 }

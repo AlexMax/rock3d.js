@@ -19,13 +19,14 @@
 import React from "react";
 
 import { Toolbar, ToolbarItem } from "../../tsx/Toolbar";
+import { Mode } from "./EditorRoot";
 
 interface Props {
-    selectedMode: "location" | "polygon" | "edge" | "vertex";
-    onLocationMode: () => void;
-    onPolygonMode: () => void;
-    onEdgeMode: () => void;
-    onVertexMode: () => void;
+    selectedMode: Mode;
+    onLocationInspect: () => void;
+    onPolygonInspect: () => void;
+    onEdgeInspect: () => void;
+    onVertexInspect: () => void;
 }
 
 export class ModeToolbar extends React.Component<Props> {
@@ -33,20 +34,20 @@ export class ModeToolbar extends React.Component<Props> {
     render() {
         return <Toolbar title="Mode">
             <ToolbarItem
-                selected={this.props.selectedMode === "location"}
-                onClick={this.props.onLocationMode}
+                selected={this.props.selectedMode === Mode.LocationInspect}
+                onClick={this.props.onLocationInspect}
                 title="Location"/>
             <ToolbarItem
-                selected={this.props.selectedMode === "polygon"}
-                onClick={this.props.onPolygonMode}
+                selected={this.props.selectedMode === Mode.PolygonInspect}
+                onClick={this.props.onPolygonInspect}
                 title="Polygon"/>
             <ToolbarItem
-                selected={this.props.selectedMode === "edge"}
-                onClick={this.props.onEdgeMode}
+                selected={this.props.selectedMode === Mode.EdgeInspect}
+                onClick={this.props.onEdgeInspect}
                 title="Edge"/>
             <ToolbarItem
-                selected={this.props.selectedMode === "vertex"}
-                onClick={this.props.onVertexMode}
+                selected={this.props.selectedMode === Mode.VertexInspect}
+                onClick={this.props.onVertexInspect}
                 title="Vertex"/>
         </Toolbar>;
     }
