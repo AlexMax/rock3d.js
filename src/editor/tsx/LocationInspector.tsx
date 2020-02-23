@@ -17,10 +17,35 @@
  */
 
 import React from "react";
+import { EditableLevel } from "../editableLevel";
+import { Window } from "../../tsx/Window";
 
-export class LocationInspect extends React.Component {
+interface Props {
+    level: EditableLevel;
+    id: number;
+}
+
+export class LocationInspector extends React.Component<Props> {
     render() {
-        return <>
-        </>;
+        const location = this.props.level.locations[this.props.id];
+
+        return <Window title="Location Inspector">
+            <div>
+                Type: {location.type}
+            </div>
+            {location.entityConfig ?
+            <div>
+                Entity Config: {location.entityConfig}
+            </div> : null}
+            <div>
+                Polygon: {location.polygon}
+            </div>
+            <div>
+                Position: {location.position}
+            </div>
+            <div>
+                Rotation: {location.rotation}
+            </div>
+        </Window>;
     }
 }

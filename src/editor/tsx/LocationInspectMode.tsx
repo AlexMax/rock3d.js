@@ -21,6 +21,7 @@ import React from "react";
 import { TopdownCanvas } from "./TopdownCanvas";
 import { EditableLevel } from "../editableLevel";
 import { Camera } from "../../r2d/camera";
+import { LocationInspector } from "./LocationInspector";
 
 export interface Props {
     /**
@@ -39,14 +40,37 @@ export interface Props {
     level: EditableLevel;
 }
 
-export class LocationInspectMode extends React.Component<Props> {
+interface State {
+    /**
+     * Selected location ID.
+     */
+    selected: number | null;
+}
+
+export class LocationInspectMode extends React.Component<Props, State> {
+
+    constructor(props: Readonly<Props>) {
+        super(props);
+
+        this.state = {
+            selected: 0
+        };
+    }
+
     render() {
+        let inspector: JSX.Element | null = null;
+        if (this.state.selected !== null) {
+            inspector = <LocationInspector
+                level={this.props.level} id={this.state.selected}/>;
+        }
+
         return <>
             <TopdownCanvas camera={this.props.camera}
                 gridSize={this.props.gridSize}
                 level={this.props.level}
                 onLevelPos={null}
                 onLevelClick={null}/>
+            {inspector}
         </>;
     }
 }
