@@ -41,7 +41,7 @@ interface State {
     modal: JSX.Element | null;
 };
 
-export class Root extends React.Component<Props, State> {
+export class EditorRoot extends React.Component<Props, State> {
 
     constructor(props: Readonly<Props>) {
         super(props);
@@ -120,9 +120,6 @@ export class Root extends React.Component<Props, State> {
             <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile} 
                 onDrawView={this.drawView} onVisualView={this.visualView}
                 onAbout={this.about}/>
-            <div className="mode">
-                {modeElement}
-            </div>
             {this.state.modal}
         </div>;
     }

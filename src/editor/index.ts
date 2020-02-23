@@ -21,7 +21,7 @@ const css = require('../../public/main.css');
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Root } from './tsx/Root';
+import { EditorRoot } from './tsx/EditorRoot';
 import { loadAssets } from '../client/asset';
 
 window.addEventListener("load", async () => {
@@ -34,5 +34,5 @@ window.addEventListener("load", async () => {
     const assets = await loadAssets("/asset");
 
     // Render the editor.
-    ReactDOM.render(React.createElement(Root, { assets: assets }), editor);
+    ReactDOM.render(React.createElement(EditorRoot, { assets: assets }), editor);
 });
