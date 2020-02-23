@@ -32,7 +32,7 @@ export interface Props {
 /**
  * This component is a handler for Draw view keyboard commands.
  */
-export class DrawInput extends React.Component<Props> {
+export class TopdownInput extends React.Component<Props> {
 
     constructor(props: Readonly<Props>) {
         super(props);

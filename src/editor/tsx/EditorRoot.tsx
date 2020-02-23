@@ -24,6 +24,7 @@ import { createEditableLevel, EditableLevel } from '../editableLevel';
 import { assertSerializedLevel } from '../../level';
 import { TopMenu } from './TopMenu';
 import { ModeToolbar } from './ModeToolbar';
+import { TopdownView } from './TopdownView';
 
 export enum Mode {
     LocationInspect,
@@ -37,8 +38,19 @@ interface Props {
 };
 
 interface State {
+    /**
+     * Level data.
+     */
     level: EditableLevel | null;
+
+    /**
+     * Currently selected mode.
+     */
     mode: Mode | null;
+
+    /**
+     * Current modal element, if any.
+     */
     modal: JSX.Element | null;
 };
 
@@ -107,21 +119,23 @@ export class EditorRoot extends React.Component<Props, State> {
     }
 
     render() {
-        let mode: JSX.Element | null = null;
-
-        const toolbar = this.state.level !== null && this.state.mode !== null ?
-            <ModeToolbar
-                selectedMode={this.state.mode}
-                onLocationInspect={this.locationInspect}
-                onPolygonInspect={this.polygonInspect}
-                onEdgeInspect={this.edgeInspect}
-                onVertexInspect={this.vertexInspect} /> : null;
-
-        return <>
-            <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile}
-                onAbout={this.about} />
-            {mode}
-            {toolbar}
-        </>;
+        if (this.state.level !== null && this.state.mode !== null) {
+            return <>
+                <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile}
+                    onAbout={this.about} />
+                <TopdownView mode={this.state.mode} level={this.state.level}/>
+                <ModeToolbar
+                    selectedMode={this.state.mode}
+                    onLocationInspect={this.locationInspect}
+                    onPolygonInspect={this.polygonInspect}
+                    onEdgeInspect={this.edgeInspect}
+                    onVertexInspect={this.vertexInspect} />
+            </>;
+        } else {
+            return <>
+                <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile}
+                    onAbout={this.about} />
+            </>;
+        }
     }
 }

@@ -32,7 +32,7 @@ export interface Props {
     /**
      * Extra lines that are currently being drawn.
      */
-    drawLines: vec2[];
+    //drawLines: vec2[];
 
     /**
      * Grid resolution.
@@ -47,12 +47,12 @@ export interface Props {
     /**
      * Called when we detect a new mouse position in the level.
      */
-    onLevelPos: (mousePos: vec2 | null) => void;
+    onLevelPos: ((mousePos: vec2 | null) => void) | null;
 
     /**
      * Called when we detect a mouse click in the level.
      */
-    onLevelClick: (mousePos: vec2) => void;
+    onLevelClick: ((mousePos: vec2) => void) | null;
 };
 
 const styles = {
@@ -86,7 +86,9 @@ export class TopdownCanvas extends React.Component<Props> {
         }
         const coord = vec2.create();
         this.renderer.screenToWorld(coord, mousePos, this.props.camera);
-        this.props.onLevelPos(coord);
+        if (this.props.onLevelPos !== null) {
+            this.props.onLevelPos(coord);
+        }
     }
 
     onClick(event: React.MouseEvent) {
@@ -103,7 +105,9 @@ export class TopdownCanvas extends React.Component<Props> {
         }
         const coord = vec2.create();
         this.renderer.screenToWorld(coord, mousePos, this.props.camera);
-        this.props.onLevelClick(coord);
+        if (this.props.onLevelClick !== null) {
+            this.props.onLevelClick(coord);
+        }
     }
 
     componentDidMount() {
@@ -123,8 +127,8 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera, styles.vertexes);
         this.renderer.renderLocations(this.props.level, this.props.camera);
 
-        this.renderer.renderLines(this.props.drawLines, this.props.camera, styles.drawLines);
-        this.renderer.renderVertexes(this.props.drawLines, this.props.camera, styles.drawLines);
+        //this.renderer.renderLines(this.props.drawLines, this.props.camera, styles.drawLines);
+        //this.renderer.renderVertexes(this.props.drawLines, this.props.camera, styles.drawLines);
     }
 
     shouldComponentUpdate(nextProps: Props): boolean {
@@ -143,8 +147,8 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera, styles.vertexes);
         this.renderer.renderLocations(nextProps.level, nextProps.camera);
 
-        this.renderer.renderLines(nextProps.drawLines, nextProps.camera, styles.drawLines);
-        this.renderer.renderVertexes(nextProps.drawLines, nextProps.camera, styles.drawLines);
+        //this.renderer.renderLines(nextProps.drawLines, nextProps.camera, styles.drawLines);
+        //this.renderer.renderVertexes(nextProps.drawLines, nextProps.camera, styles.drawLines);
 
         return false; // never re-render the DOM node with React
     }
