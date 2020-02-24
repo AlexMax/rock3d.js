@@ -19,7 +19,7 @@
         "dev": "concurrently \"npm:webserver\" \"npm:dev-server\" \"npm:dev-client\"",
         "dev-server": "tsc-watch --project ./src/server --onSuccess \"node ./dist/server/index.js\" --noClear",
         "dev-client": "webpack --config webpack.config.js --config-name client --watch --mode=development",
-        "dev-editor": "concurrently \"npm:webserver\" \"webpack --config webpack.config.js --config-name editor --watch --mode=development\"",
+        "dev-editor": "concurrently --names \"webserver,editor\" \"npm:webserver\" \"webpack --config webpack.config.js --config-name editor --watch --mode=development\"",
         "lint": "eslint src --ext .ts,.tsx",
         "server": "node ./dist/server/index.js",
         "test": "jest",
