@@ -31,7 +31,7 @@ export class TopMenu extends React.Component<Props> {
         const menuConfig: MenuConfig = [{
             label: 'rocked',
             subMenu: [{
-                label: 'About',
+                label: 'About rocked',
                 action: this.props.onAbout,
             }],
         }, {
