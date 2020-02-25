@@ -238,15 +238,22 @@ export class RenderContext {
      * 
      * @param level Level to render locations from.
      * @param cam Camera position to render from.
+     * @param highlight Location to highlight.
      */
-    renderLocations(level: Level, cam: Camera): void {
+    renderLocations(level: Level, cam: Camera, highlight?: number | null): void {
         const ctx = this.ctx;
         const cameraMat = cameraGetViewMatrix(cam);
 
         ctx.beginPath();
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(190, 255, 159)';
-        level.locations.forEach((location) => {
+        for (let i = 0;i < level.locations.length;i++) {
+            const location = level.locations[i];
+            if (i === highlight) {
+                // Draw highlighted location later.
+                continue;
+            }
+
             // Calculate circle location.
             const c = vec2.create();
             vec2.transformMat3(c, location.position, cameraMat);
@@ -263,8 +270,36 @@ export class RenderContext {
             // Draw the circle.
             ctx.moveTo(crisp(c[0]), crisp(c[1]));
             ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
-        });
+        };
         ctx.stroke();
+
+        // Draw highlighted locations.
+        if (typeof highlight === 'number') {
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgb(255, 172, 0)';
+
+            const location = level.locations[highlight];
+
+            // Calculate circle location.
+            const c = vec2.create();
+            vec2.transformMat3(c, location.position, cameraMat);
+            vec2.transformMat3(c, c, this.canvasProject);
+
+            // Calculate circle radius.
+            const r = vec2.fromValues(
+                location.position[0] + 16, location.position[1],
+            );
+            vec2.transformMat3(r, r, cameraMat);
+            vec2.transformMat3(r, r, this.canvasProject);
+            const rad = vec2.dist(c, r);
+
+            // Draw the circle.
+            ctx.moveTo(crisp(c[0]), crisp(c[1]));
+            ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+
+            ctx.stroke();
+        }
     }
 
     /**

@@ -45,6 +45,21 @@ export interface Props {
     level: EditableLevel;
 
     /**
+     * Currently highlighted location.
+     * 
+     * Null and undefined are treated the same.  Null tends to be used when
+     * the mode normally highlights a location, just not any location
+     * at this particular moment.  Undefined on the other hand is used when
+     * the mode doesn't bother with locations at all.
+     */
+    highlightedLocation?: number | null;
+
+    /**
+     * Currently selected locations.
+     */
+    selectedLocations?: number[];
+
+    /**
      * Called when we detect a new mouse position in the level.
      */
     onLevelPos: ((mousePos: vec2 | null) => void) | null;
@@ -125,7 +140,9 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderGrid(this.props.camera, this.props.gridSize);
         this.renderer.renderLevel(this.props.level, this.props.camera);
         this.renderer.renderVertexes(this.props.level.vertexCache.toArray(), this.props.camera, styles.vertexes);
-        this.renderer.renderLocations(this.props.level, this.props.camera);
+        this.renderer.renderLocations(
+            this.props.level, this.props.camera, this.props.highlightedLocation
+        );
 
         //this.renderer.renderLines(this.props.drawLines, this.props.camera, styles.drawLines);
         //this.renderer.renderVertexes(this.props.drawLines, this.props.camera, styles.drawLines);
@@ -145,7 +162,9 @@ export class TopdownCanvas extends React.Component<Props> {
         this.renderer.renderGrid(nextProps.camera, nextProps.gridSize);
         this.renderer.renderLevel(nextProps.level, nextProps.camera);
         this.renderer.renderVertexes(nextProps.level.vertexCache.toArray(), nextProps.camera, styles.vertexes);
-        this.renderer.renderLocations(nextProps.level, nextProps.camera);
+        this.renderer.renderLocations(
+            nextProps.level, nextProps.camera, nextProps.highlightedLocation
+        );
 
         //this.renderer.renderLines(nextProps.drawLines, nextProps.camera, styles.drawLines);
         //this.renderer.renderVertexes(nextProps.drawLines, nextProps.camera, styles.drawLines);

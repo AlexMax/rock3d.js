@@ -43,9 +43,14 @@ export interface Props {
 
 interface State {
     /**
+     * Highlighted location ID.
+     */
+    highlighted: number | null;
+
+    /**
      * Selected location ID.
      */
-    selected: number | null;
+    selected: number[];
 }
 
 export class LocationInspectMode extends React.Component<Props, State> {
@@ -53,11 +58,38 @@ export class LocationInspectMode extends React.Component<Props, State> {
     constructor(props: Readonly<Props>) {
         super(props);
 
+        this.levelPos = this.levelPos.bind(this);
         this.levelClick = this.levelClick.bind(this);
 
         this.state = {
-            selected: 0
+            highlighted: null,
+            selected: []
         };
+    }
+
+    /**
+     * Moving the mouse around the level possibly highlights a location.
+     * 
+     * @param mousePos 
+     */
+    levelPos(mousePos: vec2 | null) {
+        if (mousePos === null) {
+            this.setState({ highlighted: null });
+            return;
+        }
+
+        let closest: number | null = null;
+        let closestDist = Infinity;
+        for (let i = 0;i < this.props.level.locations.length;i++) {
+            const location = this.props.level.locations[i];
+            const len = vec2.dist(mousePos, location.position);
+            if (len <= 16 && len <= closestDist) {
+                closest = i;
+                closestDist = len;
+            }
+        }
+
+        this.setState({ highlighted: closest });
     }
 
     /**
@@ -71,16 +103,17 @@ export class LocationInspectMode extends React.Component<Props, State> {
 
     render() {
         let inspector: JSX.Element | null = null;
-        if (this.state.selected !== null) {
+        if (this.state.selected !== null && this.state.selected.length === 1) {
             inspector = <LocationInspector
-                level={this.props.level} id={this.state.selected}/>;
+                level={this.props.level} id={this.state.selected[0]}/>;
         }
 
         return <>
             <TopdownCanvas camera={this.props.camera}
                 gridSize={this.props.gridSize}
                 level={this.props.level}
-                onLevelPos={null}
+                highlightedLocation={this.state.highlighted}
+                onLevelPos={this.levelPos}
                 onLevelClick={this.levelClick}/>
             {inspector}
         </>;
