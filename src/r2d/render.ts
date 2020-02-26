@@ -20,6 +20,7 @@ import { mat3, vec2 } from "gl-matrix";
 
 import { Camera, cameraGetViewMatrix } from './camera';
 import { Level } from '../level';
+import { Edge } from "../edge";
 
 const renderColors = {
     background: "rgb(0, 0, 0)",
@@ -71,6 +72,27 @@ const drawLocation = (
     // Draw the circle.
     ctx.moveTo(crisp(c[0]), crisp(c[1]));
     ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+}
+
+/**
+ * Draw an edge on the passed canvas context.
+ * 
+ * @param ctx 2D Context to draw on top of.
+ * @param camera Camera matrix.
+ * @param projection Projection matrix
+ * @param edge Edge to render.
+ */
+const drawEdge = (
+    ctx: CanvasRenderingContext2D, camera: mat3, projection: mat3, edge: Edge
+) => {
+    const v = vec2.create();
+    vec2.transformMat3(v, edge.vertex, camera);
+    vec2.transformMat3(v, v, projection);
+    ctx.moveTo(crisp(v[0]), crisp(v[1]));
+
+    vec2.transformMat3(v, edge.nextVertex, camera);
+    vec2.transformMat3(v, v, projection);
+    ctx.lineTo(crisp(v[0]), crisp(v[1]));
 }
 
 export class RenderContext {
@@ -222,24 +244,10 @@ export class RenderContext {
                 const edge = level.edges[polygon.edgeIDs[i]];
                 if (edge.backPoly === null) {
                     // Skip edges with no backPoly for now.
-                    const v = vec2.create();
-                    vec2.transformMat3(v, edge.nextVertex, cameraMat);
-                    vec2.transformMat3(v, v, this.canvasProject);
-                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
                     continue;
                 }
 
-                if (i === 0) {
-                    const v = vec2.create();
-                    vec2.transformMat3(v, edge.vertex, cameraMat);
-                    vec2.transformMat3(v, v, this.canvasProject);
-                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
-                }
-
-                const v = vec2.create();
-                vec2.transformMat3(v, edge.nextVertex, cameraMat);
-                vec2.transformMat3(v, v, this.canvasProject);
-                ctx.lineTo(crisp(v[0]), crisp(v[1]));
+                drawEdge(ctx, cameraMat, this.canvasProject, edge);
             }
         });
         ctx.stroke();
@@ -253,24 +261,10 @@ export class RenderContext {
                 const edge = level.edges[polygon.edgeIDs[i]];
                 if (edge.backPoly !== null) {
                     // We already drew edges with a backPoly.
-                    const v = vec2.create();
-                    vec2.transformMat3(v, edge.nextVertex, cameraMat);
-                    vec2.transformMat3(v, v, this.canvasProject);
-                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
                     continue;
                 }
 
-                if (i === 0) {
-                    const v = vec2.create();
-                    vec2.transformMat3(v, edge.vertex, cameraMat);
-                    vec2.transformMat3(v, v, this.canvasProject);
-                    ctx.moveTo(crisp(v[0]), crisp(v[1]));
-                }
-
-                const v = vec2.create();
-                vec2.transformMat3(v, edge.nextVertex, cameraMat);
-                vec2.transformMat3(v, v, this.canvasProject);
-                ctx.lineTo(crisp(v[0]), crisp(v[1]));
+                drawEdge(ctx, cameraMat, this.canvasProject, edge);
             }
         });
         ctx.stroke();
