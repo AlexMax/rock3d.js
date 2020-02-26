@@ -31,6 +31,9 @@ export class LocationInspector extends React.Component<Props> {
 
         return <Window title="Location Inspector">
             <div>
+                ID: {this.props.id}
+            </div>
+            <div>
                 Type: {location.type}
             </div>
             {location.entityConfig ?

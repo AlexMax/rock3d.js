@@ -98,7 +98,10 @@ export class LocationInspectMode extends React.Component<Props, State> {
      * @param mousePos Position of mouse click in level.
      */
     levelClick(mousePos: vec2) {
-        alert(mousePos);
+        if (this.state.highlighted === null) {
+            return;
+        }
+        this.setState({ selected: [this.state.highlighted] });
     }
 
     render() {
