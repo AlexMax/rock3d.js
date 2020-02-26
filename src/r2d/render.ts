@@ -40,6 +40,39 @@ const crisp = (coord: number) => {
     return Math.round(coord) + 0.5;
 }
 
+/**
+ * Draw a location on the passed canvas context.
+ * 
+ * @param ctx 2D Context to draw on top of.
+ * @param camera Camera matrix.
+ * @param projection Projection matrix
+ * @param level Level data to render from.
+ * @param index Location index to render.
+ */
+const drawLocation = (
+    ctx: CanvasRenderingContext2D, camera: mat3, projection: mat3,
+    level: Level, index: number
+) => {
+    const location = level.locations[index];
+
+    // Calculate circle location.
+    const c = vec2.create();
+    vec2.transformMat3(c, location.position, camera);
+    vec2.transformMat3(c, c, projection);
+
+    // Calculate circle radius.
+    const r = vec2.fromValues(
+        location.position[0] + 16, location.position[1],
+    );
+    vec2.transformMat3(r, r, camera);
+    vec2.transformMat3(r, r, projection);
+    const rad = vec2.dist(c, r);
+
+    // Draw the circle.
+    ctx.moveTo(crisp(c[0]), crisp(c[1]));
+    ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+}
+
 export class RenderContext {
     ctx: CanvasRenderingContext2D;
     canvasProject: mat3;
@@ -258,28 +291,13 @@ export class RenderContext {
         ctx.lineWidth = 1;
         ctx.strokeStyle = renderColors.locations;
         for (let i = 0;i < level.locations.length;i++) {
-            const location = level.locations[i];
             if (i === highlight) {
                 // Draw highlighted location later.
                 continue;
             }
 
-            // Calculate circle location.
-            const c = vec2.create();
-            vec2.transformMat3(c, location.position, cameraMat);
-            vec2.transformMat3(c, c, this.canvasProject);
-
-            // Calculate circle radius.
-            const r = vec2.fromValues(
-                location.position[0] + 16, location.position[1],
-            );
-            vec2.transformMat3(r, r, cameraMat);
-            vec2.transformMat3(r, r, this.canvasProject);
-            const rad = vec2.dist(c, r);
-
-            // Draw the circle.
-            ctx.moveTo(crisp(c[0]), crisp(c[1]));
-            ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+            // Draw the location
+            drawLocation(ctx, cameraMat, this.canvasProject, level, i);
         };
         ctx.stroke();
 
@@ -289,24 +307,8 @@ export class RenderContext {
             ctx.lineWidth = 1;
             ctx.strokeStyle = renderColors.highlighted;
 
-            const location = level.locations[highlight];
-
-            // Calculate circle location.
-            const c = vec2.create();
-            vec2.transformMat3(c, location.position, cameraMat);
-            vec2.transformMat3(c, c, this.canvasProject);
-
-            // Calculate circle radius.
-            const r = vec2.fromValues(
-                location.position[0] + 16, location.position[1],
-            );
-            vec2.transformMat3(r, r, cameraMat);
-            vec2.transformMat3(r, r, this.canvasProject);
-            const rad = vec2.dist(c, r);
-
-            // Draw the circle.
-            ctx.moveTo(crisp(c[0]), crisp(c[1]));
-            ctx.arc(crisp(c[0]), crisp(c[1]), rad, 0, 2 * Math.PI);
+            // Draw the location
+            drawLocation(ctx, cameraMat, this.canvasProject, level, highlight);
 
             ctx.stroke();
         }
