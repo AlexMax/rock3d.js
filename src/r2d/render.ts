@@ -21,6 +21,16 @@ import { mat3, vec2 } from "gl-matrix";
 import { Camera, cameraGetViewMatrix } from './camera';
 import { Level } from '../level';
 
+const renderColors = {
+    background: "rgb(0, 0, 0)",
+    edges: "rgb(255, 255, 255)",
+    edgesWithBack: "rgb(127, 127, 127)",
+    grid: "rgba(70, 70, 70, 0.5)",
+    grid64: "rgba(57, 89, 111, 0.5)",
+    highlighted: 'rgb(255, 172, 0)',
+    locations: "rgb(190, 255, 159)",
+};
+
 /**
  * Round a coordinate to the nearest x.5, so the coordinate comes out "crisp".
  * 
@@ -84,7 +94,7 @@ export class RenderContext {
      */
     clear(): void {
         const ctx = this.ctx;
-        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.fillStyle = renderColors.background;
         ctx.fillRect(0, 0, this.ctx.canvas.clientWidth, this.ctx.canvas.clientHeight);
     }
 
@@ -143,7 +153,7 @@ export class RenderContext {
 
         // Stroke our normal lines.
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(70, 70, 70, 0.5)';
+        ctx.strokeStyle = renderColors.grid;
         for (let i = 0;i < gridLines.length;i += 2) {
             ctx.moveTo(crisp(gridLines[i][0]), crisp(gridLines[i][1]));
             ctx.lineTo(crisp(gridLines[i + 1][0]), crisp(gridLines[i + 1][1]));
@@ -152,7 +162,7 @@ export class RenderContext {
 
         // Stroke our 64 lines.
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(57, 89, 111, 0.5)';
+        ctx.strokeStyle = renderColors.grid64;
         for (let i = 0;i < gridLines64.length;i += 2) {
             ctx.moveTo(crisp(gridLines64[i][0]), crisp(gridLines64[i][1]));
             ctx.lineTo(crisp(gridLines64[i + 1][0]), crisp(gridLines64[i + 1][1]));
@@ -173,7 +183,7 @@ export class RenderContext {
         // Draw two-sided edges first.
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'grey';
+        ctx.strokeStyle = renderColors.edgesWithBack;
         level.polygons.forEach((polygon) => {
             for (let i = 0;i < polygon.edgeIDs.length;i++) {
                 const edge = level.edges[polygon.edgeIDs[i]];
@@ -204,7 +214,7 @@ export class RenderContext {
         // Draw one-sided edges on top.
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = renderColors.edges;
         level.polygons.forEach((polygon) => {
             for (let i = 0;i < polygon.edgeIDs.length;i++) {
                 const edge = level.edges[polygon.edgeIDs[i]];
@@ -246,7 +256,7 @@ export class RenderContext {
 
         ctx.beginPath();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgb(190, 255, 159)';
+        ctx.strokeStyle = renderColors.locations;
         for (let i = 0;i < level.locations.length;i++) {
             const location = level.locations[i];
             if (i === highlight) {
@@ -277,7 +287,7 @@ export class RenderContext {
         if (typeof highlight === 'number') {
             ctx.beginPath();
             ctx.lineWidth = 1;
-            ctx.strokeStyle = 'rgb(255, 172, 0)';
+            ctx.strokeStyle = renderColors.highlighted;
 
             const location = level.locations[highlight];
 
