@@ -133,11 +133,13 @@ export class EditorRoot extends React.Component<Props, State> {
                     onPolygonInspect={this.polygonInspect}
                     onEdgeInspect={this.edgeInspect}
                     onVertexInspect={this.vertexInspect} />
+                {this.state.modal}
             </>;
         } else {
             return <>
                 <TopMenu onOpenFile={this.openFile} onCloseFile={this.closeFile}
                     onAbout={this.about} />
+                {this.state.modal}
             </>;
         }
     }

@@ -43,6 +43,7 @@ License
 This project is licensed under the [zlib/libpng][2] license:
 
 > rock3d.js: A 3D game engine for making retro FPS games
+>
 > Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
 > 
 > This software is provided 'as-is', without any express or implied
@@ -70,9 +71,11 @@ The following is a list of runtime dependencies and their licenses:
 * react-dom: [MIT][3]
 * ws: [MIT][3]
 
-This repository contains graphical and sound assets courtesy of the Freedoom project for demonstration purposes.  These assets are under the [3-clause BSD license][5].
-
 [2]: https://opensource.org/licenses/Zlib
 [3]: https://opensource.org/licenses/MIT
 [4]: https://opensource.org/licenses/ISC
-[5]: https://opensource.org/licenses/BSD-3-Clause
+
+This repository contains graphical and sound assets courtesy of the [Freedoom][5] project for demonstration purposes.  These assets are under the [3-clause BSD license][6].
+
+[5]: https://freedoom.github.io/
+[6]: https://opensource.org/licenses/BSD-3-Clause

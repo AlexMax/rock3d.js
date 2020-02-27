@@ -21,7 +21,6 @@
 
 import React from 'react';
 
-import { name, repository_url, version } from '../package';
 import { Window } from '../../tsx/Window';
 
 interface Props {
@@ -31,11 +30,13 @@ interface Props {
 export class AboutWindow extends React.Component<Props> {
 
     render() {
-        return <Window title={`About ${name}`}>
+        return <Window title="About rocked">
             <div style={{margin: '1em', width: '640px', whiteSpace: 'normal' }}>
                 <p>
-                    rock3d.js: A 3D game engine for making retro FPS games<br>
-                    Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
+                    rock3d.js: A 3D game engine for making retro FPS games<br/>
+                    Copyright &copy; 2018 Alex Mayfield <a href="mailto:alexmax2742@gmail.com">
+                        alexmax2742@gmail.com
+                    </a>
                 </p>
                 <p>
                     This software is provided 'as-is', without any express or implied
