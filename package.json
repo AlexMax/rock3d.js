@@ -2,8 +2,8 @@
     "name": "rock3d",
     "version": "0.0.1",
     "description": "A simple 3D engine with a 2.5D heart.",
-    "license": "AGPL-3.0-or-later",
-    "private": true,
+    "license": "Zlib",
+    "private": false,
     "author": {
         "name": "Alex Mayfield",
         "email": "alexmax2742@gmail.com"

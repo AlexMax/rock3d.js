@@ -1,6 +1,6 @@
 rock3d.js
 =========
-A 3D game engine with a retro heart.
+A 3D game engine for making retro FPS games.
 
 What is this?
 -------------
@@ -40,10 +40,39 @@ $ npm run server
 
 License
 -------
-This program is licensed under the [GNU Affero General Public License v3.0][2].  There are also assets bundled with the project that are licensed under the [3-Clause BSD License][3].
+This project is licensed under the [zlib/libpng][2] license:
 
-In the future, I intend to split the project into a core engine, a standalone editor, and a standalone game, with the core engine being relicensed under the [zlib/libpng License][4].  For now, it is more expedient to work with all three parts out of a single repository under a single license.
+> rock3d.js: A 3D game engine for making retro FPS games
+> Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
+> 
+> This software is provided 'as-is', without any express or implied
+> warranty.  In no event will the authors be held liable for any damages
+> arising from the use of this software.
+>
+> Permission is granted to anyone to use this software for any purpose,
+> including commercial applications, and to alter it and redistribute it
+> freely, subject to the following restrictions:
+>
+> 1. The origin of this software must not be misrepresented; you must not
+>    claim that you wrote the original software. If you use this software
+>    in a product, an acknowledgment in the product documentation would be
+>    appreciated but is not required.
+> 2. Altered source versions must be plainly marked as such, and must not be
+>    misrepresented as being the original software.
+> 3. This notice may not be removed or altered from any source distribution.
 
-[2]: https://www.gnu.org/licenses/agpl-3.0.en.html
-[3]: https://opensource.org/licenses/BSD-3-Clause
-[4]: https://opensource.org/licenses/zlib
+The following is a list of runtime dependencies and their licenses:
+
+* content-type: [MIT][3]
+* earcut: [ISC][4]
+* gl-matrix: [MIT][3]
+* react: [MIT][3]
+* react-dom: [MIT][3]
+* ws: [MIT][3]
+
+This repository contains graphical and sound assets courtesy of the Freedoom project for demonstration purposes.  These assets are under the [3-clause BSD license][5].
+
+[2]: https://opensource.org/licenses/Zlib
+[3]: https://opensource.org/licenses/MIT
+[4]: https://opensource.org/licenses/ISC
+[5]: https://opensource.org/licenses/BSD-3-Clause

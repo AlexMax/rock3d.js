@@ -1,19 +1,22 @@
-/**
- * rock3d.js: A 3D game engine with a retro heart.
- * Copyright (C) 2018-2019  Alex Mayfield <alexmax2742@gmail.com>
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+/*
+ * rock3d.js: A 3D game engine for making retro FPS games
+ * Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
  */
 
 import React from 'react';
@@ -31,35 +34,34 @@ export class AboutWindow extends React.Component<Props> {
         return <Window title={`About ${name}`}>
             <div style={{margin: '1em', width: '640px', whiteSpace: 'normal' }}>
                 <p>
-                    {name} v{version}<br/>
-                    Copyright &copy; 2018&ndash;2019&nbsp;
-                    <a href="mailto:alexmax2742@gmail.com">Alex Mayfield</a>
+                    rock3d.js: A 3D game engine for making retro FPS games<br>
+                    Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
                 </p>
                 <p>
-                    This program is free software: you can redistribute it
-                    and/or modify it under the terms of the GNU Affero General
-                    Public License as published by the Free Software Foundation,
-                    either version 3 of the License, or (at your option) any
-                    later version.
+                    This software is provided 'as-is', without any express or implied
+                    warranty.  In no event will the authors be held liable for any damages
+                    arising from the use of this software.
                 </p>
                 <p>
-                    This program is distributed in the hope that it will be
-                    useful, but WITHOUT ANY WARRANTY; without even the implied
-                    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-                    PURPOSE.  See the GNU Affero General Public License for
-                    more details.
+                    Permission is granted to anyone to use this software for any purpose,
+                    including commercial applications, and to alter it and redistribute it
+                    freely, subject to the following restrictions:
                 </p>
-                <p>
-                    You should have received a copy of the GNU Affero General
-                    Public License along with this program.  If not, see&nbsp;
-                    <a target="_blank" href="https://www.gnu.org/licenses/">
-                        https://www.gnu.org/licenses/
-                    </a>.
-                </p>
-                <p>
-                    The source code of this program may be obtained from&nbsp;
-                    <a target="_blank" href={repository_url}>{repository_url}</a>.
-                </p>
+                <ol>
+                    <li>
+                        The origin of this software must not be misrepresented; you must not
+                        claim that you wrote the original software. If you use this software
+                        in a product, an acknowledgment in the product documentation would be
+                        appreciated but is not required.
+                    </li>
+                    <li>
+                        Altered source versions must be plainly marked as such, and must not be
+                        misrepresented as being the original software.
+                    </li>
+                    <li>
+                        This notice may not be removed or altered from any source distribution.
+                    </li>
+                </ol>
                 <button onClick={this.props.onClose}>Close</button>
             </div>
         </Window>;
