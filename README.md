@@ -28,9 +28,11 @@ $ npm run build-files
 
 Running
 -------
-To run the client or editor, serve the `/public` directory using your webserver of choice, or if you want to get up and running quickly, download [Caddy][1] and run the executable straight out of the root directory of this repository.
+To run the client or editor, serve the `/public` directory using your webserver of choice, or if you want to get up and running quickly, you can use the built-in webserver by running the `webserver` task:
 
-[1]: https://caddyserver.com/
+```
+npm run webserver
+```
 
 You can run the game server like this:
 
@@ -40,11 +42,11 @@ $ npm run server
 
 License
 -------
-This project is licensed under the [zlib/libpng][2] license:
+This project is licensed under the [zlib/libpng][1] license:
 
 > rock3d.js: A 3D game engine for making retro FPS games
 >
-> Copyright (C) 2018 Alex Mayfield <alexmax2742@gmail.com>
+> Copyright &copy; 2018 Alex Mayfield <alexmax2742@gmail.com>
 > 
 > This software is provided 'as-is', without any express or implied
 > warranty.  In no event will the authors be held liable for any damages
@@ -64,18 +66,20 @@ This project is licensed under the [zlib/libpng][2] license:
 
 The following is a list of runtime dependencies and their licenses:
 
-* content-type: [MIT][3]
-* earcut: [ISC][4]
-* gl-matrix: [MIT][3]
-* react: [MIT][3]
-* react-dom: [MIT][3]
-* ws: [MIT][3]
+| npm package  | License  |
+| ------------ | -------- |
+| content-type | [MIT][2] |
+| earcut       | [ISC][3] |
+| gl-matrix    | [MIT][2] |
+| react        | [MIT][2] |
+| react-dom    | [MIT][2] |
+| ws           | [MIT][2] |
 
-[2]: https://opensource.org/licenses/Zlib
-[3]: https://opensource.org/licenses/MIT
-[4]: https://opensource.org/licenses/ISC
+[1]: https://opensource.org/licenses/Zlib
+[2]: https://opensource.org/licenses/MIT
+[3]: https://opensource.org/licenses/ISC
 
-This repository contains graphical and sound assets courtesy of the [Freedoom][5] project for demonstration purposes.  These assets are under the [3-clause BSD license][6].
+This repository contains graphical and sound assets courtesy of the [Freedoom][4] project, and are provided under their original [3-clause BSD license][5].  These assets are for demonstration purposes and are not necessary for the proper functioning of the engine if you use your own assets instead.
 
-[5]: https://freedoom.github.io/
-[6]: https://opensource.org/licenses/BSD-3-Clause
+[4]: https://freedoom.github.io/
+[5]: https://opensource.org/licenses/BSD-3-Clause
