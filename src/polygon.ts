@@ -25,9 +25,9 @@ import { vec2, vec3 } from 'gl-matrix';
 import {
     Edge, assertSerializedEdge, MutableEdge, SerializedEdge, unserializeEdge
 } from './edge';
-import { isThreeTuple, objectHasKey, isObject } from './util';
+import { isThreeTuple, objectHasKey, isObject, Mutable, Immutable } from './util';
 
-export interface MutablePolygon {
+export type MutablePolygon = Mutable<{
     /**
      * Edges of polygon, as ID's.
      */
@@ -72,19 +72,14 @@ export interface MutablePolygon {
      * Tessellation index cache for ceiling.
      */
     ceilIndsCache: number[];
-
-    /**
-     * Prevents accidental mutation of Polygon.
-     */
-    __mutable: true;
-}
+}>;
 
 /**
  * A Polygon.
  *
  * Represents a room in the level.
  */
-export type Polygon = Omit<Readonly<MutablePolygon>, "__mutable">;
+export type Polygon = Immutable<MutablePolygon>;
 
 /**
  * Cache a tessellation of the floor and ceiling.

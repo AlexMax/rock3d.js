@@ -20,6 +20,26 @@
  */
 
 /**
+ * A explicitly mutable type that won't accept Immutable types.
+ * 
+ * Any Mutable object should be constructed without the __mutable property
+ * by using a type assertion.
+ */
+export type Mutable<T> = T & {
+    /**
+     * This property is fake and doesn't actually exist.
+     */
+    __mutable: true
+};
+
+/**
+ * Turn a Mutable type Immutable.
+ * 
+ * Immutable types cannot be passed to functions that want Mutable types.
+ */
+export type Immutable<T> = Omit<Readonly<T>, "__mutable">;
+
+/**
  * Generate a function that detects membership in an enum.
  * 
  * Thanks to AnyhowStep https://stackoverflow.com/a/60032219/91642 for his help.

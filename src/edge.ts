@@ -21,12 +21,12 @@
 
 import { vec2 } from 'gl-matrix';
 
-import { isTwoTuple, objectHasKey, isObject } from './util';
+import { isTwoTuple, objectHasKey, isObject, Mutable, Immutable } from './util';
 
 /**
  * An Edge that we can modify.
  */
-export interface MutableEdge {
+export type MutableEdge = Mutable<{
     /**
      * First vertex of the edge.
      */
@@ -74,19 +74,14 @@ export interface MutableEdge {
      * is moved.
      */
     normalCache?: vec2;
-
-    /**
-     * Prevents accidental mutation of Edge.
-     */
-    __mutable: true;
-}
+}>;
 
 /**
  * An edge of a Polygon.
  *
  * Can either be a solid or a "portal" to another Polygon.
  */
-export type Edge = Omit<Readonly<MutableEdge>, "__mutable">;
+export type Edge = Immutable<MutableEdge>;
 
 /**
  * Cache normal vector of edge.

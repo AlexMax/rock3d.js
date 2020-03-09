@@ -33,23 +33,33 @@ import {
     cacheTessellation, assertSerializedPolygon, Polygon, SerializedPolygon,
     unserializePolygon
 } from './polygon';
-import { objectHasKey, isObject } from './util';
+import { objectHasKey, isObject, Mutable, Immutable } from './util';
 import { EntityConfig, entityTop, entityBottom } from './entityConfig';
 
 /**
  * Mutable version of Level.
  */
-export interface MutableLevel {
+export type MutableLevel = Mutable<{
+    /**
+     * All polygons in the level data.
+     */
     polygons: Polygon[];
+
+    /**
+     * All edges in the level data.
+     */
     edges: Edge[];
+
+    /**
+     * All locations in the level data.
+     */
     locations: Location[];
-    __mutable: true;
-}
+}>;
 
 /**
  * A Level contains all loaded level data.
  */
-export type Level = Omit<Readonly<MutableLevel>, "__mutable">;
+export type Level = Immutable<MutableLevel>;
 
 /**
  * Create an empty Level structure.

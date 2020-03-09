@@ -19,6 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+import { Mutable, Immutable } from "./util";
+
 export enum Axis { 
     Pitch,
     Yaw,
@@ -34,7 +36,7 @@ export enum Button {
     Use,
 }
 
-export interface MutableInput {
+export type MutableInput = Mutable<{
     /**
      * Newly-pressed buttons as a bitfield.
      */
@@ -54,14 +56,9 @@ export interface MutableInput {
      * Current yaw axis.
      */
     yaw: number;
+}>
 
-    /**
-     * Prevents accidental mutation of Input.
-     */
-    __mutable: true;
-}
-
-export type Input = Omit<Readonly<MutableInput>, "__mutable">;
+export type Input = Immutable<MutableInput>;
 
 export enum CommandTypes {
     /**

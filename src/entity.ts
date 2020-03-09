@@ -31,11 +31,12 @@ import {
     getEntityConfig, EntityConfig, States, isValidState, entityBottom,
     entityTop
 } from './entityConfig';
+import { Mutable, Immutable } from './util';
 
 /**
  * A mutable Entity.
  */
-export interface MutableEntity {
+export type MutableEntity = Mutable<{
     /**
      * Static config of entity.
      */
@@ -70,18 +71,13 @@ export interface MutableEntity {
      * Velocity.
      */
     velocity: vec3;
-
-    /**
-     * Prevents accidental mutation of Entity.
-     */
-    __mutable: true;
-}
+}>;
 
 /**
  * An entity is an in-game object represented by a sprite that is not
  * considered part of the geometry of the level.
  */
-export type Entity = Omit<Readonly<MutableEntity>, "__mutable">;
+export type Entity = Immutable<MutableEntity>;
 
 export const cloneEntity = (entity: Entity): MutableEntity => {
     return {

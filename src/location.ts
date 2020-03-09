@@ -21,9 +21,9 @@
 
 import { quat, vec3 } from 'gl-matrix';
 
-import { isObject, isThreeTuple } from './util';
+import { isObject, isThreeTuple, Mutable, Immutable } from './util';
 
-export interface MutableLocation {
+export type MutableLocation = Mutable<{
     /**
      * Type of location, as a string.
      */
@@ -48,12 +48,7 @@ export interface MutableLocation {
      * Rotation of the location.
      */
     rotation: Readonly<quat>;
-
-    /**
-     * Prevents accidental mutation of Location.
-     */
-    __mutable: true;
-}
+}>;
 
 /**
  * A Location.
@@ -61,7 +56,7 @@ export interface MutableLocation {
  * Represents a single point in the level.  It could be an Entity spawner
  * or some other type of vertex-driven data.
  */
-export type Location = Omit<Readonly<MutableLocation>, "__mutable">;
+export type Location = Immutable<MutableLocation>;
 
 export interface SerializedLocation {
     type: string;
