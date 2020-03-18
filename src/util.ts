@@ -169,3 +169,76 @@ export function isFourTuple(
     return true;
 }
 
+/**
+ * Create a "swizzled" view of a numeric array.
+ * 
+ * This function returns a proxy that exposes a mixed-up view of the original
+ * array.  Getting and setting operations are passed through to the original
+ * array, but the indexes read to and written from are changed according
+ * to the swizzle indexes in the second parameter.
+ * 
+ * @param a Array to swizzle.
+ * @param i Array indexes to use instead of the defaults.
+ */
+export const swizzle: {
+    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number]): [number, number];
+    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number, number]): [number, number, number];
+    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number, number, number]): [number, number, number, number];
+} = (a: any, i: any) => {
+    return new Proxy(a, {
+        get: (target, property, receiver) => {
+            // Symbols are always deferred.
+            if (typeof property === 'symbol') {
+                return Reflect.get(target, property, receiver);
+            }
+
+            // Try and parse a number and if we can't, then we're trying to
+            // access a string property and need to do further chicanery.
+            const nprop = typeof property === 'number' ?
+                property : parseInt(property);
+            if (isNaN(nprop)) {
+                // Array length is the swizzled length, not the original.
+                if (property === 'length') {
+                    return i.length;
+                }
+
+                // This is safer than silently deferring.
+                throw new Error(`Unhandled swizzled property ${property}`);
+
+                // Uncomment this when you have a reasonable expectation
+                // that all corner cases are being handled.
+                // return Reflect.get(target, property, receiver);
+            }
+
+            // Swizzle according to our index in the array.
+            return target[i[nprop]];
+        },
+        set: (target, property, value): boolean => {
+            // Symbols are always errors.
+            if (typeof property === 'symbol') {
+                // Do not set arbitrary properties.  The proxy is a view
+                // of an underlying array, and it really doesn't make sense
+                // to mutate either the proxy itself or the underlying array
+                // through the proxy except in a few very obvious and very
+                // specific ways.
+                return false;
+            }
+
+            // Try and parse a number and if we can't, error.
+            const nprop = typeof property === 'number' ?
+                property : parseInt(property);
+            if (isNaN(nprop)) {
+                // Do not set arbitrary properties, same reasoning as above.
+                return false;
+            }
+
+            // Swizzle according to our index in the array.
+            if (nprop < 0 || nprop >= i.length) {
+                // Do not set out of bounds swizzle indexes.
+                return false;
+            }
+            target[i[nprop]] = value;
+            return true;
+        }
+    });
+}
