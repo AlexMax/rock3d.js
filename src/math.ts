@@ -19,7 +19,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-import { ArrayTypes, glMatrix, quat, vec2, vec3, vec4 } from 'gl-matrix';
+import {
+    glMatrix, quat, ReadonlyQuat, vec2, ReadonlyVec2, vec3, ReadonlyVec3, vec4
+} from 'gl-matrix';
 
 /**
  * Polar coordinates as radius, angle (in radians) pair.
@@ -399,7 +401,11 @@ export const quatToEuler = (out: vec3, q: quat): vec3 => {
  * @param out Output array.
  * @param a Input array.
  */
-export const quantize = <T extends ArrayTypes>(out: T, a: Readonly<T>): T => {
+ export const quantize: {
+    (out: vec2, a: ReadonlyVec2): vec2
+    (out: vec3, a: ReadonlyVec3): vec3
+    (out: quat, a: ReadonlyQuat): quat
+ } = (out: any, a: any) => {
     for (let i = 0;i < a.length;i++) {
         if (glMatrix.equals(a[i], 0.0)) {
             out[i] = 0;

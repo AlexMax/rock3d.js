@@ -169,6 +169,8 @@ export function isFourTuple(
     return true;
 }
 
+type SwizzleArrayTypes = number[] | readonly number[] | Float32Array;
+
 /**
  * Create a "swizzled" view of a numeric array.
  * 
@@ -181,9 +183,9 @@ export function isFourTuple(
  * @param i Array indexes to use instead of the defaults.
  */
 export const swizzle: {
-    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number]): [number, number];
-    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number, number]): [number, number, number];
-    (a: number[] | Float32Array | Readonly<Float32Array>, i: [number, number, number, number]): [number, number, number, number];
+    (a: SwizzleArrayTypes, i: [number, number]): [number, number];
+    (a: SwizzleArrayTypes, i: [number, number, number]): [number, number, number];
+    (a: SwizzleArrayTypes, i: [number, number, number, number]): [number, number, number, number];
 } = (a: any, i: any) => {
     return new Proxy(a, {
         get: (target, property, receiver) => {

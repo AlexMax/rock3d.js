@@ -24,6 +24,7 @@ import { mat3, vec2 } from "gl-matrix";
 import { Camera, cameraGetViewMatrix } from './camera';
 import { Level } from '../level';
 import { Edge } from "../edge";
+import { swizzle } from "../util";
 
 const renderColors = {
     background: "rgb(0, 0, 0)",
@@ -61,7 +62,7 @@ const drawLocation = (
 
     // Calculate circle location.
     const c = vec2.create();
-    vec2.transformMat3(c, location.position, camera);
+    vec2.transformMat3(c, swizzle(location.position, [0, 1]), camera);
     vec2.transformMat3(c, c, projection);
 
     // Calculate circle radius.

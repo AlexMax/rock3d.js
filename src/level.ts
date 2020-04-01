@@ -33,7 +33,7 @@ import {
     cacheTessellation, assertSerializedPolygon, Polygon, SerializedPolygon,
     unserializePolygon
 } from './polygon';
-import { objectHasKey, isObject, Mutable, Immutable } from './util';
+import { objectHasKey, isObject, Mutable, Immutable, swizzle } from './util';
 import { EntityConfig, entityTop, entityBottom } from './entityConfig';
 
 /**
@@ -579,12 +579,14 @@ export const entityTouchesLevel = (
         for (const edgeID of poly.edgeIDs) {
             const edge = level.edges[edgeID];
             if (circleTouchesLine(
-                touchPos, edge.vertex, edge.nextVertex, newPos, config.radius
+                touchPos, edge.vertex, edge.nextVertex, swizzle(newPos, [0, 1]), config.radius
             ) !== null) {
                 // Discard touches that are aligned with the normal.  You
                 // need to be able to walk through the back side of a wall,
                 // lest collisions at corners become more complicated.
-                if (vec2.dot(velocity, edge.normalCache as vec2) > 0) {
+                if (vec2.dot(
+                    swizzle(velocity, [0, 1]), swizzle(edge.normalCache as vec2, [0, 1])
+                ) > 0) {
                     continue;
                 }
 

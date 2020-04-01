@@ -31,7 +31,7 @@ import {
     getEntityConfig, EntityConfig, States, isValidState, entityBottom,
     entityTop
 } from './entityConfig';
-import { Mutable, Immutable } from './util';
+import { Mutable, Immutable, swizzle } from './util';
 
 /**
  * A mutable Entity.
@@ -231,9 +231,10 @@ const applyPartialVelocity = (
     const newPos = vec3.add(
         vec3.create(), entity.position, velocity
     );
+    const newPosXY = swizzle(newPos, [0, 1]);
 
     // Find out which polygon this new position is inside.
-    let newPolygon = findPolygon(level, entity.polygon, newPos);
+    let newPolygon = findPolygon(level, entity.polygon, newPosXY);
 
     // Collide the new position with the level.
     let hitDest = entityTouchesLevel(
@@ -255,8 +256,8 @@ const applyPartialVelocity = (
         );
         vec2.normalize(normal, normal);
         vec2.scale(normal, normal, entity.config.radius);
-        vec2.add(newPos, hitDest.position, normal);
-        newPolygon = findPolygon(level, entity.polygon, newPos);
+        vec2.add(newPosXY, hitDest.position, normal);
+        newPolygon = findPolygon(level, entity.polygon, newPosXY);
 
         // Test sliding collision.
         hitDest = entityTouchesLevel(
@@ -270,8 +271,8 @@ const applyPartialVelocity = (
             );
             vec2.normalize(normal, normal);
             vec2.scale(normal, normal, entity.config.radius);
-            vec2.add(newPos, hitDest.position, normal);
-            newPolygon = findPolygon(level, entity.polygon, newPos);
+            vec2.add(newPosXY, hitDest.position, normal);
+            newPolygon = findPolygon(level, entity.polygon, newPosXY);
 
             // Test corner collision.
             hitDest = entityTouchesLevel(
@@ -279,7 +280,7 @@ const applyPartialVelocity = (
             );
             if (isTouchEdge(hitDest)) {
                 // Stop the move completely.
-                vec2.copy(newPos, entity.position);
+                vec2.copy(newPosXY, swizzle(entity.position, [0, 1]));
                 newPolygon = entity.polygon;
             }
         }
@@ -307,7 +308,7 @@ const applyPartialVelocity = (
 
     if (isTouchVoid(hitDest)) {
         // We ended up in the void, undo whatever move we made.
-        vec2.copy(newPos, entity.position);
+        vec2.copy(newPosXY, swizzle(entity.position, [0, 1]));
         newPolygon = entity.polygon;
     }
 

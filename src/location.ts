@@ -19,7 +19,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-import { quat, vec3 } from 'gl-matrix';
+import { quat, ReadonlyQuat, vec3, ReadonlyVec3 } from 'gl-matrix';
 
 import { isObject, isThreeTuple, Mutable, Immutable } from './util';
 
@@ -42,12 +42,12 @@ export type MutableLocation = Mutable<{
     /**
      * Position of the location.
      */
-    position: Readonly<vec3>;
+    position: ReadonlyVec3;
 
     /**
      * Rotation of the location.
      */
-    rotation: Readonly<quat>;
+    rotation: ReadonlyQuat;
 }>;
 
 /**
